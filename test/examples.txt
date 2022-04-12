@@ -131,6 +131,26 @@
 </ol>
 
 [Markdown]
+- i. 項目i
+- ii. 項目ii
+    1. 項目ii-1
+    2. 項目ii-2
+    3. 項目ii-3
+- iii. 項目iii
+[HTML]
+<ol type="i" class="ol-lower-roman">
+<li aria-label="i">項目i</li>
+<li aria-label="ii">項目ii
+<ol class="ol-decimal">
+<li>項目ii-1</li>
+<li>項目ii-2</li>
+<li>項目ii-3</li>
+</ol>
+</li>
+<li aria-label="iii">項目iii</li>
+</ol>
+
+[Markdown]
 - ❸項目❸
 - ❹項目❹
     - ②項目❹-②
