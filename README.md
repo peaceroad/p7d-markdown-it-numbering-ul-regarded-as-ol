@@ -25,7 +25,7 @@ Notice. HTML output is still unstable.
 ## Install
 
 ```
-npm i @peacroad/markdown-it-numbering-ul-regarded-as-ol
+npm i @peaceroad/markdown-it-numbering-ul-regarded-as-ol
 ```
 
 ## Example
