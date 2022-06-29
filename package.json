@@ -1,6 +1,6 @@
 {
   "name": "@peaceroad/markdown-it-numbering-ul-regarded-as-ol",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "This markdown-it plugin regard ul element with numbering lists as ol element.",
   "main": "index.js",
   "scripts": {

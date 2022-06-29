@@ -3,35 +3,49 @@ const fs = require('fs');
 const md = require('markdown-it')();
 const mdNumUl = require('../index.js');
 
-md.use(mdNumUl);
+md.use(mdNumUl, {
+  describeListNumber: false,
+  unsetListRole: false,
+});
 
-const example = __dirname + '/examples.txt';
-const mdPath = __dirname + '/examples.md';
-const exampleCont = fs.readFileSync(example, 'utf-8').trim();
+const md2 = require('markdown-it')();
+md2.use(mdNumUl, {
+  listNumberTitleLang: 'ja',
+});
+
+let example = __dirname + '/examples.txt';
+let mdPath = __dirname + '/examples.md';
+
 let ms = [];
-let ms0 = exampleCont.split(/\n*\[Markdown\]\n/);
-let n = 1;
-while (n < ms0.length) {
-  let mhs = ms0[n].split(/\n+\[HTML[^\]]*?\]\n/);
-  let i = 1;
-  while (i < 2) {
-    if (mhs[i] === undefined) {
-      mhs[i] = '';
-    } else {
-      mhs[i] = mhs[i].replace(/$/,'\n');
+const setMs = (example, ms) => {
+  let exampleCont = fs.readFileSync(example, 'utf-8').trim();
+  let ms0 = exampleCont.split(/\n*\[Markdown\]\n/);
+  let n = 1;
+  while (n < ms0.length) {
+    let mhs = ms0[n].split(/\n+\[HTML[^\]]*?\]\n/);
+    let i = 1;
+    while (i < 2) {
+      if (mhs[i] === undefined) {
+        mhs[i] = '';
+      } else {
+        mhs[i] = mhs[i].replace(/$/,'\n');
+      }
+      i++;
     }
-    i++;
+    ms[n] = {
+      "markdown": mhs[0],
+      "html": mhs[1],
+    };
+    n++;
   }
-  ms[n] = {
-    "markdown": mhs[0],
-    "html": mhs[1],
-  };
-  n++;
-}
+  return;
+};
 
-n = 1;
+setMs(example, ms);
+
+let n = 1;
 while(n < ms.length) {
-  //if (n >= 14) { n++; continue };
+  //if (n >= 5) { n++; continue };
   console.log('Test: ' + n + ' >>>');
   //console.log(ms[n].markdown);
 
@@ -45,3 +59,26 @@ while(n < ms.length) {
   };
   n++;
 }
+
+example = __dirname + '/examples-spantitle.txt';
+ms = [];
+setMs(example, ms);
+
+n = 1;
+while(n < ms.length) {
+  //if (n >= 5) { n++; continue };
+  console.log('Test: ' + n + ' >>>');
+  //console.log(ms[n].markdown);
+
+  const m = ms[n].markdown;
+  const h = md2.render(m);
+  try {
+    assert.strictEqual(h, ms[n].html);
+  } catch(e) {
+    console.log('incorrect: ');
+    console.log('H: ' + h +'C: ' + ms[n].html);
+  };
+  n++;
+}
+
+

@@ -38,9 +38,9 @@
 - iii. c
 [HTML]
 <ol type="i" class="ol-lower-roman">
-<li><span class="list-num" title="項目番号">i<span class="list-num-joint">.</span></span> a</li>
-<li><span class="list-num" title="項目番号">ii<span class="list-num-joint">.</span></span> b</li>
-<li><span class="list-num" title="項目番号">iii<span class="list-num-joint">.</span></span> c</li>
+<li><span class="li-num">i<span class="li-num-joint">.</span></span> a</li>
+<li><span class="li-num">ii<span class="li-num-joint">.</span></span> b</li>
+<li><span class="li-num">iii<span class="li-num-joint">.</span></span> c</li>
 </ol>
 
 [Markdown]
@@ -60,9 +60,9 @@
 - ❸ c
 [HTML]
 <ol class="ol-filled-circled-decimal">
-<li><span class="list-num" title="項目番号">❶</span> a</li>
-<li><span class="list-num" title="項目番号">❷</span> b</li>
-<li><span class="list-num" title="項目番号">❸</span> c</li>
+<li><span class="li-num">❶</span> a</li>
+<li><span class="li-num">❷</span> b</li>
+<li><span class="li-num">❸</span> c</li>
 </ol>
 
 [Markdown]
@@ -82,9 +82,9 @@
 - ④ c
 [HTML]
 <ol start="2" class="ol-circled-decimal">
-<li><span class="list-num" title="項目番号">②</span> a</li>
-<li><span class="list-num" title="項目番号">③</span> b</li>
-<li><span class="list-num" title="項目番号">④</span> c</li>
+<li><span class="li-num">②</span> a</li>
+<li><span class="li-num">③</span> b</li>
+<li><span class="li-num">④</span> c</li>
 </ol>
 
 [Markdown]
@@ -93,9 +93,9 @@
 - (4). c
 [HTML]
 <ol start="2" class="ol-decimal-with-round-round">
-<li><span class="list-num" title="項目番号">(2)</span> a</li>
-<li><span class="list-num" title="項目番号">(3)</span> b</li>
-<li><span class="list-num" title="項目番号">(4)</span> c</li>
+<li><span class="li-num">(2)</span> a</li>
+<li><span class="li-num">(3)</span> b</li>
+<li><span class="li-num">(4)</span> c</li>
 </ol>
 
 [Markdown]
@@ -104,9 +104,9 @@
 - 4). c
 [HTML]
 <ol start="2" class="ol-decimal-with-none-round">
-<li><span class="list-num" title="項目番号">2)</span> a</li>
-<li><span class="list-num" title="項目番号">3)</span> b</li>
-<li><span class="list-num" title="項目番号">4)</span> c</li>
+<li><span class="li-num">2)</span> a</li>
+<li><span class="li-num">3)</span> b</li>
+<li><span class="li-num">4)</span> c</li>
 </ol>
 
 
@@ -122,9 +122,9 @@
 <li>項目1</li>
 <li>項目2
 <ol type="i" class="ol-lower-roman">
-<li><span class="list-num" title="項目番号">i<span class="list-num-joint">.</span></span> 項目2-i</li>
-<li><span class="list-num" title="項目番号">ii<span class="list-num-joint">.</span></span> 項目2-ii</li>
-<li><span class="list-num" title="項目番号">iii<span class="list-num-joint">.</span></span> 項目2-iii</li>
+<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目2-i</li>
+<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目2-ii</li>
+<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目2-iii</li>
 </ol>
 </li>
 <li>項目3</li>
@@ -139,15 +139,15 @@
 - iii. 項目iii
 [HTML]
 <ol type="i" class="ol-lower-roman">
-<li><span class="list-num" title="項目番号">i<span class="list-num-joint">.</span></span> 項目i</li>
-<li><span class="list-num" title="項目番号">ii<span class="list-num-joint">.</span></span> 項目ii
+<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目i</li>
+<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目ii
 <ol class="ol-decimal">
 <li>項目ii-1</li>
 <li>項目ii-2</li>
 <li>項目ii-3</li>
 </ol>
 </li>
-<li><span class="list-num" title="項目番号">iii<span class="list-num-joint">.</span></span> 項目iii</li>
+<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目iii</li>
 </ol>
 
 [Markdown]
@@ -159,15 +159,15 @@
 - ❺ 項目❺
 [HTML]
 <ol start="3" class="ol-filled-circled-decimal">
-<li><span class="list-num" title="項目番号">❸</span> 項目❸</li>
-<li><span class="list-num" title="項目番号">❹</span> 項目❹
+<li><span class="li-num">❸</span> 項目❸</li>
+<li><span class="li-num">❹</span> 項目❹
 <ol start="2" class="ol-circled-decimal">
-<li><span class="list-num" title="項目番号">②</span> 項目❹-②</li>
-<li><span class="list-num" title="項目番号">③</span> 項目❹-③</li>
-<li><span class="list-num" title="項目番号">④</span> 項目❹-④</li>
+<li><span class="li-num">②</span> 項目❹-②</li>
+<li><span class="li-num">③</span> 項目❹-③</li>
+<li><span class="li-num">④</span> 項目❹-④</li>
 </ol>
 </li>
-<li><span class="list-num" title="項目番号">❺</span> 項目❺</li>
+<li><span class="li-num">❺</span> 項目❺</li>
 </ol>
 
 [Markdown]
@@ -185,15 +185,15 @@
 <li>項目1</li>
 <li>項目2
 <ol type="i" class="ol-lower-roman">
-<li><span class="list-num" title="項目番号">i<span class="list-num-joint">.</span></span> 項目2-i</li>
-<li><span class="list-num" title="項目番号">ii<span class="list-num-joint">.</span></span> 項目2-ii
+<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目2-i</li>
+<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目2-ii
 <ol type="a" class="ol-lower-latin">
-<li><span class="list-num" title="項目番号">a<span class="list-num-joint">.</span></span> 項目2-ii-a</li>
-<li><span class="list-num" title="項目番号">b<span class="list-num-joint">.</span></span> 項目2-ii-b</li>
-<li><span class="list-num" title="項目番号">c<span class="list-num-joint">.</span></span> 項目2-ii-c</li>
+<li><span class="li-num">a<span class="li-num-joint">.</span></span> 項目2-ii-a</li>
+<li><span class="li-num">b<span class="li-num-joint">.</span></span> 項目2-ii-b</li>
+<li><span class="li-num">c<span class="li-num-joint">.</span></span> 項目2-ii-c</li>
 </ol>
 </li>
-<li><span class="list-num" title="項目番号">iii<span class="list-num-joint">.</span></span> 項目2-iii</li>
+<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目2-iii</li>
 </ol>
 </li>
 <li>項目3</li>
