@@ -10,8 +10,11 @@ md.use(mdNumUl, {
 
 const md2 = require('markdown-it')();
 md2.use(mdNumUl, {
-  listNumberTitleLang: 'ja',
+  omitTypeNumber: false,
 });
+
+const md3 = require('markdown-it')();
+md3.use(mdNumUl);
 
 let example = __dirname + '/examples.txt';
 let mdPath = __dirname + '/examples.md';
@@ -81,4 +84,23 @@ while(n < ms.length) {
   n++;
 }
 
+example = __dirname + '/examples-spantitle-omit-typeNumber.txt';
+ms = [];
+setMs(example, ms);
 
+n = 1;
+while(n < ms.length) {
+  //if (n >= 5) { n++; continue };
+  console.log('Test: ' + n + ' >>>');
+  //console.log(ms[n].markdown);
+
+  const m = ms[n].markdown;
+  const h = md3.render(m);
+  try {
+    assert.strictEqual(h, ms[n].html);
+  } catch(e) {
+    console.log('incorrect: ');
+    console.log('H: ' + h +'C: ' + ms[n].html);
+  };
+  n++;
+}

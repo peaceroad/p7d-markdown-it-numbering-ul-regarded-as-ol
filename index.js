@@ -6,8 +6,10 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
     //noChangeBulletOneOrderedList: true,
     unsetListRole: true,
     describeListNumber: true,
+    omitTypeNumber: true,
     desdribelistNumterTitle: false,
     listNumberTitleLang: 'en',
+
   };
   if (option !== undefined) {
     for (let o in option) {
@@ -362,7 +364,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
 
         //Set list num span element.
         if (opt.describeListNumber) {
-          
           const listNumBeforeToken = new state.Token('text', '', 0);
           const listNumOpenToken = new state.Token('span_open', 'span', 1);
           listNumOpenToken.attrSet('class', 'li-num');
@@ -383,23 +384,36 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
           listNumJointContToken.content = list.flows[lfn].symbols[sn].joint.replace(/ *$/, '');
           const listNumJointCloseToken = new state.Token('span_close', 'span', -1);
 
-          //console.log(state.tokens[cn+2]);
-          if (list.flows[lfn].symbols[sn].typesNum !== 0 || list.flows[lfn].symbols[sn].prefix || list.flows[lfn].symbols[sn].suffix) {
+
+          let otn = 0;
+          let isOlTypes = false;
+          while (otn < olTypes.length) {
+            isOlTypes = types[list.flows[lfn].symbols[sn].typesNum].name === olTypes[otn][1] && !list.flows[lfn].symbols[sn].prefix && !list.flows[lfn].symbols[sn].suffix;
+            if (isOlTypes) break;
+            otn++;
+          }
+          if (opt.omitTypeNumber && isOlTypes) {
+            state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, '');
+            state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, '');
+          } else {
+
+            //console.log(state.tokens[cn+2]);
+            if (list.flows[lfn].symbols[sn].typesNum !== 0 || list.flows[lfn].symbols[sn].prefix || list.flows[lfn].symbols[sn].suffix) {
             //console.log(state.tokens[cn+2]);
 
-            state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, ' ');
-            state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, ' ');
+              state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, ' ');
+              state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, ' ');
 
-
-            //console.log(list.flows[lfn].symbols[sn])
-            if (/\. */.test(list.flows[lfn].symbols[sn].joint)) {
-              if (/\)/.test(list.flows[lfn].symbols[sn].suffix)) {
-                state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken);
+              //console.log(list.flows[lfn].symbols[sn])
+              if (/\. */.test(list.flows[lfn].symbols[sn].joint)) {
+                if (/\)/.test(list.flows[lfn].symbols[sn].suffix)) {
+                  state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken);
+                } else {
+                state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumJointOpenToken, listNumJointContToken,listNumJointCloseToken, listNumCloseToken);
+               }
               } else {
-              state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumJointOpenToken, listNumJointContToken,listNumJointCloseToken, listNumCloseToken);
+                state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken);
               }
-            } else {
-              state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken);
             }
           }
 

@@ -12,7 +12,17 @@ Input Markdown:
 
 Output HTML:
 
+```html
+<ol type="i" class="ol-lower-roman">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
 ```
+
+Using Option `omitTypeNumber: false` output HTML:
+
+```html
 <ol type="i" class="ol-lower-roman">
 <li><span class="li-num">i<span class="li-num-joint">.</span></span> a</li>
 <li><span class="li-num">ii<span class="li-num-joint">.</span></span> b</li>
