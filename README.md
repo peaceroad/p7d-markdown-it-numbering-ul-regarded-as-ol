@@ -108,9 +108,9 @@ md.use(mdNumUl, {
 - iii. c
 [HTML]
 <ol type="i" class="ol-lower-roman">
-<li><span class="li-num">i<span class="li-num-joint">.</span></span> a</li>
-<li><span class="li-num">ii<span class="li-num-joint">.</span></span> b</li>
-<li><span class="li-num">iii<span class="li-num-joint">.</span></span> c</li>
+<li>a</li>
+<li>b</li>
+<li>c</li>
 </ol>
 
 [Markdown]
@@ -192,9 +192,9 @@ md.use(mdNumUl, {
 <li>項目1</li>
 <li>項目2
 <ol type="i" class="ol-lower-roman">
-<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目2-i</li>
-<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目2-ii</li>
-<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目2-iii</li>
+<li>項目2-i</li>
+<li>項目2-ii</li>
+<li>項目2-iii</li>
 </ol>
 </li>
 <li>項目3</li>
@@ -209,15 +209,15 @@ md.use(mdNumUl, {
 - iii. 項目iii
 [HTML]
 <ol type="i" class="ol-lower-roman">
-<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目i</li>
-<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目ii
+<li>項目i</li>
+<li>項目ii
 <ol class="ol-decimal">
 <li>項目ii-1</li>
 <li>項目ii-2</li>
 <li>項目ii-3</li>
 </ol>
 </li>
-<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目iii</li>
+<li>項目iii</li>
 </ol>
 
 [Markdown]
@@ -255,17 +255,18 @@ md.use(mdNumUl, {
 <li>項目1</li>
 <li>項目2
 <ol type="i" class="ol-lower-roman">
-<li><span class="li-num">i<span class="li-num-joint">.</span></span> 項目2-i</li>
-<li><span class="li-num">ii<span class="li-num-joint">.</span></span> 項目2-ii
+<li>項目2-i</li>
+<li>項目2-ii
 <ol type="a" class="ol-lower-latin">
-<li><span class="li-num">a<span class="li-num-joint">.</span></span> 項目2-ii-a</li>
-<li><span class="li-num">b<span class="li-num-joint">.</span></span> 項目2-ii-b</li>
-<li><span class="li-num">c<span class="li-num-joint">.</span></span> 項目2-ii-c</li>
+<li>項目2-ii-a</li>
+<li>項目2-ii-b</li>
+<li>項目2-ii-c</li>
 </ol>
 </li>
-<li><span class="li-num">iii<span class="li-num-joint">.</span></span> 項目2-iii</li>
+<li>項目2-iii</li>
 </ol>
 </li>
 <li>項目3</li>
 </ol>
+
 ```
