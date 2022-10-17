@@ -5,7 +5,7 @@
   "start": 0,
   "prefix": "[(]?",
   "suffix": "[)]?",
-  "joint": "[.] *"
+  "joint": "[.]"
 },{
   "name": "lower-latin",
   "symbolsCont": "abcdefghijklmnopqrstuvwxyz",
@@ -13,7 +13,7 @@
   "start": 1,
   "prefix": "[(]?",
   "suffix": "[)]?",
-  "joint": "[.] *"
+  "joint": "[.]"
 },{
   "name": "upper-latin",
   "symbolsCont": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
@@ -21,7 +21,7 @@
   "start": 1,
   "prefix": "[(]?",
   "suffix": "[)]?",
-  "joint": "[.] *"
+  "joint": "[.]"
 },{
   "name": "lower-roman",
   "symbolsCont": "ⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻ",
@@ -29,7 +29,7 @@
   "start": 1,
   "prefix": "[(]?",
   "suffix": "[)]?",
-  "joint": "[.] *"
+  "joint": "[.]"
 },{
   "name": "upper-roman",
   "symbolsCont": "ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫ",
@@ -37,7 +37,7 @@
   "start": 1,
   "prefix": "[(]?",
   "suffix": "[)]?",
-  "joint": "[.] *"
+  "joint": "[.]"
 },{
   "name": "filled-circled-decimal",
   "symbolsCont": "❶❷❸❹❺❻❼❽❾❿⓫⓬⓭⓮⓯⓰⓱⓲⓳⓴",
@@ -45,7 +45,7 @@
   "start": 1,
   "prefix": "",
   "suffix": "",
-  "joint": " *"
+  "joint": ""
 },{
   "name": "circled-decimal",
   "symbolsCont": "⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿",
@@ -53,5 +53,5 @@
   "start": 0,
   "prefix": "",
   "suffix": "",
-  "joint": " *"
+  "joint": ""
 }]

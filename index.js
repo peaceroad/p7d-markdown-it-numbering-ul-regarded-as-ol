@@ -54,15 +54,15 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
       }
       let hasSymbol = null;
       while (sn < types[ltn].symbols.length) {
-        hasSymbol = inlineToken.content.match(new RegExp('^'+ '((' + types[ltn].prefix + ')' + types[ltn].symbols[sn] + '(' + types[ltn].suffix + ')(' + types[ltn].joint + '))'));
+        hasSymbol = inlineToken.content.match(new RegExp('^'+ '((' + types[ltn].prefix + ')' + types[ltn].symbols[sn] + '(' + types[ltn].suffix + ')(' + types[ltn].joint + '))([ 　])+'));
         if (!hasSymbol) { sn++; continue; }
 
         symbol.typesNum = ltn;
         symbol.contAll = hasSymbol[0];
-        symbol.cont = hasSymbol[1].replace(new RegExp('(' + types[ltn].joint + ')[ 　]*$'), '');
+        symbol.cont = hasSymbol[1].replace(new RegExp('(' + types[ltn].joint + ')'), '');
         symbol.prefix = hasSymbol[2];
-        symbol.suffix = hasSymbol[3].replace(new RegExp('(' + types[ltn].joint + ')[ 　]*$'), '');
-        symbol.joint = hasSymbol[4].replace(/　*$/, '');
+        symbol.suffix = hasSymbol[3].replace(new RegExp('(' + types[ltn].joint + ')'), '');
+        symbol.joint = hasSymbol[4].replace(/^[ 　]+$/, '');
         symbol.typePos = sn;
         symbol.num = sn + types[ltn].start;
         symbols.push(symbol);
@@ -70,7 +70,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
       }
       ltn++;
     }
-    //console.log('symbols: ' + symbols);
+    //console.log('symbols: ' + JSON.stringify(symbols));
     return symbols;
   }
 
@@ -88,7 +88,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
     startFlow.type = state.tokens[n].type;
     startFlow.pos = n;
     startFlow.level = list.level;
-    startFlow.psTypes = [];
     list.flows.push(startFlow);
 
     let cn = list.nextPos;
@@ -166,7 +165,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
       const parentToken = state.tokens[list.flows[plfn].pos];
       if (parentToken.type === 'ordered_list_open' && listFlow.symbols.length === 0) {
         const liVal = cnToken.info;
-
         let decimalSymbol = {
           typesNum: 0,
           typePos: liVal, 
@@ -190,7 +188,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         list.flows[plfn].type = 'numbering_' + list.flows[plfn].type;
       }
 
-      //Set possible symbole types.
+      //Set possible symbol types.
       let sn = 0;
       while (sn < listFlow.symbols.length) {
         let plt = 0
@@ -252,11 +250,34 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
     return sn;
   }
 
+  function setOlTypes1All1(list, lfn, sn) {
+    let olTypes1All1 = true;
+    if (list.flows[lfn].typesNum !== 0) {
+      return olTypes1All1 = false;
+    }
+    let n = 0;
+    //console.log(list.flows)
+    while (n < list.flows.length) {
+      if (list.flows[n].type === 'list_item_open') {
+        //console.log(list.flows[n].symbols)
+        if (list.flows[lfn].level !== list.flows[n].level) {
+          n++; continue;
+        }
+        if (+list.flows[n].symbols[sn].cont !== 1) {
+          olTypes1All1 = false;
+          break;
+        }
+      }
+      n++
+    }
+    return olTypes1All1
+  }
+
+
   function setNumbers(state, list) {
     let lfn = 0;
     while (lfn < list.flows.length) {
       //console.log('list.flows[' + lfn + ']: '+ JSON.stringify(list.flows[lfn]));
-
       const cn = list.flows[lfn].pos;
       const isParent = list.flows[lfn].type.match(/(numbering_bullet|ordered)_list_open/);
       if (isParent) {
@@ -268,6 +289,9 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         const ptn = getParentTypeNum(list, lfn);
         list.flows[lfn].typesNum = ptn;
         const sn = getSymbolsNum(list, lfn+1, lfn);
+        const olTypes1All1 = setOlTypes1All1(list, lfn, sn);
+        list.flows[lfn].olTypes1All1 = olTypes1All1
+        //console.log(olTypes1All1)
         //Set type and role attribute.
         let isOlTypes = false;
         let isOlTypes1 = false;
@@ -280,7 +304,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
             if (!isOlTypes1) {
               state.tokens[cn].attrSet('type', olTypes[otn][0]);
             }
-
             break;
           }
           otn++;
@@ -357,7 +380,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         //Set value attribute.
         if (list.flows[lfn -1].type === 'list_item_open') {
           const psn = getSymbolsNum(list, lfn - 1, plfn);
-          if (+list.flows[lfn -1].symbols[psn].num + 1 !== +list.flows[lfn].symbols[sn].num) {
+          if (+list.flows[lfn -1].symbols[psn].num + 1 !== +list.flows[lfn].symbols[sn].num && !list.flows[plfn].olTypes1All1) {
             state.tokens[cn].attrSet('value', list.flows[lfn].symbols[sn].num);
           }
         }
@@ -445,7 +468,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
 
   function numUl (state) {
     let n = 0;
-
     //console.log(state.tokens);
     while (n < state.tokens.length) {
       const token = state.tokens[n];
@@ -471,5 +493,5 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
     return;
   }
   
-  md.core.ruler.before('linkify', 'numbering_ul', numUl);
+  md.core.ruler.after('linkify', 'numbering_ul', numUl);
 };
