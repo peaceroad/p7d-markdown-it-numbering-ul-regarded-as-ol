@@ -54,7 +54,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
       }
       let hasSymbol = null;
       while (sn < types[ltn].symbols.length) {
-        hasSymbol = inlineToken.content.match(new RegExp('^'+ '((' + types[ltn].prefix + ')' + types[ltn].symbols[sn] + '(' + types[ltn].suffix + ')(' + types[ltn].joint + '))([ 　])+'));
+        hasSymbol = inlineToken.content.match(new RegExp('^'+ '((' + types[ltn].prefix + ')' + types[ltn].symbols[sn].replace(/^\\\\/,'\\') + '(' + types[ltn].suffix + ')(' + types[ltn].joint + '))([ 　])+', 'u'));
         if (!hasSymbol) { sn++; continue; }
 
         symbol.typesNum = ltn;

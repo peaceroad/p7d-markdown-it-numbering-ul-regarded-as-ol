@@ -209,3 +209,26 @@
 <li><span class="li-num">ⓑ</span> 項目2</li>
 <li><span class="li-num">ⓒ</span> 項目3</li>
 </ol>
+
+[Markdown]
+- Ⓐ 項目1
+- Ⓑ 項目2
+- Ⓒ 項目3
+[HTML]
+<ol class="ol-circled-upper-latin">
+<li><span class="li-num">Ⓐ</span> 項目1</li>
+<li><span class="li-num">Ⓑ</span> 項目2</li>
+<li><span class="li-num">Ⓒ</span> 項目3</li>
+</ol>
+
+[Markdown]
+- 🅐 項目1
+- 🅑 項目2
+- 🅒 項目3
+[HTML]
+<ol class="ol-filled-circled-upper-latin">
+<li><span class="li-num">🅐</span> 項目1</li>
+<li><span class="li-num">🅑</span> 項目2</li>
+<li><span class="li-num">🅒</span> 項目3</li>
+</ol>
+
