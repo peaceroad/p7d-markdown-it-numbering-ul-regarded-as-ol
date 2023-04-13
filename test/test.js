@@ -69,7 +69,7 @@ setMs(example, ms);
 
 n = 1;
 while(n < ms.length) {
-  if (n !== 17) { n++; continue };
+  //if (n !== 17) { n++; continue };
   console.log('Test: ' + n + ' >>>');
   //console.log(ms[n].markdown);
 
