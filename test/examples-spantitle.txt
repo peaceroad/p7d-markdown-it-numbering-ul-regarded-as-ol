@@ -232,3 +232,58 @@
 <li><span class="li-num">🅒</span> 項目3</li>
 </ol>
 
+
+[Markdown]
+- 項目1
+- 2. 項目2
+- 項目3
+[HTML]
+<ul>
+<li>項目1</li>
+<li>
+<ol start="2" class="ol-decimal">
+<li>項目2</li>
+</ol>
+</li>
+<li>項目3</li>
+</ul>
+
+[Markdown]
+- 項目1
+- B. 項目2
+- 項目3
+[HTML]
+<ul>
+<li>項目1</li>
+<li>B. 項目2</li>
+<li>項目3</li>
+</ul>
+
+[Markdown]
+1. 項目1
+    1. 項目2
+2. 項目3
+[HTML]
+<ol class="ol-decimal">
+<li>項目1
+<ol class="ol-decimal">
+<li>項目2</li>
+</ol>
+</li>
+<li>項目3</li>
+</ol>
+
+[Markdown]
+1. 項目1
+    - 項目1-1
+3. 項目3
+[HTML]
+<ol class="ol-decimal">
+<li>項目1
+<ul>
+<li>項目1-1</li>
+</ul>
+</li>
+<li value="3">項目3</li>
+</ol>
+
