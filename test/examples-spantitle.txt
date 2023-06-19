@@ -260,6 +260,36 @@
 </ul>
 
 [Markdown]
+- A. 項目1
+- 項目2
+
+[HTML]
+<ul>
+<li>A. 項目1</li>
+<li>項目2</li>
+</ul>
+
+[Markdown]
+- 項目1
+- B. 項目2
+
+[HTML]
+<ul>
+<li>項目1</li>
+<li>B. 項目2</li>
+</ul>
+
+[Markdown]
+- A. 項目1
+- B. 項目2
+
+[HTML]
+<ol type="A" class="ol-upper-latin">
+<li><span class="li-num">A<span class="li-num-joint">.</span></span> 項目1</li>
+<li><span class="li-num">B<span class="li-num-joint">.</span></span> 項目2</li>
+</ol>
+
+[Markdown]
 1. 項目1
     1. 項目2
 2. 項目3

@@ -87,6 +87,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
     startFlow.type = state.tokens[n].type;
     startFlow.pos = n;
     startFlow.level = list.level;
+    startFlow.hasSymbol = true;
     list.flows.push(startFlow);
 
     let cn = list.nextPos;
@@ -131,6 +132,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         nestStartFlow.type = cnToken.type;
         nestStartFlow.pos = cn;
         nestStartFlow.level = list.level + 1;
+        nestStartFlow.hasSymbol = true;
         list.level++;
         nestStartFlow.psTypes = [];
         list.flows.push(nestStartFlow);
@@ -177,17 +179,21 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         list.flows[list.flows.length-1].symbols.push(decimalSymbol);
       }
 
+      //Set numbering type for parent list.
       list.nextPos = cn + 1;
+      //console.log(list.flows[plfn].hasSymbol)
       if (listFlow.symbols.length === 0) {
+        list.flows[plfn].hasSymbol = false;
         if (/^numbering_/.test(list.flows[plfn].type)) {
           list.flows[plfn].type = list.flows[plfn].type.replace(/^numbering_/, '');
         }
         cn++; continue;
-      }
-
-      //Set numbering type for parent list.
-      if (!/^numbering_/.test(list.flows[plfn].type)) {
-        list.flows[plfn].type = 'numbering_' + list.flows[plfn].type;
+      } else {
+        if (list.flows[plfn].hasSymbol) {
+            if (!/^numbering_/.test(list.flows[plfn].type)) {
+            list.flows[plfn].type = 'numbering_' + list.flows[plfn].type;
+          }
+        }
       }
 
       //Set possible symbol types.
@@ -293,7 +299,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         const olTypes1All1 = setOlTypes1All1(list, lfn, sn);
         list.flows[lfn].olTypes1All1 = olTypes1All1
         //console.log(olTypes1All1)
-        
+
         //Set type and role attribute.
         let isOlTypes = false;
         let isOlTypes1 = false;
@@ -384,8 +390,6 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         //console.log('symbols.num: ' + +list.flows[lfn].symbols[sn].num);
 
         //Set value attribute.
-        //console.log('!!Set Value' + JSON.stringify(list.flows[lfn]))
-        
         const psn = getSymbolsNum(list, lfn - 1, plfn);
         /*
         if (list.flows[lfn -1].type === 'list_item_open') {
@@ -502,6 +506,7 @@ module.exports = function numbering_ul_regarded_as_ol_plugin(md, option) {
         nextPos: n + 1,
       };
       processListToken(state, n, list);
+      //console.log(list.flows)
 
       /*
       if(!opt.noChangeBulletOneOrderedList) {
