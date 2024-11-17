@@ -3,6 +3,7 @@
   "version": "0.1.7",
   "description": "This markdown-it plugin regard ul element with numbering lists as ol element.",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "node test/test.js"
   },

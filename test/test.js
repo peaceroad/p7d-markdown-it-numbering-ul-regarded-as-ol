@@ -1,23 +1,29 @@
-const assert = require('assert');
-const fs = require('fs');
-const md = require('markdown-it')();
-const mdNumUl = require('../index.js');
+import assert from 'assert'
+import fs from 'fs'
+import path from 'path'
+import mdit from 'markdown-it'
+import mdNumUl from '../index.js'
 
-md.use(mdNumUl, {
+const md = mdit().use(mdNumUl, {
   describeListNumber: false,
   unsetListRole: false,
 });
 
-const md2 = require('markdown-it')();
-md2.use(mdNumUl, {
+
+const md2 = mdit().use(mdNumUl, {
   omitTypeNumber: false,
 });
 
-const md3 = require('markdown-it')();
-md3.use(mdNumUl);
+const md3 = mdit().use(mdNumUl);
+
+let __dirname = path.dirname(new URL(import.meta.url).pathname)
+const isWindows = (process.platform === 'win32')
+if (isWindows) {
+  __dirname = __dirname.replace(/^\/+/, '').replace(/\//g, '\\')
+}
 
 let example = __dirname + '/examples.txt';
-let mdPath = __dirname + '/examples.md';
+
 
 let ms = [];
 const setMs = (example, ms) => {
