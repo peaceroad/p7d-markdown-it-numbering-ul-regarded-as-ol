@@ -1,5 +1,12 @@
 import types from './listTypes.json' with { type: 'json' }
 
+const compiledTypes = types.map(type => ({
+    contReg: new RegExp('(' + type.joint + ')'),
+    symbolsRegex: type.symbols.map(sym =>
+        new RegExp('^' + '((' + type.prefix + ')' + sym.replace(/^\\\\/,'\\') + '(' + type.suffix + ')(' + type.joint + '))([ 　])+', 'u')
+    )
+}))
+
 const olTypes = [
   ['1', 'decimal'],
   ['a', 'lower-latin'], ['A', 'upper-latin'],
@@ -19,31 +26,32 @@ const suffixs = [
 ]
 
 const getSymbols = (state, cn) => {
-  let symbols = []
-  const inlineToken = state.tokens[cn+2]
-  let ltn = 0
-  while (ltn < types.length) {
-    let sn = 0
-    let hasSymbol = null
-    while (sn < types[ltn].symbols.length) {
-      hasSymbol = inlineToken.content.match(new RegExp('^'+ '((' + types[ltn].prefix + ')' + types[ltn].symbols[sn].replace(/^\\\\/,'\\') + '(' + types[ltn].suffix + ')(' + types[ltn].joint + '))([ 　])+', 'u'))
-      if (!hasSymbol) { sn++; continue }
-      const symbol = {
+  const tokens = state.tokens
+  const inlineToken = tokens[cn+2]
+  const inlineContent = inlineToken.content
+  const symbols = []
+  const typesLength = types.length
+  for (let ltn = 0; ltn < typesLength; ltn++) {
+    const currCompiled = compiledTypes[ltn]
+    const symArr = types[ltn].symbols
+    const symArrLength = symArr.length
+    for (let sn = 0; sn < symArrLength; sn++) {
+      const regex = currCompiled.symbolsRegex[sn]
+      const match = inlineContent.match(regex)
+      if (!match) continue
+      symbols.push({
         typesNum: ltn,
         typePos: sn,
-        contAll: hasSymbol[0],
-        cont: hasSymbol[1].replace(new RegExp('(' + types[ltn].joint + ')'), ''),
-        prefix: hasSymbol[2],
-        suffix: hasSymbol[3].replace(new RegExp('(' + types[ltn].joint + ')'), ''),
-        joint: hasSymbol[4].replace(/^[ 　]+$/, ''),
+        contAll: match[0],
+        cont: match[1].replace(currCompiled.contReg, ''),
+        prefix: match[2],
+        suffix: match[3].replace(currCompiled.contReg, ''),
+        joint: match[4].replace(/^[ 　]+$/, ''),
         num: sn + types[ltn].start,
-      }
-      symbols.push(symbol)
+      })
       break
     }
-    ltn++
   }
-  //console.log('symbols: ' + JSON.stringify(symbols))
   return symbols
 }
 
@@ -64,10 +72,11 @@ const createListToken = (state, n, list) => {
   })
   list.flows.push(startFlow)
 
+  const tokens = state.tokens
   let cn = list.nextPos
-  while (cn < state.tokens.length) {
-    const cnToken = state.tokens[cn]
-    //console.log('cn: ' + cn + ', list.level: ' + list.level + ', cnToken.type: ', cnToken.type, ', cnToken.content: ' + cnToken.content)
+  const stl = tokens.length
+  while (cn < stl) {
+    const cnToken = tokens[cn]
     const isCnListOpen = cnToken.type.match(/(bullet|ordered)_list_open/)
     const isCnListClose = cnToken.type.match(/(bullet|ordered)_list_close/)
 
@@ -75,7 +84,6 @@ const createListToken = (state, n, list) => {
       let stcn = list.flows.length - 1
       let st = {}
       while (stcn > -1) {
-        //console.log('stcn: ' + stcn + ', list.flows[stcn].type: ' + list.flows[stcn].type)
         list.nextPos = cn + 1
         st = list.flows[stcn].type.match(/(numbering_)?(?:bullet|ordered)_list_open/)
         if(st && list.level === list.flows[stcn].level) {
@@ -112,8 +120,7 @@ const createListToken = (state, n, list) => {
       })
       list.level++
       list.flows.push(nestStartFlow)
-      cn++
-      continue
+      cn++; continue
     }
 
     if (cnToken.type !== 'list_item_open') {
@@ -127,19 +134,15 @@ const createListToken = (state, n, list) => {
       symbols: getSymbols(state, cn),
     })
     list.flows.push(listFlow)
-    //console.log('listFlow:' + JSON.stringify(listFlow))
 
-    //Check parent list flow number.
-    let plfn = list.flows.length - 2
-    while (plfn > -1) {
-      if (/(?:bullet|ordered)_list_open/.test(list.flows[plfn].type) && listFlow.level === list.flows[plfn].level) {
-        break
+    let plfn = -1
+    for (let i = list.flows.length - 2; i >= 0; i--) {
+      if (/(?:bullet|ordered)_list_open/.test(list.flows[i].type) && listFlow.level === list.flows[i].level) {
+         plfn = i
+         break
       }
-      plfn--; continue
     }
-    //console.log('list.flows[plfn]: ' + JSON.stringify(list.flows[plfn]))
 
-    //Set value attribute of ordered list in listFlow.
     const parentToken = state.tokens[list.flows[plfn].pos]
     if (parentToken.type === 'ordered_list_open' && listFlow.symbols.length === 0) {
       const liVal = cnToken.info
@@ -158,7 +161,6 @@ const createListToken = (state, n, list) => {
 
     //Set numbering type for parent list.
     list.nextPos = cn + 1
-    //console.log(list.flows[plfn].hasSymbol)
     if (listFlow.symbols.length === 0) {
       list.flows[plfn].hasSymbol = false
       if (/^numbering_/.test(list.flows[plfn].type)) {
@@ -177,16 +179,16 @@ const createListToken = (state, n, list) => {
     let sn = 0
     while (sn < listFlow.symbols.length) {
       let plt = 0
-      let haslistType = false
+      let hasListType = false
       while (plt < list.flows[plfn].psTypes.length) {
         if (list.flows[plfn].psTypes[plt].num === listFlow.symbols[sn].typesNum) {
           list.flows[plfn].psTypes[plt].frequency++
-          haslistType = true
+          hasListType = true
           break
         }
         plt++
       }
-      if (list.flows[plfn].psTypes.length === 0 || !haslistType) {
+      if (list.flows[plfn].psTypes.length === 0 || !hasListType) {
           list.flows[plfn].psTypes.push({
           num: listFlow.symbols[sn].typesNum,
           frequency: 1
@@ -210,23 +212,17 @@ const getParentTypeNum = (list, lfn) => {
   return ptn
 }
 
-const getParentNum = (list, lfn) =>{
-  let plfn = lfn
-  while (plfn > -1) {
-    if (/list_open$/.test(list.flows[plfn].type) && list.flows[lfn].level === list.flows[plfn].level) {
-      break
-    }
-    plfn--
+const getParentNum = (list, lfn) => {
+  for (let i = lfn; i >= 0; i--) {
+    if (/list_open$/.test(list.flows[i].type) && list.flows[lfn].level === list.flows[i].level) return i
   }
-  return plfn
+  return -1
 }
 
 const getSymbolsNum = (list, lfn, plfn) => {
   let sn = 0
-  //console.log('list.flows[plfn].typesNum: ' + list.flows[plfn].typesNum)
   while (sn < list.flows[lfn].symbols.length) {
     if (+list.flows[lfn].symbols[sn].typesNum === +list.flows[plfn].typesNum) {
-      //console.log(sn, list.flows[plfn].typesNum)
       break
     }
     sn++
@@ -240,10 +236,8 @@ const setOlTypes1All1 = (list, lfn, sn) => {
     return olTypes1All1 = false
   }
   let n = 0
-  //console.log(list.flows)
   while (n < list.flows.length) {
     if (list.flows[n].type === 'list_item_open') {
-      //console.log(list.flows[n].symbols)
       if (list.flows[lfn].level !== list.flows[n].level) {
         n++; continue
       }
@@ -258,130 +252,98 @@ const setOlTypes1All1 = (list, lfn, sn) => {
 }
 
 const setNumbers = (state, list, opt) => {
+  const tokens = state.tokens
+  const flows = list.flows
   let lfn = 0
-  while (lfn < list.flows.length) {
-    //console.log('list.flows[' + lfn + ']: '+ JSON.stringify(list.flows[lfn]))
-    const cn = list.flows[lfn].pos
-    const isParent = list.flows[lfn].type.match(/(numbering_bullet|ordered)_list_open/)
+  while (lfn < flows.length) {
+    const curFlow = flows[lfn]
+    const cn = curFlow.pos
+    const currentToken = tokens[cn]
+    const nt = tokens[cn+2]
+    const ntChildren = nt && nt.children ? nt.children[0] : null
+    const isParent = curFlow.type.match(/(numbering_bullet|ordered)_list_open/)
     if (isParent) {
       if (isParent[1] === 'numbering_bullet') {
-        state.tokens[cn].type = 'ordered_list_open'
-        state.tokens[cn].tag = 'ol'
+        currentToken.type = 'ordered_list_open'
+        currentToken.tag = 'ol'
       }
       const ptn = getParentTypeNum(list, lfn)
-      list.flows[lfn].typesNum = ptn
-      const sn = getSymbolsNum(list, lfn+1, lfn)
-      const olTypes1All1 = setOlTypes1All1(list, lfn, sn)
-      list.flows[lfn].olTypes1All1 = olTypes1All1
-      //console.log(olTypes1All1)
+      curFlow.typesNum = ptn
+      const nextFlow = flows[lfn+1]
+      const symbolIndex = getSymbolsNum(list, lfn+1, lfn)
+      const symbolData = nextFlow.symbols[symbolIndex]
+      curFlow.olTypes1All1 = setOlTypes1All1(list, lfn, symbolIndex)
 
-      //Set type and role attribute.
-      let isOlTypes = false
-      let isOlTypes1 = false
-      let otn = 0
-      while (otn < olTypes.length) {
-        //console.log(types[ptn].name, olTypes[otn][1], olTypes[otn][0])
-        isOlTypes = types[ptn].name === olTypes[otn][1] && !list.flows[lfn+1].symbols[sn].prefix && !list.flows[lfn+1].symbols[sn].suffix
+      let isOlTypes = false, isOlTypes1 = false
+      for (let otn = 0, otlen = olTypes.length; otn < otlen; otn++) {
+        isOlTypes = types[ptn].name === olTypes[otn][1] && !symbolData.prefix && !symbolData.suffix
         isOlTypes1 = isOlTypes && +olTypes[otn][0] === 1
         if (isOlTypes) {
           if (!isOlTypes1) {
-            state.tokens[cn].attrSet('type', olTypes[otn][0])
+            currentToken.attrSet('type', olTypes[otn][0])
           }
           break
         }
-        otn++
       }
 
-      //Set start attribute.
-      if (+list.flows[lfn+1].symbols[sn].num !== 1) {
-        state.tokens[cn].attrSet('start', list.flows[lfn+1].symbols[sn].num)
-      }
+      if (+symbolData.num !== 1) currentToken.attrSet('start', symbolData.num)
+      if (!opt.unsetListRole && !isOlTypes && isParent[1] === 'numbering_bullet') currentToken.attrSet('role', 'list')
 
-      //Set role attribute.
-      if(!opt.unsetListRole && !isOlTypes && isParent[1] === 'numbering_bullet') {
-        state.tokens[cn].attrSet('role', 'list')
-      }
-
-      //Set class attribute.
       if (ptn === -1) {
-        let hasOlClass= false
-        let j = 0
-        while (j < olTypes.length) {
-          if (new RegExp(olTypes[j][0]).test(state.tokens[cn].attrGet('type'))) {
-            state.tokens[cn].attrSet('class', 'ol-' + olTypes[j][1])
+        let hasOlClass = false
+        for (let j = 0, jlen = olTypes.length; j < jlen; j++) {
+          if (new RegExp(olTypes[j][0]).test(currentToken.attrGet('type'))) {
+            currentToken.attrSet('class', 'ol-' + olTypes[j][1])
             hasOlClass = true
             break
           }
-          j++
         }
-        if (!hasOlClass) {
-          state.tokens[cn].attrSet('class', 'ol-decimal')
-        }
+        if (!hasOlClass) currentToken.attrSet('class', 'ol-decimal')
       }
 
-      if (list.flows[lfn+1].symbols[sn] !== undefined) {
+      if (symbolData !== undefined) {
         let prefixName = ''
         let suffixName = ''
-        if (list.flows[lfn+1].symbols[sn].prefix) {
-          let j = 0
-          while (j < prefixs.length) {
-            if (new RegExp('\\' + prefixs[j][0]).test(list.flows[lfn+1].symbols[sn].prefix)) {
-              prefixName = '-' + prefixs[j][1]
-              break
-            }
-            j++
+        for (let j = 0, jlen = prefixs.length; j < jlen; j++) {
+          if (symbolData.prefix && new RegExp('\\' + prefixs[j][0]).test(symbolData.prefix)) {
+            prefixName = '-' + prefixs[j][1]
+            break
           }
         }
-        if (list.flows[lfn+1].symbols[sn].suffix) {
-          let j = 0
-          while (j < prefixs.length) {
-            if (new RegExp('\\' + suffixs[j][0]).test(list.flows[lfn+1].symbols[sn].suffix)) {
+        for (let j = 0, jlen = suffixs.length; j < jlen; j++) {
+          if (symbolData.suffix && new RegExp('\\' + suffixs[j][0]).test(symbolData.suffix)) {
             suffixName = '-' + suffixs[j][1]
-              break
-            }
-            j++
+            break
           }
         }
-        if(prefixName !== '' || suffixName !== '') {
-          if (prefixName === '') { prefixName = '-none'; }
-          if (suffixName === '') { suffixName = '-none'; }
-          state.tokens[cn].attrSet('class', 'ol-' + types[list.flows[lfn+1].symbols[sn].typesNum].name + '-with' + prefixName + suffixName)
+        if (prefixName !== '' || suffixName !== '') {
+          if (prefixName === '') prefixName = '-none'
+          if (suffixName === '') suffixName = '-none'
+          currentToken.attrSet('class', 'ol-' + types[symbolData.typesNum].name + '-with' + prefixName + suffixName)
         } else {
-          state.tokens[cn].attrSet('class', 'ol-' + types[list.flows[lfn+1].symbols[sn].typesNum].name)
+          currentToken.attrSet('class', 'ol-' + types[symbolData.typesNum].name)
         }
       }
     }
 
-    // list.flows[lfn].symbols.length > 0 for bullet list.
-    if (list.flows[lfn].type === 'list_item_open' && list.flows[lfn].symbols.length) {
+    if (curFlow.type === 'list_item_open' && curFlow.symbols.length) {
       const plfn = getParentNum(list, lfn)
-      //console.log('plfn: ' + plfn + ', list.flows[pn]: ' + JSON.stringify(list.flows[plfn]))
       if (list.flows[plfn].type === 'bullet_list_open') {
         lfn++; continue
       }
-      const sn = getSymbolsNum(list, lfn, plfn)
-      //console.log('sn: ' + sn)
-      //console.log('symbols.num: ' + +list.flows[lfn].symbols[sn].num)
-
-      //Set value attribute.
+      const symbolIndex = getSymbolsNum(list, lfn, plfn)
       const psn = getSymbolsNum(list, lfn - 1, plfn)
-
-      let blfn = lfn - 1
-      while (blfn) {
-        //console.log('level[lfn]: ' + list.flows[lfn].level + ', level[blfn]: ' + list.flows[blfn].level)
-        if (list.flows[blfn].type === 'list_item_open' && list.flows[lfn].level === list.flows[blfn].level) {
-          //console.log(list.flows[blfn].symbols[psn].num +  list.flows[lfn].symbols[sn].num)
-          if (+list.flows[blfn].symbols[psn].num + 1 !== +list.flows[lfn].symbols[sn].num && !list.flows[plfn].olTypes1All1) {
-            state.tokens[cn].attrSet('value', list.flows[lfn].symbols[sn].num)
+      for (let blfn = lfn - 1; blfn >= 0; blfn--) {
+        if (flows[blfn].type === 'list_item_open' && flows[lfn].level === flows[blfn].level) {
+          if (+flows[blfn].symbols[psn].num + 1 !== +flows[lfn].symbols[symbolIndex].num && !flows[plfn].olTypes1All1) {
+            currentToken.attrSet('value', flows[lfn].symbols[symbolIndex].num)
           }
           break
         }
-        blfn--
       }
 
-      //Set list num span element.
       if (opt.describeListNumber) {
-        const listNumBeforeToken = new state.Token('text', '', 0)
+        //const listNumBeforeToken = new state.Token('text', '', 0)
         const listNumOpenToken = new state.Token('span_open', 'span', 1)
         listNumOpenToken.attrSet('class', 'li-num')
         if (opt.describeListNumberTitle) {
@@ -392,54 +354,50 @@ const setNumbers = (state, list, opt) => {
           listNumOpenToken.attrSet('title', listNumTitle)
         }
         const listNumContToken = new state.Token('text', '', 0)
-        listNumContToken.content = list.flows[lfn].symbols[sn].cont
+        listNumContToken.content = curFlow.symbols[symbolIndex].cont
         const listNumCloseToken = new state.Token('span_close', 'span', -1)
-
         const listNumJointOpenToken = new state.Token('span_open', 'span', 1)
         listNumJointOpenToken.attrSet('class', 'li-num-joint')
         const listNumJointContToken = new state.Token('text', '', 0)
-        listNumJointContToken.content = list.flows[lfn].symbols[sn].joint.replace(/ *$/, '')
+        listNumJointContToken.content = curFlow.symbols[symbolIndex].joint.replace(/ *$/, '')
         const listNumJointCloseToken = new state.Token('span_close', 'span', -1)
-
         let otn = 0
         let isOlTypes = false
         while (otn < olTypes.length) {
-          isOlTypes = types[list.flows[lfn].symbols[sn].typesNum].name === olTypes[otn][1] && !list.flows[lfn].symbols[sn].prefix && !list.flows[lfn].symbols[sn].suffix
+          isOlTypes = types[curFlow.symbols[symbolIndex].typesNum].name === olTypes[otn][1] && !curFlow.symbols[symbolIndex].prefix && !curFlow.symbols[symbolIndex].suffix
           if (isOlTypes) break
           otn++
         }
         if (opt.omitTypeNumber && isOlTypes) {
-          state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, '')
-          state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, '')
+          nt.content = nt.content.replace(curFlow.symbols[symbolIndex].contAll, '')
+          if(ntChildren) {
+            ntChildren.content = ntChildren.content.replace(curFlow.symbols[symbolIndex].contAll, '')
+          }
         } else {
-
-          //console.log(state.tokens[cn+2])
-          if (list.flows[lfn].symbols[sn].typesNum !== 0 || list.flows[lfn].symbols[sn].prefix || list.flows[lfn].symbols[sn].suffix) {
-          //console.log(state.tokens[cn+2])
-
-            state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, ' ')
-            state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, ' ')
-
-            //console.log(list.flows[lfn].symbols[sn])
-            if (/\. */.test(list.flows[lfn].symbols[sn].joint)) {
-              if (/\)/.test(list.flows[lfn].symbols[sn].suffix)) {
-                state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken)
+          if (curFlow.symbols[symbolIndex].typesNum !== 0 || curFlow.symbols[symbolIndex].prefix || curFlow.symbols[symbolIndex].suffix) {
+            nt.content = nt.content.replace(curFlow.symbols[symbolIndex].contAll, ' ')
+            if(ntChildren) {
+              ntChildren.content = ntChildren.content.replace(curFlow.symbols[symbolIndex].contAll, ' ')
+            }
+            if (/\. */.test(curFlow.symbols[symbolIndex].joint)) {
+              if (/\)/.test(curFlow.symbols[symbolIndex].suffix)) {
+                nt.children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken)
               } else {
-                state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumJointOpenToken, listNumJointContToken,listNumJointCloseToken, listNumCloseToken)
+                nt.children.splice(0, 0, listNumOpenToken, listNumContToken, listNumJointOpenToken, listNumJointContToken,  listNumJointCloseToken, listNumCloseToken)
               }
             } else {
-              state.tokens[cn+2].children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken)
+              nt.children.splice(0, 0, listNumOpenToken, listNumContToken, listNumCloseToken)
             }
           }
         }
-
       } else {
-        //set aria-label attribute and modify content.
-        if (list.flows[lfn].symbols[sn].typesNum !== 0 || list.flows[lfn].symbols[sn].prefix || list.flows[lfn].symbols[sn].suffix) {
-          state.tokens[cn].attrSet('aria-label', list.flows[lfn].symbols[sn].cont)
+        if (curFlow.symbols[symbolIndex].typesNum !== 0 || curFlow.symbols[symbolIndex].prefix || curFlow.symbols[symbolIndex].suffix) {
+          currentToken.attrSet('aria-label', curFlow.symbols[symbolIndex].cont)
         }
-        state.tokens[cn+2].content = state.tokens[cn+2].content.replace(list.flows[lfn].symbols[sn].contAll, '')
-        state.tokens[cn+2].children[0].content = state.tokens[cn+2].children[0].content.replace(list.flows[lfn].symbols[sn].contAll, '')
+        nt.content = nt.content.replace(curFlow.symbols[symbolIndex].contAll, '')
+        if(ntChildren) {
+          ntChildren.content = ntChildren.content.replace(curFlow.symbols[symbolIndex].contAll, '')
+        }
       }
     }
     lfn++
@@ -448,40 +406,34 @@ const setNumbers = (state, list, opt) => {
 }
 
 const numUl = (state, opt) => {
-  let n = 0
-  //console.log(state.tokens)
-  while (n < state.tokens.length) {
-    const token = state.tokens[n]
-    const isListOpen = /(bullet|ordered)_list_open/.test(token.type)
-    if (!isListOpen) { n++; continue; }
+  const tokens = state.tokens
+  for (let n = 0, tlen = tokens.length; n < tlen; n++) {
+    if (!/(bullet|ordered)_list_open/.test(tokens[n].type)) continue
     let list = {
       level: 1,
       flows: [],
       nextPos: n + 1,
     }
     createListToken(state, n, list)
-    //console.log(list.flows)
     setNumbers(state, list, opt)
-    n = list.nextPos
+    n = list.nextPos - 1
   }
   return true
 }
 
 const mditNumberingUlRegardedAsOl = (md, option) => {
   let opt = {
-    //noChangeBulletOneOrderedList: true,
     unsetListRole: true,
     describeListNumber: true,
     omitTypeNumber: true,
     desdribelistNumterTitle: false,
     listNumberTitleLang: 'en',
   }
-  if (option !== undefined) {
-    for (let o in option) {
-        opt[o] = option[o]
-    }
-  }
-  md.core.ruler.after('linkify', 'numbering_ul', state => numUl(state, opt))
+  if (option) Object.assign(opt, option)
+
+  md.core.ruler.after('linkify', 'numbering_ul', (state) => {
+    return numUl(state, opt)
+  })
 }
 
 export default mditNumberingUlRegardedAsOl

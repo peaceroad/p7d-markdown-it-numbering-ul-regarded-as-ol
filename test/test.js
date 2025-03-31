@@ -50,6 +50,8 @@ const setMs = (example, ms) => {
   return;
 };
 
+let pass = true
+
 setMs(example, ms);
 let n = 1;
 while(n < ms.length) {
@@ -62,6 +64,7 @@ while(n < ms.length) {
   try {
     assert.strictEqual(h, ms[n].html);
   } catch(e) {
+    pass = false
     console.log('incorrect: ');
     console.log('H: ' + h +'C: ' + ms[n].html);
   };
@@ -84,6 +87,7 @@ while(n < ms.length) {
   try {
     assert.strictEqual(h, ms[n].html);
   } catch(e) {
+    pass = false
     console.log('incorrect: ');
     console.log('H: ' + h +'C: ' + ms[n].html);
   };
@@ -105,8 +109,11 @@ while(n < ms.length) {
   try {
     assert.strictEqual(h, ms[n].html);
   } catch(e) {
+    pass = false
     console.log('incorrect: ');
     console.log('H: ' + h +'C: ' + ms[n].html);
   };
   n++;
 }
+
+if (pass) console.log('\nAll tests passed.')
