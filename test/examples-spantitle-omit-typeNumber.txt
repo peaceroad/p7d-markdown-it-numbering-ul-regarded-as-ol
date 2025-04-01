@@ -199,3 +199,44 @@
 <li>項目3</li>
 </ol>
 
+[Markdown]
+- I. I
+- II. II
+[HTML]
+<ol type="I" class="ol-upper-roman">
+<li>I</li>
+<li>II</li>
+</ol>
+
+[Markdown]
+- I. I
+- II. II
+- III. III
+- IV. IV
+- V. V
+- VI. VI
+[HTML]
+<ol type="I" class="ol-upper-roman">
+<li>I</li>
+<li>II</li>
+<li>III</li>
+<li>IV</li>
+<li>V</li>
+<li>VI</li>
+</ol>
+
+
+[Markdown]
+- I. I
+- II. II
+
+- a. a
+[HTML]
+<ol type="I" class="ol-upper-roman">
+<li>I</li>
+<li>II</li>
+</ol>
+<ol type="a" class="ol-upper-latin">
+<li>a</li>
+</ol>
+

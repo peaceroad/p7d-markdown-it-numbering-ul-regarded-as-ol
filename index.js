@@ -138,8 +138,8 @@ const createListToken = (state, n, list) => {
     let plfn = -1
     for (let i = list.flows.length - 2; i >= 0; i--) {
       if (/(?:bullet|ordered)_list_open/.test(list.flows[i].type) && listFlow.level === list.flows[i].level) {
-         plfn = i
-         break
+        plfn = i
+        break
       }
     }
 
@@ -201,15 +201,16 @@ const createListToken = (state, n, list) => {
 }
 
 const getParentTypeNum = (list, lfn) => {
-  let i = 0
-  let ptn = -1
-  while (i < list.flows[lfn].psTypes.length) {
-    if (ptn < list.flows[lfn].psTypes[i].frequency) {
-      ptn = list.flows[lfn].psTypes[i].num
+  let maxFreq = -1
+  let chosenType = -1
+  for (let i = 0; i < list.flows[lfn].psTypes.length; i++) {
+    const freq = list.flows[lfn].psTypes[i].frequency
+    if (freq >= maxFreq) {
+      maxFreq = freq
+      chosenType = list.flows[lfn].psTypes[i].num
     }
-    i++
   }
-  return ptn
+  return chosenType
 }
 
 const getParentNum = (list, lfn) => {
@@ -257,12 +258,14 @@ const setNumbers = (state, list, opt) => {
   let lfn = 0
   while (lfn < flows.length) {
     const curFlow = flows[lfn]
+    //console.log('--------------------------------------------')
+    //console.log('lfn: ' + lfn + ', flows[lfn]: ' + JSON.stringify(flows[lfn]))
     const cn = curFlow.pos
     const currentToken = tokens[cn]
     const nt = tokens[cn+2]
     const ntChildren = nt && nt.children ? nt.children[0] : null
     const isParent = curFlow.type.match(/(numbering_bullet|ordered)_list_open/)
-    if (isParent) {
+     if (isParent) {
       if (isParent[1] === 'numbering_bullet') {
         currentToken.type = 'ordered_list_open'
         currentToken.tag = 'ol'
@@ -273,6 +276,7 @@ const setNumbers = (state, list, opt) => {
       const symbolIndex = getSymbolsNum(list, lfn+1, lfn)
       const symbolData = nextFlow.symbols[symbolIndex]
       curFlow.olTypes1All1 = setOlTypes1All1(list, lfn, symbolIndex)
+      //console.log('ptn: ' + ptn + ', symbolIndex: ' + symbolIndex + ', symbolData: ' + JSON.stringify(symbolData))
 
       let isOlTypes = false, isOlTypes1 = false
       for (let otn = 0, otlen = olTypes.length; otn < otlen; otn++) {
@@ -288,6 +292,7 @@ const setNumbers = (state, list, opt) => {
 
       if (+symbolData.num !== 1) currentToken.attrSet('start', symbolData.num)
       if (!opt.unsetListRole && !isOlTypes && isParent[1] === 'numbering_bullet') currentToken.attrSet('role', 'list')
+
 
       if (ptn === -1) {
         let hasOlClass = false
@@ -326,12 +331,17 @@ const setNumbers = (state, list, opt) => {
       }
     }
 
+    //console.log('curFlow.symbols.length: ' + curFlow.symbols.length)
+
     if (curFlow.type === 'list_item_open' && curFlow.symbols.length) {
       const plfn = getParentNum(list, lfn)
       if (list.flows[plfn].type === 'bullet_list_open') {
         lfn++; continue
       }
       const symbolIndex = getSymbolsNum(list, lfn, plfn)
+      if (typeof curFlow.symbols[symbolIndex] === 'undefined') {
+        lfn++; continue
+      }
       const psn = getSymbolsNum(list, lfn - 1, plfn)
       for (let blfn = lfn - 1; blfn >= 0; blfn--) {
         if (flows[blfn].type === 'list_item_open' && flows[lfn].level === flows[blfn].level) {
@@ -343,7 +353,15 @@ const setNumbers = (state, list, opt) => {
       }
 
       if (opt.describeListNumber) {
-        //const listNumBeforeToken = new state.Token('text', '', 0)
+        if (typeof curFlow.symbols[symbolIndex] === 'undefined') { // to avoid errors:
+          // ```
+          // - I. I
+          // - II. II
+          //
+          // - a. a
+          //```
+          lfn++; continue
+        }
         const listNumOpenToken = new state.Token('span_open', 'span', 1)
         listNumOpenToken.attrSet('class', 'li-num')
         if (opt.describeListNumberTitle) {

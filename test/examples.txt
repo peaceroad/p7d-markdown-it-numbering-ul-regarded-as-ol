@@ -234,3 +234,29 @@
 <li>3.0 項目3</li>
 </ol>
 
+
+[Markdown]
+- I. I
+- II. II
+[HTML]
+<ol type="I" class="ol-upper-roman">
+<li aria-label="I">I</li>
+<li aria-label="II">II</li>
+</ol>
+
+[Markdown]
+- I. I
+- II. II
+- III. III
+- IV. IV
+- V. V
+- VI. VI
+[HTML]
+<ol type="I" class="ol-upper-roman">
+<li aria-label="I">I</li>
+<li aria-label="II">II</li>
+<li aria-label="III">III</li>
+<li aria-label="IV">IV</li>
+<li aria-label="V">V</li>
+<li aria-label="VI">VI</li>
+</ol>
