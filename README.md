@@ -23,27 +23,9 @@ This plugin is useful when content uses bullet syntax with explicit markers and 
 
 ## Numbered List Examples
 
-### Basic numbered list conversion
+### Ordered list with type attribute
 
-Input:
-
-```markdown
-- 1. First item
-- 2. Second item
-- 3. Third item
-```
-
-Output:
-
-```html
-<ol type="1" class="ol-decimal" data-marker-suffix=".">
-<li>First item</li>
-<li>Second item</li>
-<li>Third item</li>
-</ol>
-```
-
-### Different marker types
+lowercase roman
 
 ```markdown
 - i. Roman lowercase
@@ -61,7 +43,25 @@ Output:
 </ol>
 ```
 
-### Custom markers (circled numbers)
+Uppercase Latin
+
+```markdown
+- A) First
+- B) Second
+- C) Third
+```
+
+Output:
+
+```html
+<ol type="A" class="ol-upper-latin" data-marker-suffix=")">
+<li>First</li>
+<li>Second</li>
+<li>Third</li>
+</ol>
+```
+
+### Custom markers (circled numbers) with no `type` attribute
 
 ```markdown
 - ① First
@@ -69,13 +69,35 @@ Output:
 - ③ Third
 ```
 
+Output as follows. Custom markers do not use the `type` attribute, ol element has `role="list"` instead, and markers are wrapped in `<span class="li-num">`.
+
+```html
+<ol role="list" class="ol-filled-circled-decimal">
+<li><span class="li-num">①</span> First</li>
+<li><span class="li-num">②</span> Second</li>
+<li><span class="li-num">③</span> Third</li>
+</ol>
+```
+
+### Special case: Decimal markers
+
+Defaultly, `-` markers with decimal numbers are converted to `<ol type="1">` lists.
+
+Input:
+
+```markdown
+- 1. First item
+- 2. Second item
+- 3. Third item
+```
+
 Output:
 
 ```html
-<ol role="list" class="ol-circled-decimal" data-marker-pattern="circled-decimal">
-<li>First</li>
-<li>Second</li>
-<li>Third</li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First item</li>
+<li>Second item</li>
+<li>Third item</li>
 </ol>
 ```
 
@@ -374,13 +396,13 @@ npm install @peaceroad/markdown-it-numbering-ul-regarded-as-ol
 ## Basic usage
 
 ```js
-const MarkdownIt = require('markdown-it')
-const numbering = require('@peaceroad/markdown-it-numbering-ul-regarded-as-ol')
+import mdit from 'markdown-it'
+import mditNumberingUl from '@peaceroad/markdown-it-numbering-ul-regarded-as-ol'
 
-const md = new MarkdownIt()
-md.use(numbering)
+const md = new mdit()
+md.use(mditNumberingUl)
 
-const html = md.render(`- 1. First\n- 2. Second`)
+const html = md.render(`- a. First\n- b. Second`)
 console.log(html)
 ```
 
@@ -390,7 +412,5 @@ The plugin accepts an options object when used. Key options:
 
 - `alwaysMarkerSpan` (boolean) — Wrap markers in a `<span>` (class `li-num`) even when not strictly necessary. Useful for consistent styling.
 - `unremoveUlNest` (boolean) — If `true`, keep the original `ul > li > ol` nesting instead of flattening into `ol > li`.
-- `unsetDataMarkerAttr` (boolean) — If `true`, suppresss output of `data-marker-prefix` and `data-marker-suffix` attributes.
 - `descriptionList` (boolean) — Enable conversion of special `**Term**` list patterns into `<dl>` description lists.
 - `descriptionListWithDiv` (boolean) — Wrap `<dd>` content in `<div>` when descriptionList is enabled.
-
