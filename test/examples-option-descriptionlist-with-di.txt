@@ -1,0 +1,457 @@
+[Markdown]
+- **Description list title 1**  
+description list description 1
+
+    description list description 1
+
+- **Description list title 2**  
+description list description 2
+
+    description list description 2
+
+- **Description list title 3**  
+description list description 3
+
+    description list description 3
+[HTML]
+<dl>
+<div>
+<dt>Description list title 1</dt>
+<dd>
+<p>description list description 1</p>
+<p>description list description 1</p>
+</dd>
+</div>
+<div>
+<dt>Description list title 2</dt>
+<dd>
+<p>description list description 2</p>
+<p>description list description 2</p>
+</dd>
+</div>
+<div>
+<dt>Description list title 3</dt>
+<dd>
+<p>description list description 3</p>
+<p>description list description 3</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Simple title**  
+Simple description
+[HTML]
+<dl>
+<div>
+<dt>Simple title</dt>
+<dd>
+<p>Simple description</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title with multiple paragraphs**  
+First paragraph
+
+    Second paragraph
+    
+    Third paragraph
+[HTML]
+<dl>
+<div>
+<dt>Title with multiple paragraphs</dt>
+<dd>
+<p>First paragraph</p>
+<p>Second paragraph</p>
+<p>Third paragraph</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Mixed with regular list**  
+This is a description
+- **Regular list item**  
+Another description
+- **Another regular item**  
+Yet another description
+[HTML]
+<dl>
+<div>
+<dt>Mixed with regular list</dt>
+<dd>
+<p>This is a description</p>
+</dd>
+</div>
+<div>
+<dt>Regular list item</dt>
+<dd>
+<p>Another description</p>
+</dd>
+</div>
+<div>
+<dt>Another regular item</dt>
+<dd>
+<p>Yet another description</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title without description**  
+[HTML]
+<ul>
+<li><strong>Title without description</strong></li>
+</ul>
+
+[Markdown]
+- Regular list item
+- Normal list item
+- Another regular item
+[HTML]
+<ul>
+<li>Regular list item</li>
+<li>Normal list item</li>
+<li>Another regular item</li>
+</ul>
+
+[Markdown]
+- **All items are description**  
+Description 1
+- **Second description item**  
+Description 2
+- **Third description item**  
+Description 3
+[HTML]
+<dl>
+<div>
+<dt>All items are description</dt>
+<dd>
+<p>Description 1</p>
+</dd>
+</div>
+<div>
+<dt>Second description item</dt>
+<dd>
+<p>Description 2</p>
+</dd>
+</div>
+<div>
+<dt>Third description item</dt>
+<dd>
+<p>Description 3</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Single item should not convert**  
+Single description
+[HTML]
+<dl>
+<div>
+<dt>Single item should not convert</dt>
+<dd>
+<p>Single description</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title with immediate indent**  
+    Indented first line
+    Second indented line
+- **Another title**  
+    Another indented description
+[HTML]
+<dl>
+<div>
+<dt>Title with immediate indent</dt>
+<dd>
+<p>Indented first line
+Second indented line</p>
+</dd>
+</div>
+<div>
+<dt>Another title</dt>
+<dd>
+<p>Another indented description</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title with empty line first**  
+
+    First paragraph after empty line
+    
+    Second paragraph
+- **Another title with empty**  
+
+    Another description after empty line
+[HTML]
+<dl>
+<div>
+<dt>Title with empty line first</dt>
+<dd>
+<p>First paragraph after empty line</p>
+<p>Second paragraph</p>
+</dd>
+</div>
+<div>
+<dt>Another title with empty</dt>
+<dd>
+<p>Another description after empty line</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title with only empty line**  
+
+- **Another title with only empty**  
+[HTML]
+<ul>
+<li>
+<p><strong>Title with only empty line</strong></p>
+</li>
+<li>
+<p><strong>Another title with only empty</strong></p>
+</li>
+</ul>
+
+[Markdown]
+- **Title with backslash hardbreak**\
+Description with backslash
+- **Another title with backslash**\
+Another description with backslash
+[HTML]
+<dl>
+<div>
+<dt>Title with backslash hardbreak</dt>
+<dd>
+<p>Description with backslash</p>
+</dd>
+</div>
+<div>
+<dt>Another title with backslash</dt>
+<dd>
+<p>Another description with backslash</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Description with nested numbered list**  
+This description contains a numbered list:
+    - i. First roman item
+    - ii. Second roman item
+    - iii. Third roman item
+- **Another description with nested list**  
+This has a regular nested list:
+    - Regular item 1
+    - Regular item 2
+[HTML]
+<dl>
+<div>
+<dt>Description with nested numbered list</dt>
+<dd>
+<p>This description contains a numbered list:</p>
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>First roman item</li>
+<li>Second roman item</li>
+<li>Third roman item</li>
+</ol>
+</dd>
+</div>
+<div>
+<dt>Another description with nested list</dt>
+<dd>
+<p>This has a regular nested list:</p>
+<ul>
+<li>Regular item 1</li>
+<li>Regular item 2</li>
+</ul>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Description with nested unordered list**  
+This has an unordered nested list:
+    - Item A
+    - Item B
+        - Sub-item B1
+        - Sub-item B2
+    - Item C
+- **Description with multiple nesting levels**  
+This contains multiple levels:
+    1. First numbered item
+    2. Second numbered item
+        - Nested bullet point
+        - Another bullet point
+            - Deep nested item
+- **Description with mixed nested lists**  
+Mixed nesting example:
+    - a. First lettered item
+    - b. Second lettered item
+        1. Nested number
+        2. Another nested number
+    - c. Third lettered item
+[HTML]
+<dl>
+<div>
+<dt>Description with nested unordered list</dt>
+<dd>
+<p>This has an unordered nested list:</p>
+<ul>
+<li>Item A</li>
+<li>Item B
+<ul>
+<li>Sub-item B1</li>
+<li>Sub-item B2</li>
+</ul>
+</li>
+<li>Item C</li>
+</ul>
+</dd>
+</div>
+<div>
+<dt>Description with multiple nesting levels</dt>
+<dd>
+<p>This contains multiple levels:</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First numbered item</li>
+<li>Second numbered item
+<ul>
+<li>Nested bullet point</li>
+<li>Another bullet point
+<ul>
+<li>Deep nested item</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+</dd>
+</div>
+<div>
+<dt>Description with mixed nested lists</dt>
+<dd>
+<p>Mixed nesting example:</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>First lettered item</li>
+<li>Second lettered item
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested number</li>
+<li>Another nested number</li>
+</ol>
+</li>
+<li>Third lettered item</li>
+</ol>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Title with paragraph before nested list**  
+This is a paragraph description.
+
+    - First nested item
+    - Second nested item
+    - Third nested item
+- **Another title with spaced content**  
+First paragraph here.
+
+    Second paragraph after empty line.
+
+    - Item one
+    - Item two
+        - Sub item
+[HTML]
+<dl>
+<div>
+<dt>Title with paragraph before nested list</dt>
+<dd>
+<p>This is a paragraph description.</p>
+<ul>
+<li>First nested item</li>
+<li>Second nested item</li>
+<li>Third nested item</li>
+</ul>
+</dd>
+</div>
+<div>
+<dt>Another title with spaced content</dt>
+<dd>
+<p>First paragraph here.</p>
+<p>Second paragraph after empty line.</p>
+<ul>
+<li>Item one</li>
+<li>Item two
+<ul>
+<li>Sub item</li>
+</ul>
+</li>
+</ul>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Extended syntax nested hierarchy**  
+Using plugin's extended syntax for proper nesting:
+    1. First level
+        - a. Second level
+        - b. Another second level
+    2. Back to first level
+- **Deep nesting with extended syntax**  
+Three-level nesting:
+    1. First decimal level
+        - a. Second letter level
+            - i. Third roman level
+            - ii. Another roman item
+        - b. Back to second level
+    2. Back to first level
+[HTML]
+<dl>
+<div>
+<dt>Extended syntax nested hierarchy</dt>
+<dd>
+<p>Using plugin's extended syntax for proper nesting:</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First level
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Second level</li>
+<li>Another second level</li>
+</ol>
+</li>
+<li>Back to first level</li>
+</ol>
+</dd>
+</div>
+<div>
+<dt>Deep nesting with extended syntax</dt>
+<dd>
+<p>Three-level nesting:</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First decimal level
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Second letter level
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Third roman level</li>
+<li>Another roman item</li>
+</ol>
+</li>
+<li>Back to second level</li>
+</ol>
+</li>
+<li>Back to first level</li>
+</ol>
+</dd>
+</div>
+</dl>
+
+

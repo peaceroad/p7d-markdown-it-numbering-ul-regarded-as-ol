@@ -1,0 +1,213 @@
+[Markdown]
+- (1) First item
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>First item</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- (1) First item
+    - 1. Nested decimal
+    - 2. Second decimal
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>First item
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second decimal</li>
+</ol>
+</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- (1) First item
+
+    Content paragraph
+
+    - 1. Nested decimal
+    - 2. Second decimal
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>First item</p>
+<p>Content paragraph</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second decimal</li>
+</ol>
+</li>
+<li>
+<p>Second item</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. First decimal
+- 2. Second decimal
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First decimal</li>
+<li>Second decimal</li>
+</ol>
+
+[Markdown]
+- 1. First decimal
+    - a. Nested letter
+    - b. Second letter
+- 2. Second decimal
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First decimal
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Nested letter</li>
+<li>Second letter</li>
+</ol>
+</li>
+<li>Second decimal</li>
+</ol>
+
+[Markdown]
+- a. First letter
+- b. Second letter
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>First letter</li>
+<li>Second letter</li>
+</ol>
+
+[Markdown]
+- a. First letter
+    - 1. Nested decimal
+    - 2. Second decimal
+- b. Second letter
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>First letter
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second decimal</li>
+</ol>
+</li>
+<li>Second letter</li>
+</ol>
+
+[Markdown]
+- (a) Letter with parentheses
+- (b) Second letter
+[HTML]
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Letter with parentheses</li>
+<li>Second letter</li>
+</ol>
+
+[Markdown]
+- (a) Letter with parentheses
+    - (1) Nested number
+    - (2) Second number
+- (b) Second letter
+[HTML]
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Letter with parentheses
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Nested number</li>
+<li>Second number</li>
+</ol>
+</li>
+<li>Second letter</li>
+</ol>
+
+[Markdown]
+- i. Roman numeral
+- ii. Second roman
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Roman numeral</li>
+<li>Second roman</li>
+</ol>
+
+[Markdown]
+- i. Roman numeral
+    - 1. Nested decimal
+    - 2. Second decimal
+- ii. Second roman
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Roman numeral
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second decimal</li>
+</ol>
+</li>
+<li>Second roman</li>
+</ol>
+
+[Markdown]
+- (1) First item
+    - 1. Nested decimal
+    - 2. Second decimal
+    
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>First item</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second decimal</li>
+</ol>
+</li>
+<li>
+<p>Second item</p>
+</li>
+</ol>
+
+[Markdown]
+- (1) First item
+    - 1. Nested decimal
+        
+         Nested decimal 2
+
+    - 2. Second decimal
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>First item
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Nested decimal</p>
+<p>Nested decimal 2</p>
+</li>
+<li>
+<p>Second decimal</p>
+</li>
+</ol>
+</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- (1) First item
+    - 1. Nested decimal
+
+    - 2. Second decimal
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>First item
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Nested decimal</p>
+</li>
+<li>
+<p>Second decimal</p>
+</li>
+</ol>
+</li>
+<li>Second item</li>
+</ol>
+

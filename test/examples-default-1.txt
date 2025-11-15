@@ -1,0 +1,1195 @@
+[Markdown]
+1. a
+2. b
+3. c
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+3. a
+4. b
+5. c
+[HTML]
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+1. a
+3. b
+4. c
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>a</li>
+<li value="3">b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+- i. a
+- ii. b
+- iii. c
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+- i.a
+- ii.b
+- iii.c
+[HTML]
+<ul>
+<li>i.a</li>
+<li>ii.b</li>
+<li>iii.c</li>
+</ul>
+
+[Markdown]
+- a
+- b
+- c
+[HTML]
+<ul>
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ul>
+
+[Markdown]
+- ❶ a
+- ❷ b
+- ❸ c
+[HTML]
+<ol role="list" class="ol-filled-circled-decimal">
+<li><span class="li-num">❶</span> a</li>
+<li><span class="li-num">❷</span> b</li>
+<li><span class="li-num">❸</span> c</li>
+</ol>
+
+[Markdown]
+2. a
+3. b
+4. c
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+- ② a
+- ③ b
+- ④ c
+[HTML]
+<ol role="list" data-start="2" class="ol-circled-decimal">
+<li><span class="li-num">②</span> a</li>
+<li><span class="li-num">③</span> b</li>
+<li><span class="li-num">④</span> c</li>
+</ol>
+
+[Markdown]
+- (2) a
+- (3) b
+- (4) c
+[HTML]
+<ol type="1" start="2" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+- 2) a
+- 3) b
+- 4) c
+[HTML]
+<ol type="1" start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>a</li>
+<li>b</li>
+<li>c</li>
+</ol>
+
+[Markdown]
+1. 項目1
+2. 項目2
+    - i. 項目2-i
+    - ii. 項目2-ii
+    - iii. 項目2-iii
+3. 項目3
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>項目1</li>
+<li>項目2
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>項目2-i</li>
+<li>項目2-ii</li>
+<li>項目2-iii</li>
+</ol>
+</li>
+<li>項目3</li>
+</ol>
+
+[Markdown]
+- i. 項目i
+- ii. 項目ii
+    1. 項目ii-1
+    2. 項目ii-2
+    3. 項目ii-3
+- iii. 項目iii
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>項目i</li>
+<li>項目ii
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>項目ii-1</li>
+<li>項目ii-2</li>
+<li>項目ii-3</li>
+</ol>
+</li>
+<li>項目iii</li>
+</ol>
+
+[Markdown]
+- ❸ 項目❸
+- ❹ 項目❹
+    - ② 項目❹-②
+    - ③ 項目❹-③
+    - ④ 項目❹-④
+- ❺ 項目❺
+[HTML]
+<ol role="list" data-start="3" class="ol-filled-circled-decimal">
+<li><span class="li-num">❸</span> 項目❸</li>
+<li><span class="li-num">❹</span> 項目❹
+<ol role="list" data-start="2" class="ol-circled-decimal">
+<li><span class="li-num">②</span> 項目❹-②</li>
+<li><span class="li-num">③</span> 項目❹-③</li>
+<li><span class="li-num">④</span> 項目❹-④</li>
+</ol>
+</li>
+<li><span class="li-num">❺</span> 項目❺</li>
+</ol>
+
+[Markdown]
+1. 項目1
+2. 項目2
+    - i. 項目2-i
+    - ii. 項目2-ii
+        - a. 項目2-ii-a
+        - b. 項目2-ii-b
+        - c. 項目2-ii-c
+    - iii. 項目2-iii
+3. 項目3
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>項目1</li>
+<li>項目2
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>項目2-i</li>
+<li>項目2-ii
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>項目2-ii-a</li>
+<li>項目2-ii-b</li>
+<li>項目2-ii-c</li>
+</ol>
+</li>
+<li>項目2-iii</li>
+</ol>
+</li>
+<li>項目3</li>
+</ol>
+
+[Markdown]
+- I. I
+- II. II
+- III. III
+- IV. IV
+- V. V
+- VI. VI
+[HTML]
+<ol type="I" class="ol-upper-roman" data-marker-suffix=".">
+<li>I</li>
+<li>II</li>
+<li>III</li>
+<li>IV</li>
+<li>V</li>
+<li>VI</li>
+</ol>
+
+
+[Markdown]
+- I. I
+- II. II
+
+- a
+[HTML]
+<ul>
+<li>
+<p>I. I</p>
+</li>
+<li>
+<p>II. II</p>
+</li>
+<li>
+<p>a</p>
+</li>
+</ul>
+
+
+[Markdown]
+- I. I
+- II. II
+
+<!-- -->
+
+- a
+[HTML]
+<ol type="I" class="ol-upper-roman" data-marker-suffix=".">
+<li>I</li>
+<li>II</li>
+</ol>
+<!-- -->
+<ul>
+<li>a</li>
+</ul>
+
+
+[Markdown]
+- I. I
+- II. II
+
+- a. a
+[HTML]
+<ul>
+<li>
+<p>I. I</p>
+</li>
+<li>
+<p>II. II</p>
+</li>
+<li>
+<p>a. a</p>
+</li>
+</ul>
+
+
+[Markdown]
+- I. I
+- II. II
+
+<!-- -->
+
+- a. a
+[HTML]
+<ol type="I" class="ol-upper-roman" data-marker-suffix=".">
+<li>I</li>
+<li>II</li>
+</ol>
+<!-- -->
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>a</li>
+</ol>
+
+
+[Markdown]
+- 2. a
+- 3. b
+- 5. c
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>a</li>
+<li>b</li>
+<li value="5">c</li>
+</ol>
+
+
+[Markdown]
+- 2. a
+
+    a1
+
+- 3. b
+
+- 5. c
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>a</p>
+<p>a1</p>
+</li>
+<li>
+<p>b</p>
+</li>
+<li value="5">
+<p>c</p>
+</li>
+</ol>
+
+
+[Markdown]
+- ii. a
+
+    a1
+
+- iii. b
+
+- v. c
+[HTML]
+<ol type="i" start="2" class="ol-lower-roman" data-marker-suffix=".">
+<li>
+<p>a</p>
+<p>a1</p>
+</li>
+<li>
+<p>b</p>
+</li>
+<li value="5">
+<p>c</p>
+</li>
+</ol>
+
+[Markdown]
+- 0) zero start with complex content
+
+    Zero paragraph content
+
+    - nested item 1
+    - nested item 2
+
+- 1) first item with **bold** and *italic*
+
+- 2) second item with `code` and [link](http://example.com)
+
+- 5) skip to five
+[HTML]
+<ol type="1" start="0" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>zero start with complex content</p>
+<p>Zero paragraph content</p>
+<ul>
+<li>nested item 1</li>
+<li>nested item 2</li>
+</ul>
+</li>
+<li>
+<p>first item with <strong>bold</strong> and <em>italic</em></p>
+</li>
+<li>
+<p>second item with <code>code</code> and <a href="http://example.com">link</a></p>
+</li>
+<li value="5">
+<p>skip to five</p>
+</li>
+</ol>
+
+
+[Markdown]
+- ❺ circled five start
+
+    Complex content paragraph
+
+    ```
+    code block
+    ```
+
+- ❻ circled six
+- ❼ circled seven with nested list
+    - a. nested latin
+    - b. nested latin
+    - c. nested latin
+- ❽ circled eight
+[HTML]
+<ol role="list" data-start="5" class="ol-filled-circled-decimal">
+<li>
+<p><span class="li-num">❺</span> circled five start</p>
+<p>Complex content paragraph</p>
+<pre><code>code block
+</code></pre>
+</li>
+<li>
+<p><span class="li-num">❻</span> circled six</p>
+</li>
+<li>
+<p><span class="li-num">❼</span> circled seven with nested list</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>nested latin</li>
+<li>nested latin</li>
+<li>nested latin</li>
+</ol>
+</li>
+<li>
+<p><span class="li-num">❽</span> circled eight</p>
+</li>
+</ol>
+
+
+[Markdown]
+- (3) parentheses three start
+
+    Multiple paragraphs here.
+
+    Another paragraph.
+
+- (4) parentheses four
+
+- (7) skip to seven with table
+
+    | Header 1 | Header 2 |
+    |----------|----------|
+    | Cell 1   | Cell 2   |
+
+- (8) parentheses eight
+[HTML]
+<ol type="1" start="3" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>parentheses three start</p>
+<p>Multiple paragraphs here.</p>
+<p>Another paragraph.</p>
+</li>
+<li>
+<p>parentheses four</p>
+</li>
+<li value="7">
+<p>skip to seven with table</p>
+<table>
+<thead>
+<tr>
+<th>Header 1</th>
+<th>Header 2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cell 1</td>
+<td>Cell 2</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li>
+<p>parentheses eight</p>
+</li>
+</ol>
+
+
+[Markdown]
+- 3) mixed content with blockquote
+
+    > This is a blockquote
+    > in the list item
+
+    And normal paragraph after blockquote.
+
+- 4) item with horizontal rule
+
+    ---
+
+    Content after horizontal rule.
+
+- 6) skip to six with definition list content
+
+    **Term 1**
+    : Definition 1
+
+    **Term 2**
+    : Definition 2
+
+- 7) final item
+[HTML]
+<ol type="1" start="3" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>mixed content with blockquote</p>
+<blockquote>
+<p>This is a blockquote
+in the list item</p>
+</blockquote>
+<p>And normal paragraph after blockquote.</p>
+</li>
+<li>
+<p>item with horizontal rule</p>
+<hr>
+<p>Content after horizontal rule.</p>
+</li>
+<li value="6">
+<p>skip to six with definition list content</p>
+<p><strong>Term 1</strong>
+: Definition 1</p>
+<p><strong>Term 2</strong>
+: Definition 2</p>
+</li>
+<li>
+<p>final item</p>
+</li>
+</ol>
+
+[Markdown]
+- (1) Level 1 - First item with nested content
+
+    This is a paragraph in the first item.
+
+    - a) Level 2 - Nested item with sub-items
+        - i. Level 3 - Deep nested item
+        - ii. Level 3 - Another deep item
+
+            Additional paragraph in deep level.
+
+        - iii. Level 3 - Final deep item
+    - b) Level 2 - Second nested item
+
+        Paragraph in second nested item.
+
+- (2) Level 1 - Second main item
+
+- (3) Level 1 - Third main item with complex nesting
+
+    > Blockquote in main item
+
+    - I. Level 2 - Roman numerals
+        - α. Level 3 - Greek letters with content
+
+            Some content here.
+
+            ```
+            code block
+            ```
+
+        - β. Level 3 - Beta item
+    - II. Level 2 - Second roman item
+
+- (4) Level 1 - Final main item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>Level 1 - First item with nested content</p>
+<p>This is a paragraph in the first item.</p>
+<ol type="a" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 2 - Nested item with sub-items</p>
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>
+<p>Level 3 - Deep nested item</p>
+</li>
+<li>
+<p>Level 3 - Another deep item</p>
+<p>Additional paragraph in deep level.</p>
+</li>
+<li>
+<p>Level 3 - Final deep item</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 2 - Second nested item</p>
+<p>Paragraph in second nested item.</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Second main item</p>
+</li>
+<li>
+<p>Level 1 - Third main item with complex nesting</p>
+<blockquote>
+<p>Blockquote in main item</p>
+</blockquote>
+<ol type="I" class="ol-upper-roman" data-marker-suffix=".">
+<li>Level 2 - Roman numerals
+<ol role="list" class="ol-lower-greek" data-marker-suffix=".">
+<li>
+<p><span class="li-num">α</span> Level 3 - Greek letters with content</p>
+<p>Some content here.</p>
+<pre><code>code block
+</code></pre>
+</li>
+<li>
+<p><span class="li-num">β</span> Level 3 - Beta item</p>
+</li>
+</ol>
+</li>
+<li>Level 2 - Second roman item</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Final main item</p>
+</li>
+</ol>
+
+
+[Markdown]
+- ❶ Level 1 - Circled numbers with mixed content
+
+    Multiple paragraphs in the main item.
+
+    Another paragraph here.
+
+    - ⓁELevel 2 - Circled letters
+        - ① Level 3 - Mixed symbols
+
+            Content in level 3.
+
+        - ② Level 3 - Second mixed symbol
+    - ⓁELevel 2 - Second circled letter
+
+        ---
+
+        Horizontal rule separator.
+
+        | Table | Header |
+        |-------|--------|
+        | Cell1 | Cell2  |
+
+- ❷ Level 1 - Second main circled
+
+    > Quote with nested content
+    > spanning multiple lines
+
+    - A. Level 2 - Capital letters
+        - 1) Level 3 - Numbers with parentheses
+
+            Final level content.
+
+- ❸ Level 1 - Final circled item
+[HTML]
+<ol role="list" class="ol-filled-circled-decimal">
+<li>
+<p><span class="li-num">❶</span> Level 1 - Circled numbers with mixed content</p>
+<p>Multiple paragraphs in the main item.</p>
+<p>Another paragraph here.</p>
+<ul>
+<li>
+<p>ⓁELevel 2 - Circled letters</p>
+<ol role="list" class="ol-circled-decimal">
+<li>
+<p><span class="li-num">①</span> Level 3 - Mixed symbols</p>
+<p>Content in level 3.</p>
+</li>
+<li>
+<p><span class="li-num">②</span> Level 3 - Second mixed symbol</p>
+</li>
+</ol>
+</li>
+<li>
+<p>ⓁELevel 2 - Second circled letter</p>
+<hr>
+<p>Horizontal rule separator.</p>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Header</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cell1</td>
+<td>Cell2</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ul>
+</li>
+<li>
+<p><span class="li-num">❷</span> Level 1 - Second main circled</p>
+<blockquote>
+<p>Quote with nested content
+spanning multiple lines</p>
+</blockquote>
+<ol type="A" class="ol-upper-latin" data-marker-suffix=".">
+<li>Level 2 - Capital letters
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 3 - Numbers with parentheses</p>
+<p>Final level content.</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p><span class="li-num">❸</span> Level 1 - Final circled item</p>
+</li>
+</ol>
+
+
+[Markdown]
+- 5) Level 1 - Numbers with closing parentheses
+
+    First paragraph with content.
+
+    - i) Level 2 - Lowercase roman with parentheses
+        - (A) Level 3 - Letters with full parentheses
+
+            Deep content here.
+
+            > Deep blockquote
+            > with multiple lines
+
+        - (B) Level 3 - Second letter item
+        - (C) Level 3 - Third letter item
+
+            ```python
+            # Code block at level 3
+            def example():
+                return "hello"
+            ```
+
+    - ii) Level 2 - Second roman item
+
+        Content in second roman.
+
+    - iii) Level 2 - Third roman with table
+
+        | Column A | Column B | Column C |
+        |----------|----------|----------|
+        | Data 1   | Data 2   | Data 3   |
+        | Data 4   | Data 5   | Data 6   |
+
+- 6) Level 1 - Second main item
+
+    Simple content here.
+
+- 10) Level 1 - Skip to ten with final nesting
+
+    - IV. Level 2 - Roman numerals uppercase
+        - α) Level 3 - Greek with parentheses
+
+            Final nested content.
+
+            **Bold text** and *italic text* and `code`.
+
+- 11) Level 1 - Final item
+[HTML]
+<ol type="1" start="5" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with closing parentheses</p>
+<p>First paragraph with content.</p>
+<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 2 - Lowercase roman with parentheses</p>
+<ol type="A" class="ol-upper-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>Level 3 - Letters with full parentheses</p>
+<p>Deep content here.</p>
+<blockquote>
+<p>Deep blockquote
+with multiple lines</p>
+</blockquote>
+</li>
+<li>
+<p>Level 3 - Second letter item</p>
+</li>
+<li>
+<p>Level 3 - Third letter item</p>
+<pre><code class="language-python"># Code block at level 3
+def example():
+    return &quot;hello&quot;
+</code></pre>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 2 - Second roman item</p>
+<p>Content in second roman.</p>
+</li>
+<li>
+<p>Level 2 - Third roman with table</p>
+<table>
+<thead>
+<tr>
+<th>Column A</th>
+<th>Column B</th>
+<th>Column C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Data 1</td>
+<td>Data 2</td>
+<td>Data 3</td>
+</tr>
+<tr>
+<td>Data 4</td>
+<td>Data 5</td>
+<td>Data 6</td>
+</tr>
+</tbody>
+</table>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Second main item</p>
+<p>Simple content here.</p>
+</li>
+<li value="10">
+<p>Level 1 - Skip to ten with final nesting</p>
+<ol type="I" start="4" class="ol-upper-roman" data-marker-suffix=".">
+<li>Level 2 - Roman numerals uppercase
+<ol role="list" class="ol-lower-greek" data-marker-suffix=")">
+<li>
+<p><span class="li-num">α</span> Level 3 - Greek with parentheses</p>
+<p>Final nested content.</p>
+<p><strong>Bold text</strong> and <em>italic text</em> and <code>code</code>.</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Final item</p>
+</li>
+</ol>
+
+
+[Markdown]
+- A. Level 1 - Capital letters with decimal level 3
+
+    Introduction content.
+
+    - i) Level 2 - Roman with parentheses
+        - 1. Level 3 - Decimal with period
+
+            Content at level 3 with decimal marker.
+
+        - 2. Level 3 - Second decimal item
+
+            More content at level 3.
+
+            > Blockquote at level 3
+            > with multiple lines
+
+        - 3. Level 3 - Third decimal item
+
+            ```javascript
+            // Code block at level 3
+            function level3() {
+                return "level 3 content";
+            }
+            ```
+
+    - ii) Level 2 - Second roman item
+
+        Content in level 2.
+
+    - iii) Level 2 - Third roman with nested decimals
+
+        - 1. Level 3 - First decimal
+        - 2. Level 3 - Second decimal
+        - 5. Level 3 - Skip to five
+
+- B. Level 1 - Second capital letter
+
+    Brief content.
+
+- C. Level 1 - Final capital with mixed nesting
+
+    > Final blockquote
+
+    - (a) Level 2 - Lowercase with parentheses
+        - 1. Level 3 - Decimal in mixed context
+
+            Ultimate content.
+
+            ---
+
+            Final separator.
+
+- D. Level 1 - Last item
+[HTML]
+<ol type="A" class="ol-upper-latin" data-marker-suffix=".">
+<li>
+<p>Level 1 - Capital letters with decimal level 3</p>
+<p>Introduction content.</p>
+<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 2 - Roman with parentheses</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Level 3 - Decimal with period</p>
+<p>Content at level 3 with decimal marker.</p>
+</li>
+<li>
+<p>Level 3 - Second decimal item</p>
+<p>More content at level 3.</p>
+<blockquote>
+<p>Blockquote at level 3
+with multiple lines</p>
+</blockquote>
+</li>
+<li>
+<p>Level 3 - Third decimal item</p>
+<pre><code class="language-javascript">// Code block at level 3
+function level3() {
+    return &quot;level 3 content&quot;;
+}
+</code></pre>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 2 - Second roman item</p>
+<p>Content in level 2.</p>
+</li>
+<li>
+<p>Level 2 - Third roman with nested decimals</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Level 3 - First decimal</li>
+<li>Level 3 - Second decimal</li>
+<li value="5">Level 3 - Skip to five</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Second capital letter</p>
+<p>Brief content.</p>
+</li>
+<li>
+<p>Level 1 - Final capital with mixed nesting</p>
+<blockquote>
+<p>Final blockquote</p>
+</blockquote>
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Level 2 - Lowercase with parentheses
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Level 3 - Decimal in mixed context</p>
+<p>Ultimate content.</p>
+<hr>
+<p>Final separator.</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Level 1 - Last item</p>
+</li>
+</ol>
+
+
+[Markdown]
+- 1) Level 1 - Numbers with parentheses
+
+    Final level content.
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with parentheses</p>
+<p>Final level content.</p>
+</li>
+</ol>
+
+
+[Markdown]
+- 1) Level 1 - Numbers with parentheses
+
+    ## heading
+
+    Final level content.
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with parentheses</p>
+<h2>heading</h2>
+<p>Final level content.</p>
+</li>
+</ol>
+
+[Markdown]
+- b
+
+  <div>
+
+  aa
+
+  </div>
+
+- a
+[HTML]
+<ul>
+<li>
+<p>b</p>
+<div>
+<p>aa</p>
+</div>
+</li>
+<li>
+<p>a</p>
+</li>
+</ul>
+
+
+[Markdown]
+- 1) Level 1 - Numbers with parentheses
+
+    ## heading
+
+    <div>
+    
+    Final level content.
+
+    </div>
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with parentheses</p>
+<h2>heading</h2>
+<div>
+<p>Final level content.</p>
+</div>
+</li>
+</ol>
+
+
+[Markdown]
+- 1) Level 1 - Numbers with parentheses
+
+    ## heading
+
+    <div>
+    Final level content.
+    </div>
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with parentheses</p>
+<h2>heading</h2>
+<div>
+Final level content.
+</div>
+</li>
+</ol>
+
+
+[Markdown]
+- 1) Level 1 - Numbers with parentheses
+
+    ## heading
+
+    <section class="section">
+    Final level content.
+    </section>
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>
+<p>Level 1 - Numbers with parentheses</p>
+<h2>heading</h2>
+<section class="section">
+Final level content.
+</section>
+</li>
+</ol>
+
+
+[Markdown]
+- 1. First nested item
+- 2. Second nested item
+
+- a. Another nested item
+- b. Another nested item 2
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First nested item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Second nested item</li>
+</ol>
+</li>
+<li>
+<p>a. Another nested item</p>
+</li>
+<li>
+<p>b. Another nested item 2</p>
+</li>
+</ul>
+
+
+[Markdown]
+- 1. First nested
+- 2. Second nested
+- Regular bullet
+- a. Third nested
+- b. Fourth nested
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First nested</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Second nested</li>
+</ol>
+</li>
+<li>Regular bullet</li>
+<li>a. Third nested</li>
+<li>b. Fourth nested</li>
+</ul>
+
+
+[Markdown]
+- 1. Level 1-1
+- 2. Level 1-2
+    - a. Level 2-1
+    - b. Level 2-2
+        - i. Level 3-1
+        - ii. Level 3-2
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Level 1-1</li>
+<li>Level 1-2
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Level 2-1</li>
+<li>Level 2-2
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Level 3-1</li>
+<li>Level 3-2</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+
+[Markdown]
+- 1. First item
+
+- 2. Second item
+
+- a. Third item
+- b. Fourth item
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Second item</li>
+</ol>
+</li>
+<li>
+<p>a. Third item</p>
+</li>
+<li>
+<p>b. Fourth item</p>
+</li>
+</ul>

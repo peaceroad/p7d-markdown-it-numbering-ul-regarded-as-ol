@@ -1,0 +1,133 @@
+[Markdown]
+- 1. Level 1 item
+
+    Level 1 paragraph
+
+    - a. Level 2 item
+    
+        Level 2 paragraph
+        
+        - i. Level 3 item
+        - ii. Level 3 item 2
+
+- 2. Another level 1
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Level 1 item</p>
+<p>Level 1 paragraph</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>
+<p>Level 2 item</p>
+<p>Level 2 paragraph</p>
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Level 3 item</li>
+<li>Level 3 item 2</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Another level 1</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent item
+
+    - a. Child item a
+    - b. Child item b
+
+- 2. Parent item 2
+
+    - c. Child item c
+
+        - i. Grandchild i
+        - ii. Grandchild ii
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent item</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child item a</li>
+<li>Child item b</li>
+</ol>
+</li>
+<li>
+<p>Parent item 2</p>
+<ol type="a" start="3" class="ol-lower-latin" data-marker-suffix=".">
+<li>
+<p>Child item c</p>
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>
+<p>Grandchild i</p>
+</li>
+<li>
+<p>Grandchild ii</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Item with gap
+
+- 2. Another item
+
+    - a. Nested with gap
+    
+    - b. Another nested
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Item with gap</p>
+</li>
+<li>
+<p>Another item</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>
+<p>Nested with gap</p>
+</li>
+<li>
+<p>Another nested</p>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Simple item
+- 2. Another simple item
+    - a. Tight nested
+    - b. Another tight nested
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Simple item</li>
+<li>Another simple item
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Tight nested</li>
+<li>Another tight nested</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent loose
+
+    Multiple paragraphs
+    
+    - a. Child should inherit loose
+    - b. Another child
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent loose</p>
+<p>Multiple paragraphs</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child should inherit loose</li>
+<li>Another child</li>
+</ol>
+</li>
+</ol>

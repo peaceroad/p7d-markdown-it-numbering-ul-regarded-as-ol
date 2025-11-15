@@ -1,0 +1,127 @@
+[Markdown]
+- **Term with class**
+
+  Description text
+
+- **Another term**
+
+  Another description
+{.custom-dl}
+[HTML]
+<dl class="custom-dl">
+<dt>Term with class</dt>
+<dd>
+<p>Description text</p>
+</dd>
+<dt>Another term</dt>
+<dd>
+<p>Another description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **First term**
+
+  First description
+
+- **Second term**
+
+
+  Second description
+{.my-class #my-id}
+[HTML]
+<dl class="my-class" id="my-id">
+<dt>First term</dt>
+<dd>
+<p>First description</p>
+</dd>
+<dt>Second term</dt>
+<dd>
+<p>Second description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Simple term**  
+Simple description
+{.simple}
+[HTML]
+<dl class="simple">
+<dt>Simple term</dt>
+<dd>
+<p>Simple description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term with data attribute**
+
+  Description
+
+- **Another**
+
+  Content
+{data-custom="value"}
+[HTML]
+<dl data-custom="value">
+<dt>Term with data attribute</dt>
+<dd>
+<p>Description</p>
+</dd>
+<dt>Another</dt>
+<dd>
+<p>Content</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term one** {.term-class}
+
+  Description one
+
+- **Term two**
+
+  Description two {.desc-class}
+[HTML]
+<dl>
+<dt class="term-class">Term one</dt>
+<dd>
+<p>Description one</p>
+</dd>
+<dt>Term two</dt>
+<dd>
+<p class="desc-class">Description two</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Styled term** {#term-id}
+
+  Styled description {.my-desc}
+[HTML]
+<dl>
+<dt id="term-id">Styled term</dt>
+<dd>
+<p class="my-desc">Styled description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **First** {.class1}
+
+  Content A {.class2}
+
+- **Second** {.class3}
+
+  Content B {.class4}
+[HTML]
+<dl>
+<dt class="class1">First</dt>
+<dd>
+<p class="class2">Content A</p>
+</dd>
+<dt class="class3">Second</dt>
+<dd>
+<p class="class4">Content B</p>
+</dd>
+</dl>

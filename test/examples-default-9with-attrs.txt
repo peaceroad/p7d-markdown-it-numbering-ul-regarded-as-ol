@@ -1,0 +1,259 @@
+[Markdown]
+- 1. First item
+- 2. Second item
+{.custom-list}
+[HTML]
+<ol type="1" class="ol-decimal custom-list" data-marker-suffix=".">
+<li>First item</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- a) First item
+- b) Second item
+{.alpha-round}
+[HTML]
+<ol type="a" class="ol-lower-latin-with-none-round alpha-round" data-marker-suffix=")">
+<li>First item</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- イ. First item
+- ロ. Second item
+{.japanese}
+[HTML]
+<ol role="list" class="ol-katakana-iroha japanese" data-marker-suffix=".">
+<li><span class="li-num">イ</span> First item</li>
+<li><span class="li-num">ロ</span> Second item</li>
+</ol>
+
+[Markdown]
+- 1. First item {.red}
+- 2. Second item {.blue}
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li class="red">First item</li>
+<li class="blue">Second item</li>
+</ol>
+
+[Markdown]
+- a. Item with data attribute
+- b. Another item
+{data-group="alpha"}
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix="." data-group="alpha">
+<li>Item with data attribute</li>
+<li>Another item</li>
+</ol>
+
+[Markdown]
+- 1. Parent item
+    - a. Child item
+    - b. Child item
+{.list-level-1}
+[HTML]
+<ol type="1" class="ol-decimal list-level-1" data-marker-suffix=".">
+<li>Parent item
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child item</li>
+<li>Child item</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Item one {.item-red}
+- 2. Item two
+{.list-blue}
+[HTML]
+<ol type="1" class="ol-decimal list-blue" data-marker-suffix=".">
+<li class="item-red">Item one</li>
+<li>Item two</li>
+</ol>
+
+[Markdown]
+- 1. First item {#item-1}
+- 2. Second item {#item-2}
+{#list-main .primary data-priority="high"}
+[HTML]
+<ol type="1" class="ol-decimal primary" data-marker-suffix="." id="list-main" data-priority="high">
+<li id="item-1">First item</li>
+<li id="item-2">Second item</li>
+</ol>
+
+[Markdown]
+- 1. Parent {.parent-item}
+    - a. Child one {.child-red}
+    - b. Child two {.child-blue}
+- 2. Another parent
+{.parent-list data-level="1"}
+[HTML]
+<ol type="1" class="ol-decimal parent-list" data-marker-suffix="." data-level="1">
+<li class="parent-item">Parent
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li class="child-red">Child one</li>
+<li class="child-blue">Child two</li>
+</ol>
+</li>
+<li>Another parent</li>
+</ol>
+
+[Markdown]
+- 1. First {.item-a .item-b data-x="1"}
+- 2. Second {.item-c data-y="2"}
+- 3. Third
+{.list-x .list-y .list-z data-group="test" data-index="1"}
+[HTML]
+<ol type="1" class="ol-decimal list-x list-y list-z" data-marker-suffix="." data-group="test" data-index="1">
+<li class="item-a item-b" data-x="1">First</li>
+<li class="item-c" data-y="2">Second</li>
+<li>Third</li>
+</ol>
+
+[Markdown]
+- 1. Parent item
+    - a. Nested child
+    - b. Another child
+{.top-level}
+[HTML]
+<ol type="1" class="ol-decimal top-level" data-marker-suffix=".">
+<li>Parent item
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Nested child</li>
+<li>Another child</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Item {.red}
+- 2. Item {.blue}
+{.list-primary}
+
+Text between lists.
+
+- a. Alpha {.alpha-class}
+- b. Beta
+{.list-secondary data-type="letters"}
+[HTML]
+<ol type="1" class="ol-decimal list-primary" data-marker-suffix=".">
+<li class="red">Item</li>
+<li class="blue">Item</li>
+</ol>
+<p>Text between lists.</p>
+<ol type="a" class="ol-lower-latin list-secondary" data-marker-suffix="." data-type="letters">
+<li class="alpha-class">Alpha</li>
+<li>Beta</li>
+</ol>
+
+[Markdown]
+- 3. Third item
+- 4. Fourth item
+- 5. Fifth item
+{.start-from-three data-seq="3-5"}
+[HTML]
+<ol type="1" start="3" class="ol-decimal start-from-three" data-marker-suffix="." data-seq="3-5">
+<li>Third item</li>
+<li>Fourth item</li>
+<li>Fifth item</li>
+</ol>
+
+[Markdown]
+- 5. Fifth {.item-five}
+- 6. Sixth
+- 7. Seventh {.item-seven}
+{#custom-start .custom-list}
+[HTML]
+<ol type="1" start="5" class="ol-decimal custom-list" data-marker-suffix="." id="custom-start">
+<li class="item-five">Fifth</li>
+<li>Sixth</li>
+<li class="item-seven">Seventh</li>
+</ol>
+
+[Markdown]
+- a. Alpha item
+- b. Beta item
+- c. Gamma item
+{.alpha-list data-style="lowercase"}
+[HTML]
+<ol type="a" class="ol-lower-latin alpha-list" data-marker-suffix="." data-style="lowercase">
+<li>Alpha item</li>
+<li>Beta item</li>
+<li>Gamma item</li>
+</ol>
+
+[Markdown]
+- A. First capital
+- B. Second capital
+- C. Third capital
+{.uppercase-list}
+[HTML]
+<ol type="A" class="ol-upper-latin uppercase-list" data-marker-suffix=".">
+<li>First capital</li>
+<li>Second capital</li>
+<li>Third capital</li>
+</ol>
+
+[Markdown]
+- i. Roman one
+- ii. Roman two
+- iii. Roman three
+{.roman-list data-format="lower-roman"}
+[HTML]
+<ol type="i" class="ol-lower-roman roman-list" data-marker-suffix="." data-format="lower-roman">
+<li>Roman one</li>
+<li>Roman two</li>
+<li>Roman three</li>
+</ol>
+
+[Markdown]
+- c. Starting from C
+- d. Then D
+- e. Then E
+{.start-c data-initial="c"}
+[HTML]
+<ol type="a" start="3" class="ol-lower-latin start-c" data-marker-suffix="." data-initial="c">
+<li>Starting from C</li>
+<li>Then D</li>
+<li>Then E</li>
+</ol>
+
+[Markdown]
+- a. Top level alpha {.top-item}
+    - 1. Nested decimal
+    - 2. Second nested
+- b. Second alpha
+{.main-alpha}
+[HTML]
+<ol type="a" class="ol-lower-latin main-alpha" data-marker-suffix=".">
+<li class="top-item">Top level alpha
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Nested decimal</li>
+<li>Second nested</li>
+</ol>
+</li>
+<li>Second alpha</li>
+</ol>
+
+[Markdown]
+- III. Roman three
+- IV. Roman four
+- V. Roman five
+{.start-upper-roman data-start-value="3"}
+[HTML]
+<ol type="I" start="3" class="ol-upper-roman start-upper-roman" data-marker-suffix="." data-start-value="3">
+<li>Roman three</li>
+<li>Roman four</li>
+<li>Roman five</li>
+</ol>
+
+[Markdown]
+- d) Alpha with paren
+- e) Next alpha
+{.alpha-paren}
+[HTML]
+<ol type="a" start="4" class="ol-lower-latin-with-none-round alpha-paren" data-marker-suffix=")">
+<li>Alpha with paren</li>
+<li>Next alpha</li>
+</ol>

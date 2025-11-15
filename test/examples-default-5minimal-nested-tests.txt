@@ -1,0 +1,97 @@
+[Markdown]
+- (1) First item
+- (2) Second item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>First item</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- 1. First item
+- 2. Second item
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First item</li>
+<li>Second item</li>
+</ol>
+
+[Markdown]
+- (1) Parent item
+    - 1. Child item 1
+    - 2. Child item 2
+- (2) Second parent
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Parent item
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child item 1</li>
+<li>Child item 2</li>
+</ol>
+</li>
+<li>Second parent</li>
+</ol>
+
+[Markdown]
+- 1. Parent item
+    - (a) Child item 1
+    - (b) Child item 2
+- 2. Second parent
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent item
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Child item 1</li>
+<li>Child item 2</li>
+</ol>
+</li>
+<li>Second parent</li>
+</ol>
+
+[Markdown]
+- (1) Parent with content
+
+    Some content here.
+
+    - 1. Child item 1
+    - 2. Child item 2
+
+- (2) Second parent
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>
+<p>Parent with content</p>
+<p>Some content here.</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child item 1</li>
+<li>Child item 2</li>
+</ol>
+</li>
+<li>
+<p>Second parent</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent with content
+
+    Some content here.
+
+    - (a) Child item 1
+    - (b) Child item 2
+
+- 2. Second parent
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent with content</p>
+<p>Some content here.</p>
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Child item 1</li>
+<li>Child item 2</li>
+</ol>
+</li>
+<li>
+<p>Second parent</p>
+</li>
+</ol>

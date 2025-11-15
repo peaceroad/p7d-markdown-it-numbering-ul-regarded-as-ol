@@ -1,0 +1,161 @@
+[Markdown]
+Term 1
+:   Definition 1
+
+Term 2
+:   Definition 2
+[HTML]
+<dl>
+<dt>Term 1</dt>
+<dd>
+Definition 1</dd>
+<dt>Term 2</dt>
+<dd>
+Definition 2</dd>
+</dl>
+
+[Markdown]
+- **Our Term 1**
+    Our definition 1
+
+Term from deflist
+:   Definition from deflist
+
+- **Our Term 2**
+    Our definition 2
+[HTML]
+<dl>
+<dt>Our Term 1</dt>
+<dd>
+<p>Our definition 1</p>
+</dd>
+</dl>
+<dl>
+<dt>Term from deflist</dt>
+<dd>
+Definition from deflist</dd>
+</dl>
+<dl>
+<dt>Our Term 2</dt>
+<dd>
+<p>Our definition 2</p>
+</dd>
+</dl>
+
+[Markdown]
+This is *emphasized* text.
+
+This is **strong** text.
+
+This is ***both*** text.
+[HTML]
+<p>This is <em>emphasized</em> text.</p>
+<p>This is <strong>strong</strong> text.</p>
+<p>This is <em><strong>both</strong></em> text.</p>
+
+[Markdown]
+- ***Important* Term**
+    This term has emphasis inside
+
+- **Term with *emphasis* word**
+    Definition here
+[HTML]
+<dl>
+<dt><em>Important</em> Term</dt>
+<dd>
+<p>This term has emphasis inside</p>
+</dd>
+<dt>Term with <em>emphasis</em> word</dt>
+<dd>
+<p>Definition here</p>
+</dd>
+</dl>
+
+[Markdown]
+- ***Very* Important**
+    Definition with nested formatting
+
+- **Normal Term**
+    Normal definition
+[HTML]
+<dl>
+<dt><em>Very</em> Important</dt>
+<dd>
+<p>Definition with nested formatting</p>
+</dd>
+<dt>Normal Term</dt>
+<dd>
+<p>Normal definition</p>
+</dd>
+</dl>
+
+[Markdown]
+- **API *endpoint* definition**
+    This is our plugin's DL with emphasis
+
+Standard deflist term
+:   Standard deflist definition
+
+Regular paragraph with *emphasis* and **strong** text.
+
+- **Another *formatted* term**
+    Another definition
+[HTML]
+<dl>
+<dt>API <em>endpoint</em> definition</dt>
+<dd>
+<p>This is our plugin's DL with emphasis</p>
+</dd>
+</dl>
+<dl>
+<dt>Standard deflist term</dt>
+<dd>
+Standard deflist definition</dd>
+</dl>
+<p>Regular paragraph with <em>emphasis</em> and <strong>strong</strong> text.</p>
+<dl>
+<dt>Another <em>formatted</em> term</dt>
+<dd>
+<p>Another definition</p>
+</dd>
+</dl>
+
+[Markdown]
+- ***term1* and *term2* combined**
+    Definition for combined terms
+
+- ***a*b*c**
+    Consecutive emphasis markers
+[HTML]
+<dl>
+<dt><em>term1</em> and <em>term2</em> combined</dt>
+<dd>
+<p>Definition for combined terms</p>
+</dd>
+<dt><em>a</em>b*c</dt>
+<dd>
+<p>Consecutive emphasis markers</p>
+</dd>
+</dl>
+
+
+[Markdown]
+- ** *term1* and *term2* combined**
+    Definition for combined terms
+
+- ***a*b*c**
+    Consecutive emphasis markers
+[HTML]
+<dl>
+<dt> <em>term1</em> and <em>term2</em> combined</dt>
+<dd>
+<p>Definition for combined terms</p>
+</dd>
+<dt><em>a</em>b*c</dt>
+<dd>
+<p>Consecutive emphasis markers</p>
+</dd>
+</dl>
+
+
+

@@ -1,0 +1,43 @@
+[Markdown]
+- (1) first item
+- (2) second item
+- (4) third item
+[HTML]
+<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>first item</li>
+<li>second item</li>
+<li value="4">third item</li>
+</ol>
+
+[Markdown]
+- 0) first item
+- 1) second item
+- 2) third item
+[HTML]
+<ol type="1" start="0" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>first item</li>
+<li>second item</li>
+<li>third item</li>
+</ol>
+
+[Markdown]
+- (a) alpha item
+- (b) beta item
+- (c) gamma item
+[HTML]
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>alpha item</li>
+<li>beta item</li>
+<li>gamma item</li>
+</ol>
+
+[Markdown]
+- b) alpha item
+- d) beta item
+- e) gamma item
+[HTML]
+<ol type="a" start="2" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
+<li>alpha item</li>
+<li value="4">beta item</li>
+<li>gamma item</li>
+</ol>

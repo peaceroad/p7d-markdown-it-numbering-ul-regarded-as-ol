@@ -1,0 +1,90 @@
+[Markdown]
+- 1. first item
+- 2. second item
+- 3. third item
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>first item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>second item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>third item</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- 1) first item
+- 2) second item
+- 3) third item
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>first item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>second item</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="3" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>third item</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- 2. alpha
+- 3. beta
+- 4. gamma
+[HTML]
+<ul>
+<li>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>alpha</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>beta</li>
+</ol>
+</li>
+<li>
+<ol type="1" start="4" class="ol-decimal" data-marker-suffix=".">
+<li>gamma</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- a. first item
+- b. second item
+- c. third item
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>first item</li>
+<li>second item</li>
+<li>third item</li>
+</ol>
+
+[Markdown]
+- A. first item
+- B. second item
+- C. third item
+[HTML]
+<ol type="A" class="ol-upper-latin" data-marker-suffix=".">
+<li>first item</li>
+<li>second item</li>
+<li>third item</li>
+</ol>
