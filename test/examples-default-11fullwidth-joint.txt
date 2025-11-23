@@ -1,0 +1,35 @@
+[Markdown]
+- １．Fullwidth colon decimal
+- ２．Second
+- ３．Third
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix="．">
+<li>Fullwidth colon decimal</li>
+<li>Second</li>
+<li>Third</li>
+</ol>
+
+[Markdown]
+- イ．First
+- ロ．Second
+- ハ．Third
+
+[HTML]
+<ol role="list" class="ol-katakana-iroha" data-marker-suffix="．">
+<li>First</li>
+<li>Second</li>
+<li>Third</li>
+</ol>
+
+[Markdown]
+- 一　First
+- 二　Second
+- 三　Third
+
+[HTML]
+<ol role="list" class="ol-japanese-informal">
+<li>First</li>
+<li>Second</li>
+<li>Third</li>
+</ol>
