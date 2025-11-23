@@ -150,8 +150,10 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
   if (markerInfo.markers[0].prefix) {
     addAttr(token, 'data-marker-prefix', markerInfo.markers[0].prefix)
   }
-  if (markerInfo.markers[0].suffix) {
-    addAttr(token, 'data-marker-suffix', markerInfo.markers[0].suffix)
+  // Do not emit data-marker-suffix when suffix is only whitespace (halfwidth or fullwidth)
+  const suffix = markerInfo.markers[0].suffix
+  if (suffix && !/^[ \u3000]+$/.test(suffix)) {
+    addAttr(token, 'data-marker-suffix', suffix)
   }
   
   // Add value attribute to list items (for non-consecutive numbers)
