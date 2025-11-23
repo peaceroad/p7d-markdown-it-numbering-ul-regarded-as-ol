@@ -1,11 +1,11 @@
 /**
- * Phase 4: HTMLブロック処理
- * リスト内のHTMLブロックのインデントを除去し、改行を正規化する
+ * Phase 4: HTML block processing
+ * Remove list indentation from HTML blocks and normalize newlines.
  */
 
 /**
- * HTMLブロックのインデントを除去し、改行を正規化
- * @param {Object} state - markdown-itのstate
+ * Remove list indentation from HTML blocks and normalize newlines.
+ * @param {Object} state - markdown-it state
  */
 export function processHtmlBlocks(state) {
   const tokens = state.tokens;

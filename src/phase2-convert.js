@@ -109,7 +109,7 @@ function convertBulletToOrdered(tokens, listInfo) {
 }
 
 /**
- * inline tokenのcontentからマーカーを削除
+ * Remove markers from inline token content
  */
 function removeMarkersFromContent(tokens, startIndex, endIndex, markerInfo, listInfo) {
   const listToken = tokens[startIndex]
@@ -148,16 +148,17 @@ function escapeRegExp(string) {
 }
 
 /**
- * ul>li>ul や ul>li>ol のネスト構造を簡素化
- * 
- * パターン1: bullet_list_open → list_item_open → bullet_list_open → ...
- * パターン2: bullet_list_open → list_item_open → ordered_list_open → ... (繰り返し)
- * 
- * 中間のlist_itemが空（内側のリストだけを含む）の場合、外側のulと中間のliを削除
- * @param {Array} tokens - トークン配列
- * @param {Array} listInfos - Phase1で解析したリスト情報
- * @param {Object} opt - オプション
- * @param {Map} listInfoMap - startIndexをキーとしたlistInfoのMap
+ * Simplify nested ul>li>ul and ul>li>ol structures.
+ *
+ * Pattern 1: bullet_list_open → list_item_open → bullet_list_open → ...
+ * Pattern 2: bullet_list_open → list_item_open → ordered_list_open → ... (repeated)
+ *
+ * When the middle list_item is empty (contains only the inner list),
+ * remove the outer ul and the intermediate li.
+ * @param {Array} tokens - Token array
+ * @param {Array} listInfos - List information analyzed in Phase 1
+ * @param {Object} opt - Options
+ * @param {Map} listInfoMap - Map of listInfo keyed by startIndex
  */
 function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
   let modified = true

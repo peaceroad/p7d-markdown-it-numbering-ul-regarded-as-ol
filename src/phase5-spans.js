@@ -32,7 +32,7 @@ export function generateSpans(tokens, listInfos, opt) {
 }
 
 /**
- * inline tokenにマーカーspanを追加
+ * Add marker <span> to the first inline token of each list item.
  */
 function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt) {
   // Find end position of this ordered_list
@@ -57,7 +57,8 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt) {
       if (marker && marker.marker) {
         // Insert span_open, text, span_close before inline token
         const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
-        spanOpen.attrSet('class', 'li-num')
+        const spanClass = (opt && opt.markerSpanClass) ? String(opt.markerSpanClass) : 'li-num'
+        spanOpen.attrSet('class', spanClass)
         
         const text = new tokens[i].constructor('text', '', 0)
         

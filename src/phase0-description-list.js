@@ -5,18 +5,6 @@
 import { findMatchingClose } from './list-helpers.js'
 
 /**
- * Escape HTML special characters
- */
-const escapeHtml = (text) => {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;')
-}
-
-/**
  * Parse attribute string like ".class1 .class2 #id data-foo="bar""
  * Returns array of [key, value] pairs
  */

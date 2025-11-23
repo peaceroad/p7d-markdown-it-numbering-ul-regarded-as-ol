@@ -416,3 +416,4 @@ The plugin accepts an options object when used. Key options:
 - `descriptionListWithDiv` (boolean) — Wrap `<dd>` content in `<div>` when descriptionList is enabled.
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
 - `useCounterStyle` (boolean) — Set `useCounterStyle: true` to suppress marker spans and prefer native `start`/`value` attributes for CSS `@counter-style` usage.
+- `markerSpanClass` (string) — Specify the class name applied to the marker `<span>` (default: `li-num`).

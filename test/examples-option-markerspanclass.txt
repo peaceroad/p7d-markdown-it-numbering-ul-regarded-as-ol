@@ -1,0 +1,26 @@
+[Markdown]
+- ① First
+- ② Second
+- ③ Third
+[HTML]
+<ol role="list" class="ol-circled-decimal">
+<li><span class="custom-marker">①</span> First</li>
+<li><span class="custom-marker">②</span> Second</li>
+<li><span class="custom-marker">③</span> Third</li>
+</ol>
+
+[Markdown]
+- ① Parent
+	- ❶ Child A
+	- ❷ Child B
+- ② Second parent
+[HTML]
+<ol role="list" class="ol-circled-decimal">
+<li><span class="custom-marker">①</span> Parent
+<ol role="list" class="ol-filled-circled-decimal">
+<li><span class="custom-marker">❶</span> Child A</li>
+<li><span class="custom-marker">❷</span> Child B</li>
+</ol>
+</li>
+<li><span class="custom-marker">②</span> Second parent</li>
+</ol>

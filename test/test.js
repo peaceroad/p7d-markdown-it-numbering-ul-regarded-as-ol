@@ -45,6 +45,9 @@ const testConfigs = [
   createTestConfig('useCounterStyle option', { useCounterStyle: true }, [
     'examples-option-usecounterstyle.txt'
   ]),
+  createTestConfig('markerSpanClass option', { alwaysMarkerSpan: true, markerSpanClass: 'custom-marker' }, [
+    'examples-option-markerspanclass.txt'
+  ]),
   // Test with markdown-it-attrs loaded BEFORE this plugin
   {
     name: 'description list with attrs (attrs loaded first)',

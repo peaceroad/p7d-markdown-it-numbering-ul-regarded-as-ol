@@ -14,6 +14,7 @@ const mditNumberingUlRegardedAsOl = (md, option) => {
     descriptionListWithDiv: false,
     unremoveUlNest: false,        // true=preserve ul>li>ol nesting, false=flatten to ol>li
     alwaysMarkerSpan: false,      // true=use <span class="li-num">, false=normal numbering
+    markerSpanClass: 'li-num',    // class name to use for marker spans (customizable)
     hasListStyleNone: false,      // true=add style="list-style: none;" when role="list" is used
     useCounterStyle: false,       // true=users will use @counter-style; suppress marker spans and role attr
     
