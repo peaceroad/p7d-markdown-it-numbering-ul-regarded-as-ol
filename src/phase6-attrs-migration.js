@@ -111,6 +111,7 @@ export function moveNestedListAttributes(tokens) {
         const customClasses = []
         
         for (let k = 0; k < classes.length; k++) {
+          // Treat ol-* as plugin-generated (should remain on child)
           if (classes[k].startsWith('ol-')) {
             pluginClasses.push(classes[k])
           } else {

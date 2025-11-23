@@ -42,6 +42,9 @@ const testConfigs = [
   createTestConfig('hasListStyleNone option', { hasListStyleNone: true }, [
     'examples-option-hasliststylenone.txt'
   ]),
+  createTestConfig('useCounterStyle option', { useCounterStyle: true }, [
+    'examples-option-usecounterstyle.txt'
+  ]),
   // Test with markdown-it-attrs loaded BEFORE this plugin
   {
     name: 'description list with attrs (attrs loaded first)',

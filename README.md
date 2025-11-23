@@ -415,3 +415,4 @@ The plugin accepts an options object when used. Key options:
 - `descriptionList` (boolean) — Enable conversion of special `**Term**` list patterns into `<dl>` description lists.
 - `descriptionListWithDiv` (boolean) — Wrap `<dd>` content in `<div>` when descriptionList is enabled.
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
+- `useCounterStyle` (boolean) — Set `useCounterStyle: true` to suppress marker spans and prefer native `start`/`value` attributes for CSS `@counter-style` usage.

@@ -21,6 +21,9 @@ export function generateSpans(tokens, listInfos, opt) {
       const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker)
       
       // Generate span if no type attribute (custom marker) or alwaysMarkerSpan mode
+      // If user opts to use @counter-style, do not generate inline marker spans
+      if (opt.useCounterStyle) continue
+
       if (!typeAttrs.type || opt.alwaysMarkerSpan) {
         addMarkerSpans(tokens, token, i, markerInfo, opt)
       }

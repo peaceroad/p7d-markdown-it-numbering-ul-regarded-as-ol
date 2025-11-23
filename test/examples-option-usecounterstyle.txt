@@ -1,0 +1,183 @@
+[Markdown]
+- 1. One
+- 2. Two
+- 3. Three
+[HTML]
+<ol class="ol-decimal" data-marker-suffix=".">
+<li>One</li>
+<li>Two</li>
+<li>Three</li>
+</ol>
+
+[Markdown]
+- a. Alpha
+- b. Beta
+[HTML]
+<ol class="ol-lower-latin" data-marker-suffix=".">
+<li>Alpha</li>
+<li>Beta</li>
+</ol>
+
+[Markdown]
+- ❶ Filled one
+- ❷ Filled two
+[HTML]
+<ol class="ol-filled-circled-decimal">
+<li>Filled one</li>
+<li>Filled two</li>
+</ol>
+
+[Markdown]
+- イ. Katakana A
+- ロ. Katakana B
+[HTML]
+<ol class="ol-katakana-iroha" data-marker-suffix=".">
+<li>Katakana A</li>
+<li>Katakana B</li>
+</ol>
+
+[Markdown]
+- 1. Parent
+    - a. Child A
+    - b. Child B
+{.parent-class}
+[HTML]
+<ol class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol class="ol-lower-latin" data-marker-suffix=".">
+<li>Child A</li>
+<li>Child B
+{.parent-class}</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Start at 3
+- 4. Next
+[HTML]
+<ol class="ol-decimal" data-marker-suffix=".">
+<li>Start at 3</li>
+<li value="4">Next</li>
+</ol>
+
+[Markdown]
+- 1) Paren style
+- 2) Second
+[HTML]
+<ol class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>Paren style</li>
+<li>Second</li>
+</ol>
+
+[Markdown]
+- (i) Roman
+- (ii) Roman2
+[HTML]
+<ol class="ol-lower-roman-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Roman</li>
+<li>Roman2</li>
+</ol>
+
+[Markdown]
+- 1. Mixed
+- a. Mixed nested
+[HTML]
+<ul>
+<li>
+<ol class="ol-decimal" data-marker-suffix=".">
+<li>Mixed</li>
+</ol>
+</li>
+<li>a. Mixed nested</li>
+</ul>
+
+
+[Markdown]
+- ❷ First outer
+- ❸ Second outer
+    - イ. Inner A
+    - ハ. Inner B
+        - 2. Deep 1
+        - 4. Deep 2
+    - ニ. Inner C
+- ❺ Third outer
+[HTML]
+<ol start="2" class="ol-filled-circled-decimal">
+<li>First outer</li>
+<li>Second outer
+<ol class="ol-katakana-iroha" data-marker-suffix=".">
+<li>Inner A</li>
+<li value="3">Inner B
+<ol start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Deep 1</li>
+<li value="4">Deep 2</li>
+</ol>
+</li>
+<li>Inner C</li>
+</ol>
+</li>
+<li value="5">Third outer</li>
+</ol>
+
+[Markdown]
+- ロ. Outer A
+- ハ. Outer B
+    - 3. Inner 1
+    - 5. Inner 2
+        - イ. Deep Inner A
+        - ロ. Deep Inner B
+[HTML]
+<ol start="2" class="ol-katakana-iroha" data-marker-suffix=".">
+<li>Outer A</li>
+<li>Outer B
+<ol start="3" class="ol-decimal" data-marker-suffix=".">
+<li>Inner 1</li>
+<li value="5">Inner 2
+<ol class="ol-katakana-iroha" data-marker-suffix=".">
+<li>Deep Inner A</li>
+<li>Deep Inner B</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 3. Parent start at 3
+    - a. Child A
+    - b. Child B
+        - i. Grandchild i
+        - ii. Grandchild ii
+- 5. Parent second with gap
+[HTML]
+<ol start="3" class="ol-decimal" data-marker-suffix=".">
+<li>Parent start at 3
+<ol class="ol-lower-latin" data-marker-suffix=".">
+<li>Child A</li>
+<li>Child B
+<ol class="ol-lower-roman" data-marker-suffix=".">
+<li>Grandchild i</li>
+<li>Grandchild ii</li>
+</ol>
+</li>
+</ol>
+</li>
+<li value="5">Parent second with gap</li>
+</ol>
+
+[Markdown]
+- 1. Mixed starts
+- 2. Next
+    - 4. Inner starts at 4
+    - 5. Inner next
+[HTML]
+<ol class="ol-decimal" data-marker-suffix=".">
+<li>Mixed starts</li>
+<li>Next
+<ol start="4" class="ol-decimal" data-marker-suffix=".">
+<li>Inner starts at 4</li>
+<li>Inner next</li>
+</ol>
+</li>
+</ol>
