@@ -39,6 +39,9 @@ const testConfigs = [
   createTestConfig('alwaysMarkerSpan option', { alwaysMarkerSpan: true }, [
     'examples-option-alwaysmarkerspan.txt'
   ]),
+  createTestConfig('hasListStyleNone option', { hasListStyleNone: true }, [
+    'examples-option-hasliststylenone.txt'
+  ]),
   // Test with markdown-it-attrs loaded BEFORE this plugin
   {
     name: 'description list with attrs (attrs loaded first)',

@@ -94,6 +94,9 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
     addAttr(token, 'type', typeAttrs.type)
   } else {
     addAttr(token, 'role', 'list')
+    if (opt.hasListStyleNone) {
+      addAttr(token, 'style', 'list-style: none;')
+    }
   }
   
   // 2. Add start attribute or data-start attribute

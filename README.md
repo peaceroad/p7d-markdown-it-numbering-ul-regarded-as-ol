@@ -414,3 +414,4 @@ The plugin accepts an options object when used. Key options:
 - `unremoveUlNest` (boolean) — If `true`, keep the original `ul > li > ol` nesting instead of flattening into `ol > li`.
 - `descriptionList` (boolean) — Enable conversion of special `**Term**` list patterns into `<dl>` description lists.
 - `descriptionListWithDiv` (boolean) — Wrap `<dd>` content in `<div>` when descriptionList is enabled.
+- `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
