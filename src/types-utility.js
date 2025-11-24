@@ -27,10 +27,91 @@ const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-const getPatternsByName = (patternName) => {
-  const patternGroup = types.patterns.find(p => p.name === patternName)
-  return patternGroup?.patterns || []
+// Normalize fullwidth digits to ASCII digits
+const normalizeFullwidthDigits = (str) => {
+  if (!str || typeof str !== 'string') return str
+  return str.replace(/[０-９]/g, ch => {
+    const code = ch.codePointAt(0)
+    return String.fromCharCode(code - 0xFF10 + 48)
+  })
 }
+
+// Resolve top-level pattern groups once at module initialization.
+// Use `patternGroups` top-level key from `listTypes.json`.
+const PATTERN_GROUPS = Array.isArray(types.patternGroups) ? types.patternGroups : []
+
+// Map for O(1) name -> group lookup
+const PATTERN_GROUP_MAP = new Map((PATTERN_GROUPS || []).map(g => [g.name, g]))
+
+/**
+ * Get pattern list by name.
+ * Accepts a single name (string), an array of names, or a pattern-group-like object.
+ */
+const getPatternsByName = (patternName) => {
+  if (!patternName) return []
+  // If caller passed the actual group object
+  if (typeof patternName === 'object' && Array.isArray(patternName.patterns)) {
+    return patternName.patterns
+  }
+
+  // If caller passed an array of group names, merge their patterns in order
+  if (Array.isArray(patternName)) {
+    const out = []
+    for (const name of patternName) {
+      if (typeof name !== 'string') continue
+      const g = PATTERN_GROUP_MAP.get(name)
+      if (g && Array.isArray(g.patterns)) out.push(...g.patterns)
+    }
+    return out
+  }
+
+  // Single name lookup (O(1) via map)
+  if (typeof patternName === 'string') {
+    const patternGroup = PATTERN_GROUP_MAP.get(patternName)
+    return Array.isArray(patternGroup?.patterns) ? patternGroup.patterns : []
+  }
+
+  return []
+}
+
+// Precompiled common regexes to avoid recreating them repeatedly
+const ROMAN_LIKE_REGEX = /^[IVX]+\.?$/i
+const LATIN_LETTER_REGEX = /^[a-z]$/i
+const MARKER_FALLBACK_REGEX = /^(\S+)/
+const PURE_PREFIX_REMOVAL_REGEX = /^[\(（]+/
+
+// Build dynamic suffix character classes from `listTypes.json` patterns so
+// edits to that file don't require touching this code.
+const _buildSuffixCharSets = () => {
+  const all = new Set()
+  const fullwidth = new Set()
+  const groups = PATTERN_GROUPS
+  if (groups.length > 0) {
+    for (const group of groups) {
+      if (!group || !Array.isArray(group.patterns)) continue
+      for (const p of group.patterns) {
+        if (!p || !p.suffix) continue
+        for (const ch of Array.from(p.suffix)) {
+          all.add(ch)
+          const cp = ch.codePointAt(0)
+          if (cp !== undefined && cp > 0xFF) fullwidth.add(ch)
+        }
+      }
+    }
+  }
+  return { all, fullwidth }
+}
+
+const { all: _ALL_SUFFIX_CHARS, fullwidth: _FULLWIDTH_SUFFIX_CHARS } = _buildSuffixCharSets()
+
+// Reuse existing `escapeRegExp` for char-class escaping to avoid duplication
+const SUFFIX_CHAR_CLASS = [..._ALL_SUFFIX_CHARS].map(ch => escapeRegExp(ch)).join('')
+
+const SUFFIX_CLASS_FOR_REGEX = SUFFIX_CHAR_CLASS.length > 0 ? `[${SUFFIX_CHAR_CLASS}]` : "\\."
+
+const MARKER_SUFFIX_SPACE_REGEX = new RegExp(`^([^\\s]+?${SUFFIX_CLASS_FOR_REGEX})\\s`)
+const MARKER_SUFFIX_NO_SPACE_REGEX = new RegExp(`^([^\\s]+?${SUFFIX_CLASS_FOR_REGEX})(?=[^\\s])`)
+const PURE_SUFFIXES_REMOVAL_REGEX = new RegExp(`${SUFFIX_CLASS_FOR_REGEX}+$`)
 
 // Cached type separation
 let _symbolBasedTypes = null
@@ -149,11 +230,24 @@ const extractPureSymbol = (marker, prefix, suffix) => {
  * @param {string} pureSymbol - Pure symbol without prefix/suffix
  * @returns {number|undefined} The calculated number
  */
-const calculateNumber = (typeInfo, pureSymbol) => {
+const calculateNumber = (typeInfo, pureSymbol, compiled = null) => {
   if (!typeInfo || !pureSymbol) return undefined
-  
+
   if (typeInfo.symbols) {
     // Symbol-based types (katakana, roman numerals, etc.)
+    // Prefer a provided compiled object (with symbolIndexMap) to avoid map lookups.
+    if (compiled && compiled.symbolIndexMap) {
+      const idx = compiled.symbolIndexMap.get(pureSymbol)
+      return idx !== undefined ? idx + getStartValue(typeInfo) : undefined
+    }
+
+    // Fall back to looking up compiled map once (lazy) if compiled not provided
+    const compiledFallback = _COMPILED_BY_NAME.get(typeInfo.name)
+    if (compiledFallback && compiledFallback.symbolIndexMap) {
+      const idx = compiledFallback.symbolIndexMap.get(pureSymbol)
+      return idx !== undefined ? idx + getStartValue(typeInfo) : undefined
+    }
+
     const symbolIndex = typeInfo.symbols.indexOf(pureSymbol)
     return symbolIndex !== -1 ? symbolIndex + getStartValue(typeInfo) : undefined
   } else if (typeInfo.range) {
@@ -170,7 +264,8 @@ const calculateNumber = (typeInfo, pureSymbol) => {
       }
     } else {
       // Numeric range: [start, end]
-      const numValue = parseInt(pureSymbol, 10)
+      const norm = normalizeFullwidthDigits(pureSymbol)
+      const numValue = parseInt(norm, 10)
       if (!isNaN(numValue)) {
         return numValue
       }
@@ -187,25 +282,22 @@ export const detectSequencePattern = (allContents) => {
   // Extract pure markers from all contents
   const markers = allContents.map(content => {
     const trimmed = content.trim()
-    // Extract marker part: match common marker patterns
-    // Try to detect marker + suffix pattern (like "i.", "イ、", "①", etc.)
     // First try: symbol(s) followed by suffix and optional space
-    let match = trimmed.match(/^([^\s]+?[.\)、．）])\s/)
+    let match = trimmed.match(MARKER_SUFFIX_SPACE_REGEX)
     if (match) return match[1]
-    
+
     // Second try: symbol(s) followed by suffix at end (no space after)
-    match = trimmed.match(/^([^\s]+?[.\)、．）])(?=[^\s])/)
+    match = trimmed.match(MARKER_SUFFIX_NO_SPACE_REGEX)
     if (match) return match[1]
-    
+
     // Fallback: everything before first space
-    match = trimmed.match(/^(\S+)/)
+    match = trimmed.match(MARKER_FALLBACK_REGEX)
     return match ? match[1] : trimmed
   })
   
   // Extract pure symbols (remove prefixes/suffixes)
   const pureSymbols = markers.map(marker => {
-    // Remove common suffixes like . and )
-    return marker.replace(/[.\)、．）]+$/, '').replace(/^[\(（]+/, '')
+    return marker.replace(PURE_SUFFIXES_REMOVAL_REGEX, '').replace(PURE_PREFIX_REMOVAL_REGEX, '')
   })
   
   // Check if all symbols are the same (repeated marker case)
@@ -230,8 +322,7 @@ export const detectSequencePattern = (allContents) => {
   
   // Check Roman numerals from listTypes.json
   if (upperRomanType?.symbols) {
-    const romanPattern = /^[IVX]+\.?$/i
-    const allRomanLike = markers.every(marker => romanPattern.test(marker))
+    const allRomanLike = markers.every(marker => ROMAN_LIKE_REGEX.test(marker))
     
     if (allRomanLike) {
       const romanSymbols = markers.map(marker => marker.replace(/\.$/, '').toUpperCase())
@@ -242,8 +333,7 @@ export const detectSequencePattern = (allContents) => {
   }
   
   // Check Latin letters (range-based types)
-  const latinPattern = /^[a-z]$/i
-  const allLatinLike = pureSymbols.every(symbol => latinPattern.test(symbol))
+  const allLatinLike = pureSymbols.every(symbol => LATIN_LETTER_REGEX.test(symbol))
   
   if (allLatinLike && pureSymbols.length >= 2) {
     const firstSymbol = pureSymbols[0]
@@ -290,20 +380,8 @@ const createMarkerResult = (type, marker, number, prefix, suffix) => ({
  */
 const tryMatchPattern = (trimmed, compiledType, typeInfo) => {
   for (const pattern of compiledType.patterns) {
-    const result = trimmed.match(pattern.regex)
-    if (result) {
-      const detectedMarker = result[1]
-      const pureSymbol = extractPureSymbol(detectedMarker, pattern.prefix, pattern.suffix)
-      const number = calculateNumber(typeInfo, pureSymbol)
-      
-      return createMarkerResult(
-        compiledType.name,
-        detectedMarker,
-        number,
-        pattern.prefix,
-        pattern.suffix
-      )
-    }
+    const m = matchRegexEntry(trimmed, compiledType.name, pattern)
+    if (m) return m
   }
   return null
 }
@@ -339,19 +417,9 @@ export const detectMarkerType = (content, allContents = null) => {
   }
   
   // Fallback to original logic
-  // Check symbol-based types first
-  for (const compiledType of sortedSymbolTypes) {
-    const typeInfo = typeInfoByName.get(compiledType.name)
-    const matchResult = tryMatchPattern(trimmed, compiledType, typeInfo)
-    if (matchResult) return matchResult
-  }
-  
-  // Check range-based types
-  for (const compiledType of rangeBasedTypes) {
-    const typeInfo = typeInfoByName.get(compiledType.name)
-    const matchResult = tryMatchPattern(trimmed, compiledType, typeInfo)
-    if (matchResult) return matchResult
-  }
+  // Fast fallback: try a flattened precompiled pattern list to avoid nested loops
+  const flatMatch = tryMatchAgainstFlattened(trimmed)
+  if (flatMatch) return flatMatch
   
   return { type: null, marker: null }
 }
@@ -412,8 +480,9 @@ export const getDefaultPatternForType = (markerType) => {
     return { prefix: '', suffix: '.' }
   }
   
-  // Get patterns for this type
-  const patterns = getPatternsByName(typeInfo.patterns)
+  // Get patterns for this type (prefer `pattern` property)
+  const patternRef = typeInfo.pattern || null
+  const patterns = getPatternsByName(patternRef)
   if (!patterns || patterns.length === 0) {
     return { prefix: '', suffix: '.' }
   }
@@ -425,20 +494,40 @@ export const getDefaultPatternForType = (markerType) => {
   }
 }
 
-/**
- * Generate class name with prefix/suffix variants
- * @param {string} baseClass - Base class name (e.g., 'ol-decimal')
- * @param {string|null} prefix - Prefix character
- * @param {string|null} suffix - Suffix character
- * @returns {string} Full class name
- */
+const prefixs = [
+  ['(', 'round'],
+  //['[', 'square'],
+  //['{', 'curly'],
+  //['<', 'angle'],
+  ['（', 'fullround'],
+]
+
+const suffixs = [
+  [')', 'round'],
+  //[']', 'square'],
+  //['}', 'curly'],
+  //['>', 'angle'],
+  ['）', 'fullround'],
+]
+
+// Build Maps for O(1) lookups (faster than .find on every call)
+const prefixMap = new Map(prefixs)
+const suffixMap = new Map(suffixs)
+
 const generateClassName = (baseClass, prefix, suffix) => {
-  if (prefix === '(' && suffix === ')') {
-    return `${baseClass}-with-round-round`
-  } else if (!prefix && suffix === ')') {
-    return `${baseClass}-with-none-round`
-  }
-  return baseClass
+  // fast path: no prefix and no suffix
+  if (!prefix && !suffix) return baseClass
+
+  // O(1) map lookups
+  const prefixName = prefixMap.get(prefix) || null
+  const suffixName = suffixMap.get(suffix) || null
+
+  // If neither side matches known labels, return baseClass
+  if (!prefixName && !suffixName) return baseClass
+
+  const p = prefixName ? prefixName : 'none'
+  const s = suffixName ? suffixName : 'none'
+  return `${baseClass}-with-${p}-${s}`
 }
 
 export const getTypeAttributes = (markerType, markerInfo = null) => {
@@ -512,47 +601,74 @@ export const getTypeAttributes = (markerType, markerInfo = null) => {
   return result
 }
 
-// Create regex pattern
-const createRegexPattern = (pattern, symbolPart) => {
-  const escapedSuffix = pattern.suffix ? escapeRegExp(pattern.suffix) : ''
-  const isFullWidthSuffix = pattern.suffix && /[、．]/.test(pattern.suffix)
-  
-  // When there's no suffix, we MUST have at least one space OR end of string
-  // When there's a suffix, space is required (except for full-width suffixes which are optional)
-  let spacePattern
+
+
+// Precompute regex tail (endCheck + spacePattern) for a pattern to avoid recomputing
+const createPatternTail = (pattern) => {
+  // Determine if the pattern's suffix (if any) contains any fullwidth suffix
+  // characters declared in `listTypes.json`.
+  let isFullWidthSuffix = false
   if (pattern.suffix) {
-    spacePattern = isFullWidthSuffix ? '([ 　])?' : '([ 　])+'
-  } else {
-    // No suffix: require at least one space OR end of string
-    spacePattern = '(?=[ 　]|$)([ 　])*'
+    for (const ch of Array.from(pattern.suffix)) {
+      if (_FULLWIDTH_SUFFIX_CHARS.has(ch)) {
+        isFullWidthSuffix = true
+        break
+      }
+    }
   }
-  
+
+  // Compute default space handling based on whether suffix exists and
+  // whether suffix contains a fullwidth character. This is the fallback
+  // behavior when `pattern.space` is not provided.
+  const defaultSpaceIfSuffix = isFullWidthSuffix ? '([ 　])?' : '([ 　])+'
+  const defaultSpaceNoSuffix = '(?=[ 　]|$)([ 　])*'
+
+  let spacePattern
+
+  if (pattern.space) {
+    // Explicit directive from listTypes.json wins
+    switch (pattern.space) {
+      case 'half':
+        spacePattern = '([ ])+'
+        break
+      case 'both':
+        spacePattern = '([ 　])+'
+        break
+      case 'none_or_both':
+        spacePattern = pattern.suffix ? '([ 　]+)?' : defaultSpaceNoSuffix
+        break
+      default:
+        // Unknown explicit value: fall back to defaults
+        spacePattern = pattern.suffix ? defaultSpaceIfSuffix : defaultSpaceNoSuffix
+    }
+  } else {
+    // No explicit `pattern.space`: use defaults
+    spacePattern = pattern.suffix ? defaultSpaceIfSuffix : defaultSpaceNoSuffix
+  }
+
   let endCheck = ''
   if (!pattern.suffix && pattern.prefix) {
-    // Prefix without suffix: must be followed by space or end
     endCheck = '(?=[ 　]|$)'
   }
-  
-  // The symbolPart already includes prefix+symbol+suffix
-  const finalPattern = `^(${symbolPart})${endCheck}${spacePattern}`
-  return finalPattern
+
+  return `${endCheck}${spacePattern}`
 }
 
 // Process patterns for symbols
 const processSymbolPatterns = (patterns, symbols, typePatterns, type) => {
-  // Pre-compute escaped prefixes, suffixes and regex patterns once
+  // Pre-compute escaped prefixes, suffixes and regex tail once
   const patternCache = new Map()
   typePatterns.forEach((pattern, index) => {
     const escapedPrefix = pattern.prefix ? escapeRegExp(pattern.prefix) : ''
     const escapedSuffix = pattern.suffix ? escapeRegExp(pattern.suffix) : ''
-    const regexTemplate = createRegexPattern(pattern, 'SYMBOL_PLACEHOLDER')
-    
+    const tail = createPatternTail(pattern)
     patternCache.set(index, {
       prefix: pattern.prefix,
       suffix: pattern.suffix,
+      space: pattern.space,
       escapedPrefix,
       escapedSuffix,
-      regexTemplate
+      tail
     })
   })
   
@@ -566,17 +682,21 @@ const processSymbolPatterns = (patterns, symbols, typePatterns, type) => {
     
     for (let patternIndex = 0; patternIndex < patternsLength; patternIndex++) {
       const cached = patternCache.get(patternIndex)
-      const symbolPart = cached.escapedPrefix + processedSym + cached.escapedSuffix
-      const regexStr = cached.regexTemplate.replace('SYMBOL_PLACEHOLDER', symbolPart)
-      
+      // Original suffix variant
+      const symbolPartOrig = cached.escapedPrefix + processedSym + cached.escapedSuffix
+      const regexStrOrig = `^(${symbolPartOrig})${cached.tail}`
       patterns.push({
-        regex: new RegExp(regexStr, 'u'),
+        regex: new RegExp(regexStrOrig, 'u'),
         prefix: cached.prefix,
         suffix: cached.suffix,
         symbolIndex,
         num: symbolIndex + type.start
       })
+
+      // Do not generate additional suffix variants — respect patterns from listTypes.json only.
     }
+    
+    // Only generate patterns that directly correspond to `typePatterns` entries.
   }
 }
 
@@ -585,7 +705,8 @@ const processRangePatterns = (patterns, typePatterns, type) => {
   // Pre-calculate symbol pattern once
   let symbolPattern
   if (typeof type.range[0] === 'number') {
-    symbolPattern = '\\d+'
+    // Allow only ASCII digits here — do not synthesize fullwidth digit variants.
+    symbolPattern = '(?:\\d+)'
   } else {
     const start = type.range[0].codePointAt(0)
     const end = type.range[1].codePointAt(0)
@@ -610,11 +731,12 @@ const processRangePatterns = (patterns, typePatterns, type) => {
     const pattern = typePatterns[i]
     const escapedPrefix = pattern.prefix ? escapeRegExp(pattern.prefix) : ''
     const escapedSuffix = pattern.suffix ? escapeRegExp(pattern.suffix) : ''
-    
+    const tail = createPatternTail(pattern)
+
     const symbolPart = escapedPrefix + symbolPattern + escapedSuffix
-    
+    const regexStr = `^(${symbolPart})${tail}`
     patterns.push({
-      regex: new RegExp(createRegexPattern(pattern, symbolPart), 'u'),
+      regex: new RegExp(regexStr, 'u'),
       prefix: pattern.prefix,
       suffix: pattern.suffix,
       symbolIndex: 0,
@@ -622,6 +744,9 @@ const processRangePatterns = (patterns, typePatterns, type) => {
       isRange: true,
       rangeType: typeof type.range[0] === 'number' ? 'numeric' : 'alphabetic'
     })
+
+    // Note: Do not synthesize additional suffix variants here.
+    // Matching must be driven solely by patterns defined in `listTypes.json`.
   }
 }
 
@@ -632,17 +757,29 @@ export const compiledTypes = (() => {
     if (_cache === null) {
       _cache = types.types.map(type => {
         const patterns = []
-        const typePatterns = getPatternsByName(type.patterns)
-        
+        // Per-type `pattern` references a `patternGroups` entry
+        const typePatternRef = type.pattern || null
+        const typePatterns = getPatternsByName(typePatternRef)
+
+        // Build symbol->index map for symbol-based types to avoid indexOf scans
+        let symbolIndexMap = null
+        if (type.symbols && Array.isArray(type.symbols)) {
+          symbolIndexMap = new Map()
+          for (let i = 0; i < type.symbols.length; i++) {
+            symbolIndexMap.set(type.symbols[i], i)
+          }
+        }
+
         if (type.symbols) {
           processSymbolPatterns(patterns, type.symbols, typePatterns, type)
         } else if (type.range) {
           processRangePatterns(patterns, typePatterns, type)
         }
-        
+
         return {
           name: type.name,
-          patterns
+          patterns,
+          symbolIndexMap
         }
       })
     }
@@ -650,27 +787,63 @@ export const compiledTypes = (() => {
   }
 })()
 
-export const prefixs = [
-  ['(', 'round'],
-  ['[', 'square'],
-  ['{', 'curly'],
-  ['<', 'angle'],
-  ['（', 'fullround'],
-]
+// Map of compiled types by name for O(1) lookup
+// Build a map of compiled types by name once for fast lookups
+const _COMPILED_BY_NAME = (() => {
+  const m = new Map()
+  for (const t of compiledTypes()) m.set(t.name, t)
+  return m
+})()
 
-export const suffixs = [
-  [')', 'round'],
-  [']', 'square'],
-  ['}', 'curly'],
-  ['>', 'angle'],
-  ['）', 'fullround'],
-]
+export const compiledTypesByName = () => _COMPILED_BY_NAME
 
-// Generate regex arrays from prefix/suffix data
-export const prefixRegexes = prefixs.map(([char]) => new RegExp(escapeRegExp(char)))
-export const suffixRegexes = suffixs.map(([char]) => new RegExp(escapeRegExp(char)))
+// Build a flattened pattern list (preserve previous priority: sortedSymbolTypes then rangeBasedTypes)
+const _FLATTENED_PATTERNS = (() => {
+  const arr = []
+  const { sortedSymbolTypes, rangeBasedTypes } = getTypeSeparation()
+  const source = [...sortedSymbolTypes, ...rangeBasedTypes]
+  for (const compiledType of source) {
+    const compiled = _COMPILED_BY_NAME.get(compiledType.name)
+    for (const p of compiledType.patterns) {
+      arr.push({
+        regex: p.regex,
+        prefix: p.prefix,
+        suffix: p.suffix,
+        typeName: compiledType.name,
+        symbolIndex: p.symbolIndex,
+        num: p.num,
+        isRange: p.isRange,
+        compiled: compiled || null
+      })
+    }
+  }
+  return arr
+})()
 
-// End of types-utility.js - listTypes.json related utilities only
+// Fast matcher over flattened list
+const tryMatchAgainstFlattened = (trimmed) => {
+  for (const entry of _FLATTENED_PATTERNS) {
+    const m = matchRegexEntry(trimmed, entry.typeName, entry)
+    if (m) return m
+  }
+  return null
+}
+
+// Helper to match a trimmed string against a pattern entry and produce a result.
+// `entry` is expected to have `regex`, `prefix`, `suffix` and optionally `compiled`.
+const matchRegexEntry = (trimmed, typeName, entry) => {
+  const result = trimmed.match(entry.regex)
+  if (!result) return null
+
+  const detectedMarker = result[1]
+  const pureSymbol = extractPureSymbol(detectedMarker, entry.prefix, entry.suffix)
+  const { typeInfoByName } = getTypeSeparation()
+  const typeInfo = typeInfoByName.get(typeName)
+  const compiledForCalc = entry.compiled || _COMPILED_BY_NAME.get(typeName)
+  const number = calculateNumber(typeInfo, pureSymbol, compiledForCalc)
+
+  return createMarkerResult(typeName, detectedMarker, number, entry.prefix, entry.suffix)
+}
 
 // Analyze list context to determine optimal marker type for ambiguous cases
 export const analyzeListMarkerContext = (markerInfos) => {
@@ -698,11 +871,19 @@ export const analyzeListMarkerContext = (markerInfos) => {
     
     // Find all possible types for this marker
     const possibleTypes = []
-    for (const [typeName, typeInfo] of typeInfoCache) {
-      const symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
+      for (const [typeName, typeInfo] of typeInfoCache) {
+        let symbolIndex = -1
+        const compiled = _COMPILED_BY_NAME.get(typeName)
+        if (compiled && compiled.symbolIndexMap) {
+          const idx = compiled.symbolIndexMap.get(actualSymbol)
+          symbolIndex = idx !== undefined ? idx : -1
+        } else {
+          symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
+        }
+
       if (symbolIndex !== -1) {
         const expectedNumber = symbolIndex + getStartValue(typeInfo)
-        
+
         possibleTypes.push({
           typeName,
           symbolIndex,
@@ -781,10 +962,18 @@ export const analyzeListMarkerContext = (markerInfos) => {
         // Extract the actual symbol without prefix/suffix
         const actualSymbol = extractPureSymbol(markerInfo.marker, markerInfo.prefix, markerInfo.suffix)
         
-        const symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
+        // Use precomputed symbolIndexMap if available
+        const compiled = _COMPILED_BY_NAME.get(bestType)
+        let symbolIndex = -1
+        if (compiled && compiled.symbolIndexMap) {
+          const idx = compiled.symbolIndexMap.get(actualSymbol)
+          symbolIndex = idx !== undefined ? idx : -1
+        } else {
+          symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
+        }
         if (symbolIndex !== -1) {
           const number = calculateNumber(typeInfo, actualSymbol)
-          
+
           return {
             ...markerInfo,
             type: bestType,

@@ -25,7 +25,7 @@
 **実行時使用ファイル:**
 - `index.js`: メインエントリーポイント
 - `listTypes.json`: マーカータイプ定義（データソース）
-- `src/types-utility.js`: listTypes.json唯一のアクセスポイント（772行）
+- `src/types-utility.js`: listTypes.json唯一のアクセスポイント
 - `src/list-helpers.js`: 共通ヘルパー関数（findMatchingClose等）
 - `src/phase0-description-list.js`: Description List処理
 - `src/phase1-analyze.js`: リスト構造解析
@@ -77,16 +77,16 @@ Phase 0では歴史的理由で`tokens.length - 1`を期待する箇所がある
       "name": "decimal",
       "range": [0, 50],
       "start": 0,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "katakana-iroha",
       "symbols": ["イ", "ロ", "ハ", ...],
       "start": 1,
-      "patterns": "japanese"
+      "pattern": "japanese"
     }
   ],
-  "patterns": [
+  "patternGroups": [
     {
       "name": "common",
       "patterns": [
@@ -104,7 +104,7 @@ Phase 0では歴史的理由で`tokens.length - 1`を期待する箇所がある
 - `symbols`: シンボル配列（カタカナ、ローマ数字など）
 - `range`: 範囲（数字、アルファベット）
 - `start`: 開始値（0または1）
-- `patterns`: パターングループ名（"common", "japanese", "no-suffix"）
+  - `pattern`: パターングループ名（"common", "fullwidth", "enclosed"）
 
 #### types-utility.js（データアクセス層）
 

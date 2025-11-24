@@ -1,0 +1,74 @@
+[Markdown]
+- 一. Item A
+- 二. Item B
+
+[HTML]
+<ol role="list" class="ol-japanese-informal" data-marker-suffix=".">
+<li><span class="li-num">一</span> Item A</li>
+<li><span class="li-num">二</span> Item B</li>
+</ol>
+
+[Markdown]
+- 一　Item A
+- 二　Item B
+
+[HTML]
+<ol role="list" class="ol-japanese-informal">
+<li><span class="li-num">一</span> Item A</li>
+<li><span class="li-num">二</span> Item B</li>
+</ol>
+
+[Markdown]
+- 一Item A
+- 二Item B
+
+[HTML]
+<ul>
+<li>一Item A</li>
+<li>二Item B</li>
+</ul>
+
+
+[Markdown]
+- 一 Item A
+- 二 Item B
+
+[HTML]
+<ol role="list" class="ol-japanese-informal">
+<li><span class="li-num">一</span> Item A</li>
+<li><span class="li-num">二</span> Item B</li>
+</ol>
+
+[Markdown]
+- 一. Parent
+    - a. Child A
+    - b. Child B
+- 二. Parent2
+
+[HTML]
+<ol role="list" class="ol-japanese-informal" data-marker-suffix=".">
+<li><span class="li-num">一</span> Parent
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child A</li>
+<li>Child B</li>
+</ol>
+</li>
+<li><span class="li-num">二</span> Parent2</li>
+</ol>
+
+[Markdown]
+- 一　Parent
+    - a. 子A
+    - b. 子B
+- 二　Parent2
+
+[HTML]
+<ol role="list" class="ol-japanese-informal">
+<li><span class="li-num">一</span> Parent
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>子A</li>
+<li>子B</li>
+</ol>
+</li>
+<li><span class="li-num">二</span> Parent2</li>
+</ol>

@@ -317,3 +317,13 @@
 <li value="3">項目3</li>
 </ol>
 
+[Markdown]
+- 1⃣ a
+- 2⃣ b
+- 3⃣ c
+[HTML]
+<ol role="list" class="ol-squared-decimal">
+<li><span class="li-num">1⃣</span> a</li>
+<li><span class="li-num">2⃣</span> b</li>
+<li><span class="li-num">3⃣</span> c</li>
+</ol>

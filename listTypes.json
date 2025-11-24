@@ -4,134 +4,149 @@
       "name": "decimal",
       "range": [0, 50],
       "start": 0,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "lower-latin",
       "range": ["a", "z"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "upper-latin",
       "range": ["A", "Z"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "lower-roman",
       "symbols": ["i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx","xxi","xxii","xxiii","xxiv","xxv","xxvi","xxvii","xxviii","xxix","xxx"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "upper-roman",
       "symbols": ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI","XXII","XXIII","XXIV","XXV","XXVI","XXVII","XXVIII","XXIX","XXX"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "common"
     },
     {
       "name": "circled-decimal",
-      "symbols": ["①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"],
-      "start": 1,
-      "patterns": "no-suffix"
+      "symbols": ["⓪","①","②","③","④","⑤","⑥","⑦","⑧","⑨","⑩","⑪","⑫","⑬","⑭","⑮","⑯","⑰","⑱","⑲","⑳"],
+      "start": 0,
+      "pattern": "enclosed"
     },
     {
       "name": "filled-circled-decimal",
       "symbols": ["❶","❷","❸","❹","❺","❻","❼","❽","❾","❿","⓫","⓬","⓭","⓮","⓯","⓰","⓱","⓲","⓳","⓴"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
+    },
+    {
+      "name": "squared-decimal",
+      "symbols": ["0⃣","1⃣","2⃣","3⃣","4⃣","5⃣","6⃣","7⃣","8⃣","9⃣","🔟"],
+      "start": 0,
+      "pattern": "enclosed"
     },
     {
       "name": "katakana-iroha",
       "symbols": ["イ","ロ","ハ","ニ","ホ","ヘ","ト","チ","リ","ヌ","ル","ヲ","ワ","カ","ヨ","タ","レ","ソ","ツ","ネ","ナ","ラ","ム","ウ","ヰ","ノ","オ","ク","ヤ","マ","ケ","フ","コ","エ","テ","ア","サ","キ","ユ","メ","ミ","シ","ヱ","ヒ","モ","セ","ス","ン"],
       "start": 1,
-      "patterns": "japanese"
+      "pattern": "fullwidth"
     },
     {
       "name": "katakana",
       "symbols": ["ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ","タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ヰ","ヱ","ヲ","ン"],
       "start": 1,
-      "patterns": "japanese"
+      "pattern": "fullwidth"
     },
     {
       "name": "japanese-informal",
       "symbols": ["一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四","十五","十六","十七","十八","十九","二十"],
       "start": 1,
-      "patterns": "japanese"
+      "pattern": "fullwidth"
+    },
+    {
+      "name": "fullwidth-decimal",
+      "symbols": ["０","１","２","３","４","５","６","７","８","９", "１０","１１","１２","１３","１４","１５","１６","１７","１８","１９","２０"],
+      "start": 0,
+      "pattern": "fullwidth"
     },
     {
       "name": "fullwidth-lower-roman",
       "symbols": ["ⅰ","ⅱ","ⅲ","ⅳ","ⅴ","ⅵ","ⅶ","ⅷ","ⅸ","ⅹ","ⅺ","ⅻ"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "fullwidth"
     },
     {
       "name": "fullwidth-upper-roman",
       "symbols": ["Ⅰ","Ⅱ","Ⅲ","Ⅳ","Ⅴ","Ⅵ","Ⅶ","Ⅷ","Ⅸ","Ⅹ","Ⅺ","Ⅻ"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "fullwidth"
     },
     {
       "name": "circled-lower-latin",
       "range": ["ⓐ", "ⓩ"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
     },
     {
       "name": "circled-upper-latin",
       "range": ["Ⓐ", "Ⓩ"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
     },
     {
       "name": "filled-circled-upper-latin",
       "range": ["🅐", "🅩"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
     },
     {
       "name": "squared-upper-latin",
       "range": ["🄰", "🅉"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
     },
     {
       "name": "filled-squared-upper-latin",
-      "range": ["🅰", "��"],
+      "range": ["🅰", "🅹"],
       "start": 1,
-      "patterns": "no-suffix"
+      "pattern": "enclosed"
     },
     {
       "name": "lower-greek",
       "symbols": ["α","β","γ","δ","ε","ζ","η","θ","ι","κ","λ","μ","ν","ξ","ο","π","ρ","σ","τ","υ","φ","χ","ψ","ω"],
       "start": 1,
-      "patterns": "common"
+      "pattern": "common"
     }
   ],
-  "patterns": [
+  "patternGroups": [
     {
       "name": "common",
       "patterns": [
-        {"prefix": "", "suffix": "."},
-        {"prefix": "", "suffix": ")"},
-        {"prefix": "(", "suffix": ")"}
+        {"prefix": "", "suffix": ".", "space": "half"},
+        {"prefix": "", "suffix": ")", "space": "half"},
+        {"prefix": "(", "suffix": ")", "space": "half"}
       ]
     },
     {
-      "name": "japanese",
+      "name": "fullwidth",
       "patterns": [
-        {"prefix": "", "suffix": "、"},
-        {"prefix": "", "suffix": "．"},
-        {"prefix": "", "suffix": "."},
-        {"prefix": "", "suffix": ")"},
-        {"prefix": "(", "suffix": ")"}
+        {"prefix": "", "suffix": "、", "space": "none_or_both"},
+        {"prefix": "", "suffix": "．", "space": "none_or_both"},
+        {"prefix": "", "suffix": "）", "space": "none_or_both"},
+        {"prefix": "（", "suffix": "）", "space": "none_or_both"},
+        {"prefix": "", "suffix": ".", "space": "both"},
+        {"prefix": "", "suffix": ")", "space": "both"},
+        {"prefix": "(", "suffix": ")", "space": "both"},
+        {"prefix": "", "suffix": "", "space": "both"}
       ]
     },
     {
-      "name": "no-suffix",
+      "name": "enclosed",
       "patterns": [
-        {"prefix": "", "suffix": ""}
+        {"prefix": "", "suffix": "", "space": "none_or_both"}
       ]
     }
   ]

@@ -20,16 +20,52 @@ const createTestConfig = (name, options, testFiles) => ({
   testFiles
 })
 
-// Test configurations
+// Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
+  // Default configuration: plugin alone (no attrs/other plugins)
   createTestConfig('default configuration', {}, [
     'examples-default-1.txt',
     'examples-default-2-samesymbol.txt',
     'examples-default-3.txt',
     'examples-default-4.txt',
     'examples-default-5minimal-nested-tests.txt',
-    'examples-default-6parentheses.txt'
+    'examples-default-6parentheses.txt',
+    'examples-default-11fullwidth-joint.txt',
+    'examples-default-12space-handling.txt',
+    'examples-default-13-class-attributes.txt'
   ]),
+  // Run specific integration / attrs-last checks immediately after default
+  {
+    name: 'numbered lists with attrs (attrs loaded last)',
+    md: mdit({ html: true }).use(mdNumUl).use(mditAttrs),
+    testFiles: ['examples-default-9with-attrs.txt']
+  },
+  {
+    name: 'with other plugins (deflist and strong-ja)',
+    md: mdit({ html: true }).use(mditDeflist).use(mditStrongJa).use(mdNumUl, { descriptionList: true }),
+    testFiles: ['examples-default-10-with-other-plugin.txt']
+  },
+
+  // Integration: description list with attrs (attrs loaded first/last)
+  {
+    name: 'description list with attrs (attrs loaded first)',
+    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl, { descriptionList: true }),
+    testFiles: ['examples-default-8-descriptionlist.txt']
+  },
+  {
+    name: 'description list with attrs (attrs loaded last)',
+    md: mdit({ html: true }).use(mdNumUl, { descriptionList: true }).use(mditAttrs),
+    testFiles: ['examples-default-8-descriptionlist.txt']
+  },
+
+  // Integration: numbered lists with attrs (attrs loaded first)
+  {
+    name: 'numbered lists with attrs (attrs loaded first)',
+    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl),
+    testFiles: ['examples-default-9with-attrs.txt']
+  },
+
+  // Option-specific tests (each uses the plugin with particular options)
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-di.txt'
   ]),
@@ -48,46 +84,18 @@ const testConfigs = [
   createTestConfig('markerSpanClass option', { alwaysMarkerSpan: true, markerSpanClass: 'custom-marker' }, [
     'examples-option-markerspanclass.txt'
   ]),
-  // Test with markdown-it-attrs loaded BEFORE this plugin
-  {
-    name: 'description list with attrs (attrs loaded first)',
-    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl, { descriptionList: true }),
-    testFiles: ['examples-default-8with-attrs.txt']
-  },
-  // Test with markdown-it-attrs loaded AFTER this plugin
-  {
-    name: 'description list with attrs (attrs loaded last)',
-    md: mdit({ html: true }).use(mdNumUl, { descriptionList: true }).use(mditAttrs),
-    testFiles: ['examples-default-8with-attrs.txt']
-  },
-  // Test numbered lists with markdown-it-attrs (attrs loaded first)
-  {
-    name: 'numbered lists with attrs (attrs loaded first)',
-    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl),
-    testFiles: ['examples-default-9with-attrs.txt']
-  },
-  // Test numbered lists with markdown-it-attrs (attrs loaded last)
-  {
-    name: 'numbered lists with attrs (attrs loaded last)',
-    md: mdit({ html: true }).use(mdNumUl).use(mditAttrs),
-    testFiles: ['examples-default-9with-attrs.txt']
-  },
-  // Test with other plugins: markdown-it-deflist and @peaceroad/markdown-it-strong-ja
-  {
-    name: 'with other plugins (deflist and strong-ja)',
-    md: mdit({ html: true }).use(mditDeflist).use(mditStrongJa).use(mdNumUl, { descriptionList: true }),
-    testFiles: ['examples-default-10-with-other-plugin.txt']
-  }
+
+  // (attrs tests moved earlier)
 ]
 
 // Parse test file
 const parseTestFile = (filePath) => {
   const content = fs.readFileSync(filePath, 'utf-8').trim()
-  const blocks = content.split(/\n*\[Markdown\]\n/)
+  const blocks = content.split(/\r?\n*\[Markdown\]\r?\n/)
   const tests = []
   
   for (let i = 1; i < blocks.length; i++) {
-    const parts = blocks[i].split(/\n+\[HTML[^\]]*?\]\n/)
+    const parts = blocks[i].split(/\r?\n+\[HTML[^\]]*?\]\r?\n/)
     tests.push({
       markdown: parts[0],
       html: (parts[1] || '') + '\n'

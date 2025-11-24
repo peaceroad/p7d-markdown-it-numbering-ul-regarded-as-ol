@@ -4,10 +4,10 @@
 - ３．Third
 
 [HTML]
-<ol type="1" class="ol-decimal" data-marker-suffix="．">
-<li>Fullwidth colon decimal</li>
-<li>Second</li>
-<li>Third</li>
+<ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
+<li><span class="li-num">１</span> Fullwidth colon decimal</li>
+<li><span class="li-num">２</span> Second</li>
+<li><span class="li-num">３</span> Third</li>
 </ol>
 
 [Markdown]
@@ -17,9 +17,9 @@
 
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix="．">
-<li>First</li>
-<li>Second</li>
-<li>Third</li>
+<li><span class="li-num">イ</span> First</li>
+<li><span class="li-num">ロ</span> Second</li>
+<li><span class="li-num">ハ</span> Third</li>
 </ol>
 
 [Markdown]
@@ -29,7 +29,41 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal">
-<li>First</li>
-<li>Second</li>
-<li>Third</li>
+<li><span class="li-num">一</span> First</li>
+<li><span class="li-num">二</span> Second</li>
+<li><span class="li-num">三</span> Third</li>
+</ol>
+
+[Markdown]
+- １．Parent
+    - a. Child A
+    - b. Child B
+        - i. Grandchild i
+        - ii. Grandchild ii
+- ２．Parent2
+
+[HTML]
+<ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
+<li><span class="li-num">１</span> Parent
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child A</li>
+<li>Child B
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Grandchild i</li>
+<li>Grandchild ii</li>
+</ol>
+</li>
+</ol>
+</li>
+<li><span class="li-num">２</span> Parent2</li>
+</ol>
+
+[Markdown]
+- １．Fullwidth punctuation edge
+- ２．Another
+
+[HTML]
+<ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
+<li><span class="li-num">１</span> Fullwidth punctuation edge</li>
+<li><span class="li-num">２</span> Another</li>
 </ol>

@@ -13,7 +13,7 @@
 - 1. Plain one
 - 2. Plain two
 [HTML]
-<ol type="1" class="ol-decimal" data-marker-suffix="." data-start="2">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Plain one</li>
 <li>Plain two</li>
 </ol>
