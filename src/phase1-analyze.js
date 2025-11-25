@@ -8,36 +8,49 @@ import { findMatchingClose } from './list-helpers.js'
  * @param {Array} tokens - Token array
  * @returns {Array<[number, number]>} DL range pairs [[start, end], ...]
  */
-function buildDLScopeSet(tokens) {
-  const dlRanges = []
+function buildDLStateMap(tokens) {
+  const state = new Array(tokens.length).fill(false)
+  let dlDepth = 0
+  let htmlDdDepth = 0
   
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     
-    // When dl_open is found, record range to matching dl_close
-    if (token.type === 'dl_open') {
-      const dlLevel = token.level
-      for (let j = i + 1; j < tokens.length; j++) {
-        if (tokens[j].type === 'dl_close' && tokens[j].level === dlLevel) {
-          dlRanges.push([i, j])
-          break
-        }
-      }
+    if (dlDepth > 0 || htmlDdDepth > 0) {
+      state[i] = true
     }
     
-    // Process <dd> in html_block similarly
-    if (token.type === 'html_block' && token.content === '<dd>\n') {
-      const ddLevel = token.level
-      for (let j = i + 1; j < tokens.length; j++) {
-        if (tokens[j].type === 'html_block' && tokens[j].content === '</dd>\n' && tokens[j].level === ddLevel) {
-          dlRanges.push([i, j])
-          break
+    if (token.type === 'dl_open') {
+      state[i] = true
+      dlDepth++
+      continue
+    }
+    
+    if (token.type === 'dl_close') {
+      state[i] = true
+      if (dlDepth > 0) {
+        dlDepth--
+      }
+      continue
+    }
+    
+    if (token.type === 'html_block') {
+      if (token.content === '<dd>\n') {
+        state[i] = true
+        htmlDdDepth++
+        continue
+      }
+      if (token.content === '</dd>\n') {
+        state[i] = true
+        if (htmlDdDepth > 0) {
+          htmlDdDepth--
         }
+        continue
       }
     }
   }
   
-  return dlRanges
+  return state
 }
 
 /**
@@ -46,13 +59,11 @@ function buildDLScopeSet(tokens) {
  * @param {Array<[number, number]>} dlRanges - DL range pairs
  * @returns {boolean} True if inside DL
  */
-function isInsideDL(index, dlRanges) {
-  for (const [start, end] of dlRanges) {
-    if (index >= start && index <= end) {
-      return true
-    }
+function isInsideDL(index, dlState) {
+  if (!dlState || index < 0 || index >= dlState.length) {
+    return false
   }
-  return false
+  return dlState[index] === true
 }
 
 /**
@@ -75,8 +86,8 @@ export function analyzeListStructure(tokens, opt) {
     }
   }
   
-  // Pre-compute DL scope (only when DL exists, O(n))
-  const dlScope = hasDL ? buildDLScopeSet(tokens) : new Set()
+  // Pre-compute DL scope flags (only when DL exists)
+  const dlScope = hasDL ? buildDLStateMap(tokens) : null
   
   // Process only top-level lists (nested lists collected recursively)
   // Also process lists inside DL

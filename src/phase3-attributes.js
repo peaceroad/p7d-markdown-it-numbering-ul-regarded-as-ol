@@ -11,6 +11,8 @@ import { findMatchingClose } from './list-helpers.js'
  * @param {Object} opt - Options
  */
 export function addAttributes(tokens, listInfos, opt) {
+  const listInfoMap = buildListInfoMap(listInfos)
+  
   // Traverse token array and add attributes to ordered_list_open tokens
   // Token array may have been rebuilt in Phase2,
   // so don't use listInfo.startIndex, check token's _markerInfo/_listInfo
@@ -24,7 +26,7 @@ export function addAttributes(tokens, listInfos, opt) {
         addListAttributesForToken(tokens, token, i, opt)
       } else {
         // If originally ordered_list, find from listInfos
-        const listInfo = findListInfoForToken(tokens, i, listInfos)
+        const listInfo = listInfoMap.get(i)
         if (listInfo) {
           addListAttributesForToken(tokens, token, i, opt, listInfo)
         }
@@ -39,20 +41,23 @@ export function addAttributes(tokens, listInfos, opt) {
 }
 
 /**
- * Find the `listInfo` that corresponds to a given token.
- * @param {Array} tokens - Array of tokens
- * @param {number} tokenIndex - Index of the token to match
- * @param {Array} listInfos - Array of list information objects
+ * Build a lookup map for listInfos keyed by startIndex.
  */
-function findListInfoForToken(tokens, tokenIndex, listInfos) {
-  // Find matching from listInfos
-  const listInfo = listInfos.find(info => info.startIndex === tokenIndex)
-  if (listInfo && listInfo.markerInfo) {
-    return listInfo
+function buildListInfoMap(listInfos) {
+  if (!Array.isArray(listInfos) || listInfos.length === 0) {
+    return new Map()
   }
   
-  // Return null if not found
-  return null
+  const map = new Map()
+  for (const info of listInfos) {
+    if (!info || typeof info.startIndex !== 'number' || !info.markerInfo) {
+      continue
+    }
+    if (!map.has(info.startIndex)) {
+      map.set(info.startIndex, info)
+    }
+  }
+  return map
 }
 
 /**

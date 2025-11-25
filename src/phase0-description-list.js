@@ -2,7 +2,7 @@
 // Converts bullet_list with **Term** pattern to description_list (dl/dt/dd)
 // This must run before Phase 1
 
-import { findMatchingClose } from './list-helpers.js'
+import { findMatchingClose, findListEnd as coreFindListEnd, findListItemEnd as coreFindListItemEnd } from './list-helpers.js'
 
 /**
  * Parse attribute string like ".class1 .class2 #id data-foo="bar""
@@ -68,9 +68,7 @@ export const processDescriptionList = (tokens, opt) => {
  * Find matching list close token
  */
 const findListEnd = (tokens, startIndex) => {
-  const openType = tokens[startIndex].type
-  const closeType = openType.replace('_open', '_close')
-  const result = findMatchingClose(tokens, startIndex, openType, closeType)
+  const result = coreFindListEnd(tokens, startIndex)
   return result === -1 ? tokens.length - 1 : result
 }
 
@@ -78,7 +76,7 @@ const findListEnd = (tokens, startIndex) => {
  * Find matching list_item close token
  */
 const findListItemEnd = (tokens, startIndex) => {
-  const result = findMatchingClose(tokens, startIndex, 'list_item_open', 'list_item_close')
+  const result = coreFindListItemEnd(tokens, startIndex)
   return result === -1 ? tokens.length - 1 : result
 }
 

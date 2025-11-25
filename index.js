@@ -33,28 +33,25 @@ const mditNumberingUlRegardedAsOl = (md, option) => {
 
     const tokens = state.tokens
     
-    // Add source text to options for marker detection
-    const optWithSrc = { ...opt, src: state.src }
-    
     // ===== PHASE 0: Description List =====
     // Convert **Term**: pattern from paragraph to bullet_list, then to dl/dt/dd
     // Must run before Phase 1 (parsed as bullet_list)
-    processDescriptionList(tokens, optWithSrc)
+    processDescriptionList(tokens, opt)
     
     // ===== PHASE 1: List Structure Analysis =====
     // Analyze marker detection and structure without token conversion
-    const listInfos = analyzeListStructure(tokens, optWithSrc)
+    const listInfos = analyzeListStructure(tokens, opt)
     
     // ===== PHASE 2: Token Conversion =====
     // Convert bullet_list to ordered_list based on Phase1 analysis
     // Note: simplifyNestedBulletLists removes tokens, changing indices
-    convertLists(tokens, listInfos, optWithSrc)
+    convertLists(tokens, listInfos, opt)
     
     // ===== PHASE 3: Add Attributes =====
     // Add type, class, data-* attributes to converted lists
     // Use original listInfos as tokens may have been removed in Phase2
     // (Uses markerInfo stored in tokens)
-    addAttributes(tokens, listInfos, optWithSrc)
+    addAttributes(tokens, listInfos, opt)
     
     // ===== PHASE 4: HTML Block Processing =====
     // Remove indents from HTML blocks in lists and normalize line breaks
@@ -62,24 +59,25 @@ const mditNumberingUlRegardedAsOl = (md, option) => {
     
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
-    generateSpans(tokens, listInfos, optWithSrc)
+    generateSpans(tokens, listInfos, opt)
     
     return true
   }
 
   md.core.ruler.before('inline', 'numbering_ul_phases', listProcessor)
   
-  // Move nested list attributes after markdown-it-attrs processing
-  // This handles flattened `- 1. Parent\n    - a. Child\n{.class}` patterns
-  const nestedListAttrProcessor = (state) => {
-    moveNestedListAttributes(state.tokens)
-    return true
-  }
-  
-  if (hasAttrsPlugin) {
-    md.core.ruler.after('curly_attributes', 'numbering_ul_nested_attrs', nestedListAttrProcessor)
-  } else {
-    md.core.ruler.push('numbering_ul_nested_attrs', nestedListAttrProcessor)
+  if (!opt.unremoveUlNest) {
+    // Move nested list attributes only when flattening is enabled
+    const nestedListAttrProcessor = (state) => {
+      moveNestedListAttributes(state.tokens)
+      return true
+    }
+    
+    if (hasAttrsPlugin) {
+      md.core.ruler.after('curly_attributes', 'numbering_ul_nested_attrs', nestedListAttrProcessor)
+    } else {
+      md.core.ruler.push('numbering_ul_nested_attrs', nestedListAttrProcessor)
+    }
   }
   
   // Description list: Move paragraph attributes to dl and add custom renderers

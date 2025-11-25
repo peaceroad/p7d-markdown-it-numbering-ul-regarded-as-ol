@@ -21,10 +21,9 @@ export function convertLists(tokens, listInfos, opt) {
   // In default mode (unremoveUlNest=false), simplify ul>li>ol structure
   // Runs after conversion, so already-converted ordered_lists are also processed
   if (!opt.unremoveUlNest) {
-    for (const listInfo of listInfos) {
-      if (listInfo.originalType === 'bullet_list_open') {
-        simplifyNestedBulletLists(tokens, [listInfo], opt)
-      }
+    const bulletListInfos = listInfos.filter(info => info.originalType === 'bullet_list_open')
+    if (bulletListInfos.length > 0) {
+      simplifyNestedBulletLists(tokens, bulletListInfos, opt)
     }
   }
 }
