@@ -17,6 +17,7 @@ const mditNumberingUl = (md, option) => {
     alwaysMarkerSpan: false,      // true=use <span class="li-num">, false=normal numbering
     markerSpanClass: 'li-num',    // class name to use for marker spans (customizable)
     hasListStyleNone: false,      // true=add style="list-style: none;" when role="list" is used
+    omitMarkerMetadata: false,    // true=omit data-marker-prefix/suffix attributes
     useCounterStyle: false,       // true=users will use @counter-style; suppress marker spans and role attr
     
     // Override with user options

@@ -1,0 +1,19 @@
+[Markdown]
+- 1. Alpha
+- 2. Beta
+
+[HTML]
+<ol type="1" class="ol-decimal">
+<li>Alpha</li>
+<li>Beta</li>
+</ol>
+
+[Markdown]
+- (i) Roman
+- (ii) Roman 2
+
+[HTML]
+<ol type="i" class="ol-lower-roman-with-round-round">
+<li>Roman</li>
+<li>Roman 2</li>
+</ol>

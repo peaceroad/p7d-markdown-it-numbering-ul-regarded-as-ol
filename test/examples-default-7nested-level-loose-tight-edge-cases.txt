@@ -59,12 +59,8 @@
 <li>
 <p>Child item c</p>
 <ol type="i" class="ol-lower-roman" data-marker-suffix=".">
-<li>
-<p>Grandchild i</p>
-</li>
-<li>
-<p>Grandchild ii</p>
-</li>
+<li>Grandchild i</li>
+<li>Grandchild ii</li>
 </ol>
 </li>
 </ol>

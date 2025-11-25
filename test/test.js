@@ -30,10 +30,17 @@ const testConfigs = [
     'examples-default-4.txt',
     'examples-default-5minimal-nested-tests.txt',
     'examples-default-6parentheses.txt',
+    'examples-default-7nested-level-loose-tight-edge-cases.txt',
     'examples-default-11fullwidth-joint.txt',
     'examples-default-12space-handling.txt',
     'examples-default-13-class-attributes.txt'
   ]),
+  // Integration: numbered lists with attrs (attrs loaded first)
+  {
+    name: 'numbered lists with attrs (attrs loaded first)',
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl),
+    testFiles: ['examples-default-9with-attrs.txt']
+  },
   // Run specific integration / attrs-last checks immediately after default
   {
     name: 'numbered lists with attrs (attrs loaded last)',
@@ -50,21 +57,13 @@ const testConfigs = [
   {
     name: 'description list with attrs (attrs loaded first)',
     md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, { descriptionList: true }),
-    testFiles: ['examples-default-8-descriptionlist.txt']
+    testFiles: ['examples-option-descriptionlist-default.txt']
   },
   {
     name: 'description list with attrs (attrs loaded last)',
     md: mdit({ html: true }).use(mditNumberingUl, { descriptionList: true }).use(mditAttrs),
-    testFiles: ['examples-default-8-descriptionlist.txt']
+    testFiles: ['examples-option-descriptionlist-default.txt']
   },
-
-  // Integration: numbered lists with attrs (attrs loaded first)
-  {
-    name: 'numbered lists with attrs (attrs loaded first)',
-    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl),
-    testFiles: ['examples-default-9with-attrs.txt']
-  },
-
   // Option-specific tests (each uses the plugin with particular options)
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-di.txt'
@@ -83,6 +82,9 @@ const testConfigs = [
   ]),
   createTestConfig('useCounterStyle option', { useCounterStyle: true }, [
     'examples-option-usecounterstyle.txt'
+  ]),
+  createTestConfig('omit marker metadata option', { omitMarkerMetadata: true }, [
+    'examples-option-omit-marker-metadata.txt'
   ]),
   createTestConfig('markerSpanClass option', { alwaysMarkerSpan: true, markerSpanClass: 'custom-marker' }, [
     'examples-option-markerspanclass.txt'

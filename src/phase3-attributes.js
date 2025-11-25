@@ -75,17 +75,20 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
   if (!markerInfo) {
     // Default attributes for lists without markerInfo
     if (opt.useCounterStyle) {
-      // Do not add type attribute; add class and data-marker-suffix so user CSS/@counter-style can target
+      // Do not add type attribute; add class so user CSS/@counter-style can target
       addAttr(token, 'class', 'ol-decimal')
-      addAttr(token, 'data-marker-suffix', '.')
-      addAttr(token, 'class', 'use-counter-style')
+      if (!opt.omitMarkerMetadata) {
+        addAttr(token, 'data-marker-suffix', '.')
+      }
       return
     }
 
     // Fallback default (legacy behavior)
     addAttr(token, 'type', '1')
     addAttr(token, 'class', 'ol-decimal')
-    addAttr(token, 'data-marker-suffix', '.')
+    if (!opt.omitMarkerMetadata) {
+      addAttr(token, 'data-marker-suffix', '.')
+    }
     return
   }
   
@@ -138,13 +141,15 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
   }
   
   // 4. data-marker-prefix/suffix
-  if (markerInfo.markers[0].prefix) {
-    addAttr(token, 'data-marker-prefix', markerInfo.markers[0].prefix)
-  }
-  // Do not emit data-marker-suffix when suffix is only whitespace (halfwidth or fullwidth)
-  const suffix = markerInfo.markers[0].suffix
-  if (suffix && !/^[ \u3000]+$/.test(suffix)) {
-    addAttr(token, 'data-marker-suffix', suffix)
+  if (!opt.omitMarkerMetadata) {
+    if (markerInfo.markers[0].prefix) {
+      addAttr(token, 'data-marker-prefix', markerInfo.markers[0].prefix)
+    }
+    // Do not emit data-marker-suffix when suffix is only whitespace (halfwidth or fullwidth)
+    const suffix = markerInfo.markers[0].suffix
+    if (suffix && !/^[ \u3000]+$/.test(suffix)) {
+      addAttr(token, 'data-marker-suffix', suffix)
+    }
   }
   
   // Add value attribute to list items (for non-consecutive numbers)
