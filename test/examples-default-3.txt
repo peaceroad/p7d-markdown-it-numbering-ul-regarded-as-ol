@@ -211,3 +211,19 @@
 <li>Second item</li>
 </ol>
 
+[Markdown]
+- ② First item
+    - i. Subitem A
+    - iii. Subitem C
+- ④ Second item
+
+[HTML]
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> First item
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Subitem A</li>
+<li value="3">Subitem C</li>
+</ol>
+</li>
+<li value="4"><span class="li-num" aria-hidden="true">④</span> Second item</li>
+</ol>

@@ -125,3 +125,124 @@ Simple description
 <p class="class4">Content B</p>
 </dd>
 </dl>
+
+[Markdown]
+- **Div class backslash**\
+  Div class backslash description
+- **Div class backslash**\
+  Div class backslash description
+
+[HTML]
+<dl>
+<dt>Div class backslash</dt>
+<dd>
+<p>Div class backslash description</p>
+</dd>
+<dt>Div class backslash</dt>
+<dd>
+<p>Div class backslash description</p>
+</dd>
+</dl>
+
+
+[Markdown]
+- **Div class backslash**\
+  Div class backslash description
+
+  Div class backslash description 2
+- **Div class backslash**\
+  Div class backslash description
+
+[HTML]
+<dl>
+<dt>Div class backslash</dt>
+<dd>
+<p>Div class backslash description</p>
+<p>Div class backslash description 2</p>
+</dd>
+<dt>Div class backslash</dt>
+<dd>
+<p>Div class backslash description</p>
+</dd>
+</dl>
+
+
+[Markdown]
+- **First term**
+
+  First description
+
+  First description 2
+
+- **Second term**
+
+  Second description
+  Second description 2
+[HTML]
+<dl>
+<dt>First term</dt>
+<dd>
+<p>First description</p>
+<p>First description 2</p>
+</dd>
+<dt>Second term</dt>
+<dd>
+<p>Second description
+Second description 2</p>
+</dd>
+</dl>
+
+
+[Markdown]
+- **First term**
+
+  First description
+
+  First description 2
+
+- **Second term**
+
+  Second description
+
+  Second description 2
+{.my-class #my-id}
+[HTML]
+<dl class="my-class" id="my-id">
+<dt>First term</dt>
+<dd>
+<p>First description</p>
+<p>First description 2</p>
+</dd>
+<dt>Second term</dt>
+<dd>
+<p>Second description</p>
+<p>Second description 2</p>
+</dd>
+</dl>
+
+
+[Markdown]
+- **First term**
+
+  First description
+
+  First description 2
+
+- **Second term**
+
+  Second description
+  Second description 2
+{.my-class #my-id}
+[HTML]
+<dl class="my-class" id="my-id">
+<dt>First term</dt>
+<dd>
+<p>First description</p>
+<p>First description 2</p>
+</dd>
+<dt>Second term</dt>
+<dd>
+<p>Second description
+Second description 2</p>
+</dd>
+</dl>

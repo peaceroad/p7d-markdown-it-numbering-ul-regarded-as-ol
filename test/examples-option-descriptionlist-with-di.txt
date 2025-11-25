@@ -454,4 +454,17 @@ Three-level nesting:
 </div>
 </dl>
 
+[Markdown]
+- **Div class backslash**\
+  Div class backslash description
+
+[HTML]
+<dl>
+<div>
+<dt>Div class backslash</dt>
+<dd>
+<p>Div class backslash description</p>
+</dd>
+</div>
+</dl>
 
