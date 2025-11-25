@@ -2,7 +2,7 @@ import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 import mdit from 'markdown-it'
-import mdNumUl from '../index.js'
+import mditNumberingUl from '../index.js'
 import mditAttrs from 'markdown-it-attrs'
 import mditDeflist from 'markdown-it-deflist'
 import mditStrongJa from '@peaceroad/markdown-it-strong-ja'
@@ -16,7 +16,7 @@ if (isWindows) {
 // Test configuration helper
 const createTestConfig = (name, options, testFiles) => ({
   name,
-  md: mdit({ html: true }).use(mdNumUl, options),
+  md: mdit({ html: true }).use(mditNumberingUl, options),
   testFiles
 })
 
@@ -37,31 +37,31 @@ const testConfigs = [
   // Run specific integration / attrs-last checks immediately after default
   {
     name: 'numbered lists with attrs (attrs loaded last)',
-    md: mdit({ html: true }).use(mdNumUl).use(mditAttrs),
+    md: mdit({ html: true }).use(mditNumberingUl).use(mditAttrs),
     testFiles: ['examples-default-9with-attrs.txt']
   },
   {
     name: 'with other plugins (deflist and strong-ja)',
-    md: mdit({ html: true }).use(mditDeflist).use(mditStrongJa).use(mdNumUl, { descriptionList: true }),
+    md: mdit({ html: true }).use(mditDeflist).use(mditStrongJa).use(mditNumberingUl, { descriptionList: true }),
     testFiles: ['examples-default-10-with-other-plugin.txt']
   },
 
   // Integration: description list with attrs (attrs loaded first/last)
   {
     name: 'description list with attrs (attrs loaded first)',
-    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl, { descriptionList: true }),
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, { descriptionList: true }),
     testFiles: ['examples-default-8-descriptionlist.txt']
   },
   {
     name: 'description list with attrs (attrs loaded last)',
-    md: mdit({ html: true }).use(mdNumUl, { descriptionList: true }).use(mditAttrs),
+    md: mdit({ html: true }).use(mditNumberingUl, { descriptionList: true }).use(mditAttrs),
     testFiles: ['examples-default-8-descriptionlist.txt']
   },
 
   // Integration: numbered lists with attrs (attrs loaded first)
   {
     name: 'numbered lists with attrs (attrs loaded first)',
-    md: mdit({ html: true }).use(mditAttrs).use(mdNumUl),
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl),
     testFiles: ['examples-default-9with-attrs.txt']
   },
 

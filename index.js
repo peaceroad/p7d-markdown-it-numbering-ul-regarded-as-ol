@@ -7,7 +7,7 @@ import { processHtmlBlocks } from './src/phase4-html-blocks.js'
 import { generateSpans } from './src/phase5-spans.js'
 import { moveNestedListAttributes } from './src/phase6-attrs-migration.js'
 
-const mditNumberingUlRegardedAsOl = (md, option) => {
+const mditNumberingUl = (md, option) => {
   const opt = {
     // Core options
     descriptionList: false,       // Convert **Term** patterns to <dl>/<dt>/<dd>
@@ -116,4 +116,4 @@ const mditNumberingUlRegardedAsOl = (md, option) => {
   }
 }
 
-export default mditNumberingUlRegardedAsOl
+export default mditNumberingUl
