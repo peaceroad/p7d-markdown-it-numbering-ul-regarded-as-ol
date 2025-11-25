@@ -4,9 +4,9 @@
 - ウ. Third katakana item
 [HTML]
 <ol role="list" class="ol-katakana" data-marker-suffix=".">
-<li><span class="li-num">ア</span> First katakana item</li>
-<li><span class="li-num">イ</span> Second katakana item</li>
-<li><span class="li-num">ウ</span> Third katakana item</li>
+<li><span class="li-num" aria-hidden="true">ア</span> First katakana item</li>
+<li><span class="li-num" aria-hidden="true">イ</span> Second katakana item</li>
+<li><span class="li-num" aria-hidden="true">ウ</span> Third katakana item</li>
 </ol>
 
 [Markdown]
@@ -15,16 +15,16 @@
 - ハ. Third iroha item
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> First iroha item</li>
-<li><span class="li-num">ロ</span> Second iroha item</li>
-<li><span class="li-num">ハ</span> Third iroha item</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First iroha item</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second iroha item</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Third iroha item</li>
 </ol>
 
 [Markdown]
 - イ. Single item with イ marker
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> Single item with イ marker</li>
+<li><span class="li-num" aria-hidden="true">イ</span> Single item with イ marker</li>
 </ol>
 
 [Markdown]
@@ -55,9 +55,9 @@
 - イ. Third item
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> First item</li>
-<li><span class="li-num">ロ</span> Second item</li>
-<li><span class="li-num">ハ</span> Third item</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First item</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second item</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Third item</li>
 </ol>
 
 [Markdown]
@@ -65,10 +65,10 @@
 - エ. Then エ
 - オ. Then オ
 [HTML]
-<ol role="list" data-start="3" class="ol-katakana" data-marker-suffix=".">
-<li><span class="li-num">ウ</span> Starting from ウ</li>
-<li><span class="li-num">エ</span> Then エ</li>
-<li><span class="li-num">オ</span> Then オ</li>
+<ol role="list" start="3" class="ol-katakana" data-marker-suffix=".">
+<li><span class="li-num" aria-hidden="true">ウ</span> Starting from ウ</li>
+<li><span class="li-num" aria-hidden="true">エ</span> Then エ</li>
+<li><span class="li-num" aria-hidden="true">オ</span> Then オ</li>
 </ol>
 
 [Markdown]
@@ -76,10 +76,10 @@
 - ニ. Then ニ
 - ホ. Then ホ
 [HTML]
-<ol role="list" data-start="3" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">ハ</span> Starting from ハ</li>
-<li><span class="li-num">ニ</span> Then ニ</li>
-<li><span class="li-num">ホ</span> Then ホ</li>
+<ol role="list" start="3" class="ol-katakana-iroha" data-marker-suffix=".">
+<li><span class="li-num" aria-hidden="true">ハ</span> Starting from ハ</li>
+<li><span class="li-num" aria-hidden="true">ニ</span> Then ニ</li>
+<li><span class="li-num" aria-hidden="true">ホ</span> Then ホ</li>
 </ol>
 
 [Markdown]
@@ -89,10 +89,10 @@
 - ニ、 Fourth iroha item with comma
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix="、">
-<li><span class="li-num">イ</span> First iroha item with comma</li>
-<li><span class="li-num">ロ</span> Second iroha item with comma</li>
-<li><span class="li-num">ハ</span> Third iroha item with comma</li>
-<li><span class="li-num">ニ</span> Fourth iroha item with comma</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First iroha item with comma</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second iroha item with comma</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Third iroha item with comma</li>
+<li><span class="li-num" aria-hidden="true">ニ</span> Fourth iroha item with comma</li>
 </ol>
 
 [Markdown]
@@ -101,11 +101,11 @@
 - エ、Third mixed item (katakana)
 - オ、Fourth mixed item (katakana)
 [HTML]
-<ol role="list" data-start="2" class="ol-katakana" data-marker-suffix="、">
-<li><span class="li-num">イ</span> First mixed item</li>
-<li><span class="li-num">ウ</span> Second mixed item (katakana)</li>
-<li><span class="li-num">エ</span> Third mixed item (katakana)</li>
-<li><span class="li-num">オ</span> Fourth mixed item (katakana)</li>
+<ol role="list" start="2" class="ol-katakana" data-marker-suffix="、">
+<li><span class="li-num" aria-hidden="true">イ</span> First mixed item</li>
+<li><span class="li-num" aria-hidden="true">ウ</span> Second mixed item (katakana)</li>
+<li><span class="li-num" aria-hidden="true">エ</span> Third mixed item (katakana)</li>
+<li><span class="li-num" aria-hidden="true">オ</span> Fourth mixed item (katakana)</li>
 </ol>
 
 [Markdown]
@@ -136,9 +136,9 @@
 - ハ、Third item without space after comma
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix="、">
-<li><span class="li-num">イ</span> First item without space after comma</li>
-<li><span class="li-num">ロ</span> Second item without space after comma</li>
-<li><span class="li-num">ハ</span> Third item without space after comma</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First item without space after comma</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second item without space after comma</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Third item without space after comma</li>
 </ol>
 
 [Markdown]
@@ -147,9 +147,9 @@
 - ウ．Third item with full-width period no space
 [HTML]
 <ol role="list" class="ol-katakana" data-marker-suffix="．">
-<li><span class="li-num">ア</span> First item with full-width period no space</li>
-<li><span class="li-num">イ</span> Second item with full-width period no space</li>
-<li><span class="li-num">ウ</span> Third item with full-width period no space</li>
+<li><span class="li-num" aria-hidden="true">ア</span> First item with full-width period no space</li>
+<li><span class="li-num" aria-hidden="true">イ</span> Second item with full-width period no space</li>
+<li><span class="li-num" aria-hidden="true">ウ</span> Third item with full-width period no space</li>
 </ol>
 
 [Markdown]
@@ -158,9 +158,9 @@
 - 三、Third japanese informal no space
 [HTML]
 <ol role="list" class="ol-japanese-informal" data-marker-suffix="、">
-<li><span class="li-num">一</span> First japanese informal no space</li>
-<li><span class="li-num">二</span> Second japanese informal no space</li>
-<li><span class="li-num">三</span> Third japanese informal no space</li>
+<li><span class="li-num" aria-hidden="true">一</span> First japanese informal no space</li>
+<li><span class="li-num" aria-hidden="true">二</span> Second japanese informal no space</li>
+<li><span class="li-num" aria-hidden="true">三</span> Third japanese informal no space</li>
 </ol>
 
 [Markdown]
@@ -169,7 +169,7 @@
 - ハ．アイテム3
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix="．">
-<li><span class="li-num">イ</span> アイテム1</li>
-<li><span class="li-num">ロ</span> アイテム2</li>
-<li><span class="li-num">ハ</span> アイテム3</li>
+<li><span class="li-num" aria-hidden="true">イ</span> アイテム1</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> アイテム2</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> アイテム3</li>
 </ol>

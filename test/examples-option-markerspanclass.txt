@@ -4,9 +4,9 @@
 - ③ Third
 [HTML]
 <ol role="list" class="ol-circled-decimal">
-<li><span class="custom-marker">①</span> First</li>
-<li><span class="custom-marker">②</span> Second</li>
-<li><span class="custom-marker">③</span> Third</li>
+<li><span class="custom-marker" aria-hidden="true">①</span> First</li>
+<li><span class="custom-marker" aria-hidden="true">②</span> Second</li>
+<li><span class="custom-marker" aria-hidden="true">③</span> Third</li>
 </ol>
 
 [Markdown]
@@ -16,11 +16,11 @@
 - ② Second parent
 [HTML]
 <ol role="list" class="ol-circled-decimal">
-<li><span class="custom-marker">①</span> Parent
+<li><span class="custom-marker" aria-hidden="true">①</span> Parent
 <ol role="list" class="ol-filled-circled-decimal">
-<li><span class="custom-marker">❶</span> Child A</li>
-<li><span class="custom-marker">❷</span> Child B</li>
+<li><span class="custom-marker" aria-hidden="true">❶</span> Child A</li>
+<li><span class="custom-marker" aria-hidden="true">❷</span> Child B</li>
 </ol>
 </li>
-<li><span class="custom-marker">②</span> Second parent</li>
+<li><span class="custom-marker" aria-hidden="true">②</span> Second parent</li>
 </ol>

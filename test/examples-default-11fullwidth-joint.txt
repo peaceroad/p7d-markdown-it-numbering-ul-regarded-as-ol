@@ -5,9 +5,9 @@
 
 [HTML]
 <ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
-<li><span class="li-num">１</span> Fullwidth colon decimal</li>
-<li><span class="li-num">２</span> Second</li>
-<li><span class="li-num">３</span> Third</li>
+<li><span class="li-num" aria-hidden="true">１</span> Fullwidth colon decimal</li>
+<li><span class="li-num" aria-hidden="true">２</span> Second</li>
+<li><span class="li-num" aria-hidden="true">３</span> Third</li>
 </ol>
 
 [Markdown]
@@ -17,9 +17,9 @@
 
 [HTML]
 <ol role="list" class="ol-katakana-iroha" data-marker-suffix="．">
-<li><span class="li-num">イ</span> First</li>
-<li><span class="li-num">ロ</span> Second</li>
-<li><span class="li-num">ハ</span> Third</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Third</li>
 </ol>
 
 [Markdown]
@@ -29,9 +29,9 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal">
-<li><span class="li-num">一</span> First</li>
-<li><span class="li-num">二</span> Second</li>
-<li><span class="li-num">三</span> Third</li>
+<li><span class="li-num" aria-hidden="true">一</span> First</li>
+<li><span class="li-num" aria-hidden="true">二</span> Second</li>
+<li><span class="li-num" aria-hidden="true">三</span> Third</li>
 </ol>
 
 [Markdown]
@@ -44,7 +44,7 @@
 
 [HTML]
 <ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
-<li><span class="li-num">１</span> Parent
+<li><span class="li-num" aria-hidden="true">１</span> Parent
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>Child A</li>
 <li>Child B
@@ -55,7 +55,7 @@
 </li>
 </ol>
 </li>
-<li><span class="li-num">２</span> Parent2</li>
+<li><span class="li-num" aria-hidden="true">２</span> Parent2</li>
 </ol>
 
 [Markdown]
@@ -64,6 +64,6 @@
 
 [HTML]
 <ol role="list" class="ol-fullwidth-decimal" data-marker-suffix="．">
-<li><span class="li-num">１</span> Fullwidth punctuation edge</li>
-<li><span class="li-num">２</span> Another</li>
+<li><span class="li-num" aria-hidden="true">１</span> Fullwidth punctuation edge</li>
+<li><span class="li-num" aria-hidden="true">２</span> Another</li>
 </ol>

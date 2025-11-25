@@ -60,9 +60,9 @@
 - ❸ c
 [HTML]
 <ol role="list" class="ol-filled-circled-decimal">
-<li><span class="li-num">❶</span> a</li>
-<li><span class="li-num">❷</span> b</li>
-<li><span class="li-num">❸</span> c</li>
+<li><span class="li-num" aria-hidden="true">❶</span> a</li>
+<li><span class="li-num" aria-hidden="true">❷</span> b</li>
+<li><span class="li-num" aria-hidden="true">❸</span> c</li>
 </ol>
 
 [Markdown]
@@ -81,10 +81,10 @@
 - ③ b
 - ④ c
 [HTML]
-<ol role="list" data-start="2" class="ol-circled-decimal">
-<li><span class="li-num">②</span> a</li>
-<li><span class="li-num">③</span> b</li>
-<li><span class="li-num">④</span> c</li>
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> a</li>
+<li><span class="li-num" aria-hidden="true">③</span> b</li>
+<li><span class="li-num" aria-hidden="true">④</span> c</li>
 </ol>
 
 [Markdown]
@@ -158,16 +158,16 @@
     - ④ 項目❹-④
 - ❺ 項目❺
 [HTML]
-<ol role="list" data-start="3" class="ol-filled-circled-decimal">
-<li><span class="li-num">❸</span> 項目❸</li>
-<li><span class="li-num">❹</span> 項目❹
-<ol role="list" data-start="2" class="ol-circled-decimal">
-<li><span class="li-num">②</span> 項目❹-②</li>
-<li><span class="li-num">③</span> 項目❹-③</li>
-<li><span class="li-num">④</span> 項目❹-④</li>
+<ol role="list" start="3" class="ol-filled-circled-decimal">
+<li><span class="li-num" aria-hidden="true">❸</span> 項目❸</li>
+<li><span class="li-num" aria-hidden="true">❹</span> 項目❹
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> 項目❹-②</li>
+<li><span class="li-num" aria-hidden="true">③</span> 項目❹-③</li>
+<li><span class="li-num" aria-hidden="true">④</span> 項目❹-④</li>
 </ol>
 </li>
-<li><span class="li-num">❺</span> 項目❺</li>
+<li><span class="li-num" aria-hidden="true">❺</span> 項目❺</li>
 </ol>
 
 [Markdown]
@@ -205,9 +205,9 @@
 - ⓒ 項目3
 [HTML]
 <ol role="list" class="ol-circled-lower-latin">
-<li><span class="li-num">ⓐ</span> 項目1</li>
-<li><span class="li-num">ⓑ</span> 項目2</li>
-<li><span class="li-num">ⓒ</span> 項目3</li>
+<li><span class="li-num" aria-hidden="true">ⓐ</span> 項目1</li>
+<li><span class="li-num" aria-hidden="true">ⓑ</span> 項目2</li>
+<li><span class="li-num" aria-hidden="true">ⓒ</span> 項目3</li>
 </ol>
 
 [Markdown]
@@ -216,9 +216,9 @@
 - Ⓒ 項目3
 [HTML]
 <ol role="list" class="ol-circled-upper-latin">
-<li><span class="li-num">Ⓐ</span> 項目1</li>
-<li><span class="li-num">Ⓑ</span> 項目2</li>
-<li><span class="li-num">Ⓒ</span> 項目3</li>
+<li><span class="li-num" aria-hidden="true">Ⓐ</span> 項目1</li>
+<li><span class="li-num" aria-hidden="true">Ⓑ</span> 項目2</li>
+<li><span class="li-num" aria-hidden="true">Ⓒ</span> 項目3</li>
 </ol>
 
 [Markdown]
@@ -227,9 +227,9 @@
 - 🅒 項目3
 [HTML]
 <ol role="list" class="ol-filled-circled-upper-latin">
-<li><span class="li-num">🅐</span> 項目1</li>
-<li><span class="li-num">🅑</span> 項目2</li>
-<li><span class="li-num">🅒</span> 項目3</li>
+<li><span class="li-num" aria-hidden="true">🅐</span> 項目1</li>
+<li><span class="li-num" aria-hidden="true">🅑</span> 項目2</li>
+<li><span class="li-num" aria-hidden="true">🅒</span> 項目3</li>
 </ol>
 
 
@@ -323,7 +323,7 @@
 - 3⃣ c
 [HTML]
 <ol role="list" class="ol-squared-decimal">
-<li><span class="li-num">1⃣</span> a</li>
-<li><span class="li-num">2⃣</span> b</li>
-<li><span class="li-num">3⃣</span> c</li>
+<li><span class="li-num" aria-hidden="true">1⃣</span> a</li>
+<li><span class="li-num" aria-hidden="true">2⃣</span> b</li>
+<li><span class="li-num" aria-hidden="true">3⃣</span> c</li>
 </ol>

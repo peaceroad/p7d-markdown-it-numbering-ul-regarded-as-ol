@@ -59,6 +59,7 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt) {
         const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
         const spanClass = (opt && opt.markerSpanClass) ? String(opt.markerSpanClass) : 'li-num'
         spanOpen.attrSet('class', spanClass)
+        spanOpen.attrSet('aria-hidden', 'true')
         
         const text = new tokens[i].constructor('text', '', 0)
         

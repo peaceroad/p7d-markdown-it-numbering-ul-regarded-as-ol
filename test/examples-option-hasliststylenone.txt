@@ -4,9 +4,9 @@
 - ❸ Custom three
 [HTML]
 <ol role="list" style="list-style: none;" class="ol-filled-circled-decimal">
-<li><span class="li-num">❶</span> Custom one</li>
-<li><span class="li-num">❷</span> Custom two</li>
-<li><span class="li-num">❸</span> Custom three</li>
+<li><span class="li-num" aria-hidden="true">❶</span> Custom one</li>
+<li><span class="li-num" aria-hidden="true">❷</span> Custom two</li>
+<li><span class="li-num" aria-hidden="true">❸</span> Custom three</li>
 </ol>
 
 [Markdown]
@@ -32,8 +32,8 @@
 - ロ. Katakana follow
 [HTML]
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> Katakana start</li>
-<li><span class="li-num">ロ</span> Katakana follow</li>
+<li><span class="li-num" aria-hidden="true">イ</span> Katakana start</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Katakana follow</li>
 </ol>
 
 [Markdown]
@@ -43,18 +43,18 @@
     - ホ. Second level 2
 - ニ. Second root
 [HTML]
-<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." data-start="2">
-<li><span class="li-num">イ</span> Level 1
-<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." data-start="3">
-<li><span class="li-num">ロ</span> Level 2
+<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." start="2">
+<li><span class="li-num" aria-hidden="true">イ</span> Level 1
+<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." start="3">
+<li><span class="li-num" aria-hidden="true">ロ</span> Level 2
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">ハ</span> Level 3</li>
+<li><span class="li-num" aria-hidden="true">ハ</span> Level 3</li>
 </ol>
 </li>
-<li value="5"><span class="li-num">ホ</span> Second level 2</li>
+<li value="5"><span class="li-num" aria-hidden="true">ホ</span> Second level 2</li>
 </ol>
 </li>
-<li value="4"><span class="li-num">ニ</span> Second root</li>
+<li value="4"><span class="li-num" aria-hidden="true">ニ</span> Second root</li>
 </ol>
 
 [Markdown]
@@ -63,11 +63,11 @@
         - ロ. Custom grandchild
 [HTML]
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> Custom parent
-<ol type="1" class="ol-decimal" data-marker-suffix="." data-start="2">
+<li><span class="li-num" aria-hidden="true">イ</span> Custom parent
+<ol type="1" class="ol-decimal" data-marker-suffix="." start="2">
 <li>Decimal child
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">ロ</span> Custom grandchild</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Custom grandchild</li>
 </ol>
 </li>
 </ol>
@@ -81,7 +81,7 @@
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Decimal parent
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
-<li><span class="li-num">イ</span> Custom child</li>
+<li><span class="li-num" aria-hidden="true">イ</span> Custom child</li>
 </ol>
 </li>
 </ol>

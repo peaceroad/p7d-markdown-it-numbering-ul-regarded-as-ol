@@ -4,8 +4,8 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal" data-marker-suffix=".">
-<li><span class="li-num">一</span> Item A</li>
-<li><span class="li-num">二</span> Item B</li>
+<li><span class="li-num" aria-hidden="true">一</span> Item A</li>
+<li><span class="li-num" aria-hidden="true">二</span> Item B</li>
 </ol>
 
 [Markdown]
@@ -14,8 +14,8 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal">
-<li><span class="li-num">一</span> Item A</li>
-<li><span class="li-num">二</span> Item B</li>
+<li><span class="li-num" aria-hidden="true">一</span> Item A</li>
+<li><span class="li-num" aria-hidden="true">二</span> Item B</li>
 </ol>
 
 [Markdown]
@@ -35,8 +35,8 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal">
-<li><span class="li-num">一</span> Item A</li>
-<li><span class="li-num">二</span> Item B</li>
+<li><span class="li-num" aria-hidden="true">一</span> Item A</li>
+<li><span class="li-num" aria-hidden="true">二</span> Item B</li>
 </ol>
 
 [Markdown]
@@ -47,13 +47,13 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal" data-marker-suffix=".">
-<li><span class="li-num">一</span> Parent
+<li><span class="li-num" aria-hidden="true">一</span> Parent
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>Child A</li>
 <li>Child B</li>
 </ol>
 </li>
-<li><span class="li-num">二</span> Parent2</li>
+<li><span class="li-num" aria-hidden="true">二</span> Parent2</li>
 </ol>
 
 [Markdown]
@@ -64,11 +64,11 @@
 
 [HTML]
 <ol role="list" class="ol-japanese-informal">
-<li><span class="li-num">一</span> Parent
+<li><span class="li-num" aria-hidden="true">一</span> Parent
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>子A</li>
 <li>子B</li>
 </ol>
 </li>
-<li><span class="li-num">二</span> Parent2</li>
+<li><span class="li-num" aria-hidden="true">二</span> Parent2</li>
 </ol>

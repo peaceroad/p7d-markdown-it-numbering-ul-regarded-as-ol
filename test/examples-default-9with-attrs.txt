@@ -24,8 +24,8 @@
 {.japanese}
 [HTML]
 <ol role="list" class="ol-katakana-iroha japanese" data-marker-suffix=".">
-<li><span class="li-num">イ</span> First item</li>
-<li><span class="li-num">ロ</span> Second item</li>
+<li><span class="li-num" aria-hidden="true">イ</span> First item</li>
+<li><span class="li-num" aria-hidden="true">ロ</span> Second item</li>
 </ol>
 
 [Markdown]

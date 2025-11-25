@@ -3,8 +3,8 @@
 - 2. Second decimal
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Basic decimal</li>
-<li><span class="li-num">2.</span> Second decimal</li>
+<li><span class="li-num" aria-hidden="true">1.</span> Basic decimal</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second decimal</li>
 </ol>
 
 [Markdown]
@@ -12,8 +12,8 @@
 - b. Second lower latin
 [HTML]
 <ol role="list" class="ol-lower-latin" data-marker-suffix=".">
-<li><span class="li-num">a.</span> Basic lower latin</li>
-<li><span class="li-num">b.</span> Second lower latin</li>
+<li><span class="li-num" aria-hidden="true">a.</span> Basic lower latin</li>
+<li><span class="li-num" aria-hidden="true">b.</span> Second lower latin</li>
 </ol>
 
 [Markdown]
@@ -21,8 +21,8 @@
 - ii. Second lower roman
 [HTML]
 <ol role="list" class="ol-lower-roman" data-marker-suffix=".">
-<li><span class="li-num">i.</span> Basic lower roman</li>
-<li><span class="li-num">ii.</span> Second lower roman</li>
+<li><span class="li-num" aria-hidden="true">i.</span> Basic lower roman</li>
+<li><span class="li-num" aria-hidden="true">ii.</span> Second lower roman</li>
 </ol>
 
 [Markdown]
@@ -30,8 +30,8 @@
 - B. Second upper latin
 [HTML]
 <ol role="list" class="ol-upper-latin" data-marker-suffix=".">
-<li><span class="li-num">A.</span> Basic upper latin</li>
-<li><span class="li-num">B.</span> Second upper latin</li>
+<li><span class="li-num" aria-hidden="true">A.</span> Basic upper latin</li>
+<li><span class="li-num" aria-hidden="true">B.</span> Second upper latin</li>
 </ol>
 
 [Markdown]
@@ -39,8 +39,8 @@
 - II. Second upper roman
 [HTML]
 <ol role="list" class="ol-upper-roman" data-marker-suffix=".">
-<li><span class="li-num">I.</span> Basic upper roman</li>
-<li><span class="li-num">II.</span> Second upper roman</li>
+<li><span class="li-num" aria-hidden="true">I.</span> Basic upper roman</li>
+<li><span class="li-num" aria-hidden="true">II.</span> Second upper roman</li>
 </ol>
 
 [Markdown]
@@ -48,8 +48,8 @@
 - 2) Second with parentheses
 [HTML]
 <ol role="list" class="ol-decimal-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">1)</span> Decimal with parentheses</li>
-<li><span class="li-num">2)</span> Second with parentheses</li>
+<li><span class="li-num" aria-hidden="true">1)</span> Decimal with parentheses</li>
+<li><span class="li-num" aria-hidden="true">2)</span> Second with parentheses</li>
 </ol>
 
 [Markdown]
@@ -57,8 +57,8 @@
 - (2) Second with round parentheses
 [HTML]
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(1)</span> Decimal with round parentheses</li>
-<li><span class="li-num">(2)</span> Second with round parentheses</li>
+<li><span class="li-num" aria-hidden="true">(1)</span> Decimal with round parentheses</li>
+<li><span class="li-num" aria-hidden="true">(2)</span> Second with round parentheses</li>
 </ol>
 
 [Markdown]
@@ -66,8 +66,8 @@
 - b) Second latin with parentheses
 [HTML]
 <ol role="list" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">a)</span> Latin with parentheses</li>
-<li><span class="li-num">b)</span> Second latin with parentheses</li>
+<li><span class="li-num" aria-hidden="true">a)</span> Latin with parentheses</li>
+<li><span class="li-num" aria-hidden="true">b)</span> Second latin with parentheses</li>
 </ol>
 
 [Markdown]
@@ -75,8 +75,8 @@
 - (b) Second latin with round parentheses
 [HTML]
 <ol role="list" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(a)</span> Latin with round parentheses</li>
-<li><span class="li-num">(b)</span> Second latin with round parentheses</li>
+<li><span class="li-num" aria-hidden="true">(a)</span> Latin with round parentheses</li>
+<li><span class="li-num" aria-hidden="true">(b)</span> Second latin with round parentheses</li>
 </ol>
 
 [Markdown]
@@ -84,8 +84,8 @@
 - ❷ Second custom circled
 [HTML]
 <ol role="list" class="ol-filled-circled-decimal">
-<li><span class="li-num">❶</span> Custom circled decimal</li>
-<li><span class="li-num">❷</span> Second custom circled</li>
+<li><span class="li-num" aria-hidden="true">❶</span> Custom circled decimal</li>
+<li><span class="li-num" aria-hidden="true">❷</span> Second custom circled</li>
 </ol>
 
 [Markdown]
@@ -93,10 +93,10 @@
 - 4. Fourth item
 - 5. Fifth item
 [HTML]
-<ol role="list" data-start="3" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">3.</span> Decimal with start</li>
-<li><span class="li-num">4.</span> Fourth item</li>
-<li><span class="li-num">5.</span> Fifth item</li>
+<ol role="list" start="3" class="ol-decimal" data-marker-suffix=".">
+<li><span class="li-num" aria-hidden="true">3.</span> Decimal with start</li>
+<li><span class="li-num" aria-hidden="true">4.</span> Fourth item</li>
+<li><span class="li-num" aria-hidden="true">5.</span> Fifth item</li>
 </ol>
 
 [Markdown]
@@ -104,10 +104,10 @@
 - 3) Third item
 - 4) Fourth item
 [HTML]
-<ol role="list" data-start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">2)</span> Parentheses with start</li>
-<li><span class="li-num">3)</span> Third item</li>
-<li><span class="li-num">4)</span> Fourth item</li>
+<ol role="list" start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li><span class="li-num" aria-hidden="true">2)</span> Parentheses with start</li>
+<li><span class="li-num" aria-hidden="true">3)</span> Third item</li>
+<li><span class="li-num" aria-hidden="true">4)</span> Fourth item</li>
 </ol>
 
 [Markdown]
@@ -116,9 +116,9 @@
 - 6. Sixth item
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Item with value jump</li>
-<li data-value="5"><span class="li-num">5.</span> Skip to five</li>
-<li><span class="li-num">6.</span> Sixth item</li>
+<li><span class="li-num" aria-hidden="true">1.</span> Item with value jump</li>
+<li value="5"><span class="li-num" aria-hidden="true">5.</span> Skip to five</li>
+<li><span class="li-num" aria-hidden="true">6.</span> Sixth item</li>
 </ol>
 
 [Markdown]
@@ -128,13 +128,13 @@
 - 2. Second parent
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Parent item
+<li><span class="li-num" aria-hidden="true">1.</span> Parent item
 <ol role="list" class="ol-lower-latin" data-marker-suffix=".">
-<li><span class="li-num">a.</span> Nested latin</li>
-<li><span class="li-num">b.</span> Second nested latin</li>
+<li><span class="li-num" aria-hidden="true">a.</span> Nested latin</li>
+<li><span class="li-num" aria-hidden="true">b.</span> Second nested latin</li>
 </ol>
 </li>
-<li><span class="li-num">2.</span> Second parent</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second parent</li>
 </ol>
 
 [Markdown]
@@ -144,13 +144,13 @@
 - (2) Second parent
 [HTML]
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(1)</span> Parent with round parentheses
+<li><span class="li-num" aria-hidden="true">(1)</span> Parent with round parentheses
 <ol role="list" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">i)</span> Nested roman with parentheses</li>
-<li><span class="li-num">ii)</span> Second nested roman</li>
+<li><span class="li-num" aria-hidden="true">i)</span> Nested roman with parentheses</li>
+<li><span class="li-num" aria-hidden="true">ii)</span> Second nested roman</li>
 </ol>
 </li>
-<li><span class="li-num">(2)</span> Second parent</li>
+<li><span class="li-num" aria-hidden="true">(2)</span> Second parent</li>
 </ol>
 
 [Markdown]
@@ -162,18 +162,18 @@
 - 2. Second main item
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Complex nested structure
+<li><span class="li-num" aria-hidden="true">1.</span> Complex nested structure
 <ol role="list" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">a)</span> Level 2 latin
+<li><span class="li-num" aria-hidden="true">a)</span> Level 2 latin
 <ol role="list" class="ol-lower-roman" data-marker-suffix=".">
-<li><span class="li-num">i.</span> Level 3 roman</li>
-<li><span class="li-num">ii.</span> Second level 3</li>
+<li><span class="li-num" aria-hidden="true">i.</span> Level 3 roman</li>
+<li><span class="li-num" aria-hidden="true">ii.</span> Second level 3</li>
 </ol>
 </li>
-<li><span class="li-num">b)</span> Second level 2</li>
+<li><span class="li-num" aria-hidden="true">b)</span> Second level 2</li>
 </ol>
 </li>
-<li><span class="li-num">2.</span> Second main item</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second main item</li>
 </ol>
 
 [Markdown]
@@ -185,11 +185,11 @@
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
 <li>
-<p><span class="li-num">1.</span> Item with paragraph content</p>
+<p><span class="li-num" aria-hidden="true">1.</span> Item with paragraph content</p>
 <p>This is a paragraph within the list item.</p>
 </li>
 <li>
-<p><span class="li-num">2.</span> Second item with paragraph</p>
+<p><span class="li-num" aria-hidden="true">2.</span> Second item with paragraph</p>
 </li>
 </ol>
 
@@ -207,18 +207,18 @@
 [HTML]
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
 <li>
-<p><span class="li-num">(1)</span> Complex content with nested elements</p>
+<p><span class="li-num" aria-hidden="true">(1)</span> Complex content with nested elements</p>
 <p>Paragraph content here.</p>
 <ol role="list" class="ol-lower-latin" data-marker-suffix=".">
-<li><span class="li-num">a.</span> Nested item</li>
-<li><span class="li-num">b.</span> Second nested item</li>
+<li><span class="li-num" aria-hidden="true">a.</span> Nested item</li>
+<li><span class="li-num" aria-hidden="true">b.</span> Second nested item</li>
 </ol>
 <blockquote>
 <p>Blockquote content</p>
 </blockquote>
 </li>
 <li>
-<p><span class="li-num">(2)</span> Second complex item</p>
+<p><span class="li-num" aria-hidden="true">(2)</span> Second complex item</p>
 </li>
 </ol>
 
@@ -229,13 +229,13 @@
 - B. Second upper latin
 [HTML]
 <ol role="list" class="ol-upper-latin" data-marker-suffix=".">
-<li><span class="li-num">A.</span> Mixed standard and custom markers
+<li><span class="li-num" aria-hidden="true">A.</span> Mixed standard and custom markers
 <ol role="list" class="ol-filled-circled-decimal">
-<li><span class="li-num">❶</span> Custom circled in nested</li>
-<li><span class="li-num">❷</span> Second custom circled</li>
+<li><span class="li-num" aria-hidden="true">❶</span> Custom circled in nested</li>
+<li><span class="li-num" aria-hidden="true">❷</span> Second custom circled</li>
 </ol>
 </li>
-<li><span class="li-num">B.</span> Second upper latin</li>
+<li><span class="li-num" aria-hidden="true">B.</span> Second upper latin</li>
 </ol>
 
 [Markdown]
@@ -255,28 +255,28 @@
 
 - 6) Sixth main item
 [HTML]
-<ol role="list" data-start="5" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol role="list" start="5" class="ol-decimal-with-none-round" data-marker-suffix=")">
 <li>
-<p><span class="li-num">5)</span> Start from five with complex nesting</p>
+<p><span class="li-num" aria-hidden="true">5)</span> Start from five with complex nesting</p>
 <p>Multiple paragraphs here.</p>
 <p>Another paragraph.</p>
 <ol role="list" class="ol-upper-roman" data-marker-suffix=".">
-<li><span class="li-num">I.</span> Roman in nested level
+<li><span class="li-num" aria-hidden="true">I.</span> Roman in nested level
 <ol role="list" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
 <li>
-<p><span class="li-num">(a)</span> Latin with round parentheses at level 3</p>
+<p><span class="li-num" aria-hidden="true">(a)</span> Latin with round parentheses at level 3</p>
 <p>Deep content here.</p>
 </li>
 <li>
-<p><span class="li-num">(b)</span> Second level 3 item</p>
+<p><span class="li-num" aria-hidden="true">(b)</span> Second level 3 item</p>
 </li>
 </ol>
 </li>
-<li><span class="li-num">II.</span> Second roman</li>
+<li><span class="li-num" aria-hidden="true">II.</span> Second roman</li>
 </ol>
 </li>
 <li>
-<p><span class="li-num">6)</span> Sixth main item</p>
+<p><span class="li-num" aria-hidden="true">6)</span> Sixth main item</p>
 </li>
 </ol>
 
@@ -287,13 +287,13 @@
 - 2. Second main decimal
 [HTML]
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Main decimal item
+<li><span class="li-num" aria-hidden="true">1.</span> Main decimal item
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(1)</span> Nested round parentheses</li>
-<li><span class="li-num">(2)</span> Second nested round</li>
+<li><span class="li-num" aria-hidden="true">(1)</span> Nested round parentheses</li>
+<li><span class="li-num" aria-hidden="true">(2)</span> Second nested round</li>
 </ol>
 </li>
-<li><span class="li-num">2.</span> Second main decimal</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second main decimal</li>
 </ol>
 
 [Markdown]
@@ -303,13 +303,13 @@
 - (2) Second main round
 [HTML]
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(1)</span> Main round parentheses
+<li><span class="li-num" aria-hidden="true">(1)</span> Main round parentheses
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Nested decimal with period</li>
-<li><span class="li-num">2.</span> Second nested decimal</li>
+<li><span class="li-num" aria-hidden="true">1.</span> Nested decimal with period</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second nested decimal</li>
 </ol>
 </li>
-<li><span class="li-num">(2)</span> Second main round</li>
+<li><span class="li-num" aria-hidden="true">(2)</span> Second main round</li>
 </ol>
 
 [Markdown]
@@ -321,16 +321,16 @@
 - 2) Second main closing
 [HTML]
 <ol role="list" class="ol-decimal-with-none-round" data-marker-suffix=")">
-<li><span class="li-num">1)</span> Main closing parentheses
+<li><span class="li-num" aria-hidden="true">1)</span> Main closing parentheses
 <ol role="list" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
-<li><span class="li-num">(1)</span> Nested full parentheses
+<li><span class="li-num" aria-hidden="true">(1)</span> Nested full parentheses
 <ol role="list" class="ol-decimal" data-marker-suffix=".">
-<li><span class="li-num">1.</span> Deep nested decimal period</li>
-<li><span class="li-num">2.</span> Second deep nested</li>
+<li><span class="li-num" aria-hidden="true">1.</span> Deep nested decimal period</li>
+<li><span class="li-num" aria-hidden="true">2.</span> Second deep nested</li>
 </ol>
 </li>
-<li><span class="li-num">(2)</span> Second nested full</li>
+<li><span class="li-num" aria-hidden="true">(2)</span> Second nested full</li>
 </ol>
 </li>
-<li><span class="li-num">2)</span> Second main closing</li>
+<li><span class="li-num" aria-hidden="true">2)</span> Second main closing</li>
 </ol>

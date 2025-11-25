@@ -182,7 +182,7 @@ md.renderer.rules.dd_open = renderDDOpen
    - types-utility.js使用: なし
 
 6. **Phase 5**: `generateSpans(tokens, listInfo, options)`
-   - `alwaysMarkerSpan: true`時のマーカーspan化
+   - `alwaysMarkerSpan: true`時のマーカーspan化（`aria-hidden="true"`付きの`<span class="li-num">`を生成）
    - types-utility.js使用: `getTypeAttributes()`, `getSymbolForNumber()`
 
 #### 追加プロセッサ（Phase 6）
@@ -294,13 +294,14 @@ markdown-it-attrsは`{.className}`を`<p>`に付与するため、Phase 0.5で`<
 
 - type属性: `listTypes.json`定義に基づき付与（マーカー明記時は除外）
 - role属性: type属性なしの場合に`role="list"`を付与（アクセシビリティ確保）
+- roleを付与した場合でも`start`/`value`などのネイティブ属性で番号情報を保持し、`data-start`や`data-value`は使わない
 
 #### value属性
 
 番号が連続する場合は不要。以下の場合のみ必要:
 - 番号を飛ぶ
 - 同じ番号
-- 番号が小さくなる
+- 番号が小さくなる。`role="list"`時も`value`で指定する
 
 ### マーカータイプの判定
 

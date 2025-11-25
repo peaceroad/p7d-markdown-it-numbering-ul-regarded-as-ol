@@ -70,9 +70,9 @@
 - ❸ c
 [HTML]
 <ol role="list" class="ol-filled-circled-decimal">
-<li><span class="li-num">❶</span> a</li>
-<li><span class="li-num">❷</span> b</li>
-<li><span class="li-num">❸</span> c</li>
+<li><span class="li-num" aria-hidden="true">❶</span> a</li>
+<li><span class="li-num" aria-hidden="true">❷</span> b</li>
+<li><span class="li-num" aria-hidden="true">❸</span> c</li>
 </ol>
 
 [Markdown]
@@ -91,10 +91,10 @@
 - ③ b
 - ④ c
 [HTML]
-<ol role="list" data-start="2" class="ol-circled-decimal">
-<li><span class="li-num">②</span> a</li>
-<li><span class="li-num">③</span> b</li>
-<li><span class="li-num">④</span> c</li>
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> a</li>
+<li><span class="li-num" aria-hidden="true">③</span> b</li>
+<li><span class="li-num" aria-hidden="true">④</span> c</li>
 </ol>
 
 [Markdown]
@@ -167,16 +167,16 @@
     - ④ 項目❹-④
 - ❺ 項目❺
 [HTML]
-<ol role="list" data-start="3" class="ol-filled-circled-decimal">
-<li><span class="li-num">❸</span> 項目❸</li>
-<li><span class="li-num">❹</span> 項目❹
-<ol role="list" data-start="2" class="ol-circled-decimal">
-<li><span class="li-num">②</span> 項目❹-②</li>
-<li><span class="li-num">③</span> 項目❹-③</li>
-<li><span class="li-num">④</span> 項目❹-④</li>
+<ol role="list" start="3" class="ol-filled-circled-decimal">
+<li><span class="li-num" aria-hidden="true">❸</span> 項目❸</li>
+<li><span class="li-num" aria-hidden="true">❹</span> 項目❹
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> 項目❹-②</li>
+<li><span class="li-num" aria-hidden="true">③</span> 項目❹-③</li>
+<li><span class="li-num" aria-hidden="true">④</span> 項目❹-④</li>
 </ol>
 </li>
-<li><span class="li-num">❺</span> 項目❺</li>
+<li><span class="li-num" aria-hidden="true">❺</span> 項目❺</li>
 </ol>
 
 [Markdown]
@@ -408,18 +408,18 @@
     - c. nested latin
 - ❽ circled eight
 [HTML]
-<ol role="list" data-start="5" class="ol-filled-circled-decimal">
+<ol role="list" start="5" class="ol-filled-circled-decimal">
 <li>
-<p><span class="li-num">❺</span> circled five start</p>
+<p><span class="li-num" aria-hidden="true">❺</span> circled five start</p>
 <p>Complex content paragraph</p>
 <pre><code>code block
 </code></pre>
 </li>
 <li>
-<p><span class="li-num">❻</span> circled six</p>
+<p><span class="li-num" aria-hidden="true">❻</span> circled six</p>
 </li>
 <li>
-<p><span class="li-num">❼</span> circled seven with nested list</p>
+<p><span class="li-num" aria-hidden="true">❼</span> circled seven with nested list</p>
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>nested latin</li>
 <li>nested latin</li>
@@ -427,7 +427,7 @@
 </ol>
 </li>
 <li>
-<p><span class="li-num">❽</span> circled eight</p>
+<p><span class="li-num" aria-hidden="true">❽</span> circled eight</p>
 </li>
 </ol>
 
@@ -605,13 +605,13 @@ in the list item</p>
 <li>Level 2 - Roman numerals
 <ol role="list" class="ol-lower-greek" data-marker-suffix=".">
 <li>
-<p><span class="li-num">α</span> Level 3 - Greek letters with content</p>
+<p><span class="li-num" aria-hidden="true">α</span> Level 3 - Greek letters with content</p>
 <p>Some content here.</p>
 <pre><code>code block
 </code></pre>
 </li>
 <li>
-<p><span class="li-num">β</span> Level 3 - Beta item</p>
+<p><span class="li-num" aria-hidden="true">β</span> Level 3 - Beta item</p>
 </li>
 </ol>
 </li>
@@ -661,7 +661,7 @@ in the list item</p>
 [HTML]
 <ol role="list" class="ol-filled-circled-decimal">
 <li>
-<p><span class="li-num">❶</span> Level 1 - Circled numbers with mixed content</p>
+<p><span class="li-num" aria-hidden="true">❶</span> Level 1 - Circled numbers with mixed content</p>
 <p>Multiple paragraphs in the main item.</p>
 <p>Another paragraph here.</p>
 <ul>
@@ -669,11 +669,11 @@ in the list item</p>
 <p>ⓁELevel 2 - Circled letters</p>
 <ol role="list" class="ol-circled-decimal">
 <li>
-<p><span class="li-num">①</span> Level 3 - Mixed symbols</p>
+<p><span class="li-num" aria-hidden="true">①</span> Level 3 - Mixed symbols</p>
 <p>Content in level 3.</p>
 </li>
 <li>
-<p><span class="li-num">②</span> Level 3 - Second mixed symbol</p>
+<p><span class="li-num" aria-hidden="true">②</span> Level 3 - Second mixed symbol</p>
 </li>
 </ol>
 </li>
@@ -699,7 +699,7 @@ in the list item</p>
 </ul>
 </li>
 <li>
-<p><span class="li-num">❷</span> Level 1 - Second main circled</p>
+<p><span class="li-num" aria-hidden="true">❷</span> Level 1 - Second main circled</p>
 <blockquote>
 <p>Quote with nested content
 spanning multiple lines</p>
@@ -716,7 +716,7 @@ spanning multiple lines</p>
 </ol>
 </li>
 <li>
-<p><span class="li-num">❸</span> Level 1 - Final circled item</p>
+<p><span class="li-num" aria-hidden="true">❸</span> Level 1 - Final circled item</p>
 </li>
 </ol>
 
@@ -837,7 +837,7 @@ def example():
 <li>Level 2 - Roman numerals uppercase
 <ol role="list" class="ol-lower-greek" data-marker-suffix=")">
 <li>
-<p><span class="li-num">α</span> Level 3 - Greek with parentheses</p>
+<p><span class="li-num" aria-hidden="true">α</span> Level 3 - Greek with parentheses</p>
 <p>Final nested content.</p>
 <p><strong>Bold text</strong> and <em>italic text</em> and <code>code</code>.</p>
 </li>
