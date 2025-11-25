@@ -297,6 +297,7 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
         
         markers.push({
           number: itemNumber,
+          originalNumber: itemNumber,
           prefix: '',
           suffix: markup,
           type: 'decimal'  // Default (can be extended to detect from markup)
@@ -329,6 +330,7 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
           // Use sequential numbers when same marker continues
           // (e.g., "イ. イ. イ." → interpreted as "イ、ロ、ハ")
           const adjustedMarkerInfo = { ...markerInfo }
+          adjustedMarkerInfo.originalNumber = markerInfo.number
           
           // Assign sequential numbers based on first marker's number
           if (markers.length === 0) {
@@ -361,12 +363,22 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
   
   const firstType = markers[0].type
   const allSameType = markers.every(m => m.type === firstType)
+  const literalNumbers = markers.map(m => (typeof m.originalNumber === 'number' ? m.originalNumber : undefined))
+  const hasLiteralNumbers = literalNumbers.length === markers.length && literalNumbers.every(n => typeof n === 'number')
+  let allNumbersIdentical = false
+  if (hasLiteralNumbers) {
+    const firstLiteral = literalNumbers[0]
+    if (literalNumbers.every(n => n === firstLiteral) && firstLiteral === 1) {
+      allNumbersIdentical = true
+    }
+  }
   
   return {
     markers,
     type: firstType,
     isConsistent: allSameType,
-    count: markers.length
+    count: markers.length,
+    allNumbersIdentical
   }
 }
 

@@ -43,11 +43,11 @@
     - ホ. Second level 2
 - ニ. Second root
 [HTML]
-<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." start="2">
-<li><span class="li-num" aria-hidden="true">イ</span> Level 1
-<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix="." start="3">
-<li><span class="li-num" aria-hidden="true">ロ</span> Level 2
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
+<li><span class="li-num" aria-hidden="true">イ</span> Level 1
+<ol role="list" style="list-style: none;" start="2" class="ol-katakana-iroha" data-marker-suffix=".">
+<li><span class="li-num" aria-hidden="true">ロ</span> Level 2
+<ol role="list" style="list-style: none;" start="3" class="ol-katakana-iroha" data-marker-suffix=".">
 <li><span class="li-num" aria-hidden="true">ハ</span> Level 3</li>
 </ol>
 </li>
@@ -64,9 +64,9 @@
 [HTML]
 <ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
 <li><span class="li-num" aria-hidden="true">イ</span> Custom parent
-<ol type="1" class="ol-decimal" data-marker-suffix="." start="2">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Decimal child
-<ol role="list" style="list-style: none;" class="ol-katakana-iroha" data-marker-suffix=".">
+<ol role="list" style="list-style: none;" start="2" class="ol-katakana-iroha" data-marker-suffix=".">
 <li><span class="li-num" aria-hidden="true">ロ</span> Custom grandchild</li>
 </ol>
 </li>

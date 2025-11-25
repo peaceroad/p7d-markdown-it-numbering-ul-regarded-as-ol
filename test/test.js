@@ -33,7 +33,8 @@ const testConfigs = [
     'examples-default-7nested-level-loose-tight-edge-cases.txt',
     'examples-default-11fullwidth-joint.txt',
     'examples-default-12space-handling.txt',
-    'examples-default-13-class-attributes.txt'
+    'examples-default-13-class-attributes.txt',
+    'examples-default-14-repeated-numbers.txt'
   ]),
   // Integration: numbered lists with attrs (attrs loaded first)
   {

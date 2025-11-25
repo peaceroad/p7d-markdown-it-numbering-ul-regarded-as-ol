@@ -1,0 +1,307 @@
+[Markdown]
+- 1. First bullet item
+- 1. Second bullet item
+- 1. Third bullet item
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First bullet item</li>
+<li>Second bullet item</li>
+<li>Third bullet item</li>
+</ol>
+
+[Markdown]
+- 1. First bullet item
+- 1. Second bullet item
+- 2. Third bullet item
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First bullet item</li>
+<li value="1">Second bullet item</li>
+<li>Third bullet item</li>
+</ol>
+
+[Markdown]
+- 2. First bullet item
+- 2. Second bullet item
+- 2. Third bullet item
+
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>First bullet item</li>
+<li value="2">Second bullet item</li>
+<li value="2">Third bullet item</li>
+</ol>
+
+[Markdown]
+1. First ordered item
+1. Second ordered item
+1. Third ordered item
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First ordered item</li>
+<li>Second ordered item</li>
+<li>Third ordered item</li>
+</ol>
+
+[Markdown]
+1. First ordered item
+1. Second ordered item
+2. Third ordered item
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First ordered item</li>
+<li value="1">Second ordered item</li>
+<li>Third ordered item</li>
+</ol>
+
+[Markdown]
+0. First literal item
+0. Second literal item
+0. Third literal item
+
+[HTML]
+<ol type="1" start="0" class="ol-decimal" data-marker-suffix=".">
+<li>First literal item</li>
+<li value="0">Second literal item</li>
+<li value="0">Third literal item</li>
+</ol>
+
+[Markdown]
+2. First literal item
+2. Second literal item
+2. Third literal item
+
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>First literal item</li>
+<li value="2">Second literal item</li>
+<li value="2">Third literal item</li>
+</ol>
+
+[Markdown]
+- i. First literal item
+- i. Second literal item
+- i. Third literal item
+
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>First literal item</li>
+<li>Second literal item</li>
+<li>Third literal item</li>
+</ol>
+
+[Markdown]
+- i. First literal item
+- ii. Second literal item
+- i. Third literal item
+
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>First literal item</li>
+<li>Second literal item</li>
+<li value="1">Third literal item</li>
+</ol>
+
+[Markdown]
+- 1. Parent start
+    - 2. Child starts at two
+    - 2. Child stays two
+- 1. Parent continue
+    - 3. Child jumps to three
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent start
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child starts at two</li>
+<li value="2">Child stays two</li>
+</ol>
+</li>
+<li>Parent continue
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>Child jumps to three</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- i. Parent roman
+    - i. Child roman repeated
+    - i. Child roman repeated 2
+- i. Parent roman again
+    - ii. Child roman jumps
+
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Parent roman
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Child roman repeated</li>
+<li>Child roman repeated 2</li>
+</ol>
+</li>
+<li>Parent roman again
+<ol type="i" start="2" class="ol-lower-roman" data-marker-suffix=".">
+<li>Child roman jumps</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent A
+    - 1. Child A1
+    - 1. Child A2
+- 1. Parent B
+    - 1. Child B1
+    - 1. Child B2
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li>Parent B
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li>Child B2</li>
+</ol>
+</li>
+</ol>
+
+
+[Markdown]
+2. Parent A
+    - 1. Child A1
+    - 1. Child A2
+1. Parent B
+    - 2. Child B1
+    - 1. Child B2
+
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li value="1">Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent A
+    - 1. Child A1
+    - 1. Child A2
+- 1. Parent B
+    2. Child B1
+    1. Child B2
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li>Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent B
+    2. Child B1
+    1. Child B2
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
+
+[Markdown]
+- a) Parent B
+    2. Child B1
+    1. Child B2
+[HTML]
+<ol type="a" class="ol-decimal" data-marker-suffix=")">
+<li>Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1) Parent B
+    2. Child B1
+    1. Child B2
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
+<li>Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+-i) Parent B
+    - a. Child B1
+    - b. Child B2
+        1. Grandchild B2-1
+        1. Grandchild B2-2
+[HTML]
+<ol type="i" class="ol-decimal" data-marker-suffix=")">
+<li>Parent B
+<ol type="a" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li>Child B2
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Grandchild B2-1</li>
+<li>Grandchild B2-2</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. First
+    3. Second
+        5. Third
+        6. Third
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>Second
+<ol type="1" start="5" class="ol-decimal" data-marker-suffix=".">
+<li>Third</li>
+<li>Third</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>

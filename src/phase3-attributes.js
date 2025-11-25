@@ -119,9 +119,22 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
   }
   
   // 2. Add start attribute when numbering doesn't begin at 1
-  const firstNumber = markerInfo.markers[0]?.number
+  let startOverride = token._startOverride
+  if (startOverride !== undefined && startOverride !== null) {
+    const parsed = typeof startOverride === 'number' ? startOverride : parseInt(startOverride, 10)
+    startOverride = Number.isNaN(parsed) ? undefined : parsed
+  } else {
+    startOverride = undefined
+  }
+  const firstNumber = startOverride ?? (markerInfo.markers[0]?.originalNumber ?? markerInfo.markers[0]?.number)
   if (firstNumber !== undefined && firstNumber !== 1) {
     addAttr(token, 'start', String(firstNumber))
+  } else if (token.attrs) {
+    const startIdx = token.attrs.findIndex(attr => attr[0] === 'start')
+    if (startIdx >= 0) {
+      token.attrs.splice(startIdx, 1)
+      if (token.attrs.length === 0) token.attrs = null
+    }
   }
   
   // 3. Add class attribute
@@ -164,6 +177,9 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
  */
 function addListItemValues(tokens, listOpenIndex, markerInfo) {
   if (!markerInfo || !markerInfo.markers) {
+    return
+  }
+  if (markerInfo.allNumbersIdentical) {
     return
   }
   

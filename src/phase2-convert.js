@@ -10,6 +10,7 @@ import { findMatchingClose } from './list-helpers.js'
  * @param {Object} opt - Options
  */
 export function convertLists(tokens, listInfos, opt) {
+  const listInfoMap = buildListInfoMap(listInfos)
   // Convert bullet_list to ordered_list
   // listInfos already collected in depth-first order in Phase 1, no sorting needed
   for (const listInfo of listInfos) {
@@ -23,7 +24,7 @@ export function convertLists(tokens, listInfos, opt) {
   if (!opt.unremoveUlNest) {
     const bulletListInfos = listInfos.filter(info => info.originalType === 'bullet_list_open')
     if (bulletListInfos.length > 0) {
-      simplifyNestedBulletLists(tokens, bulletListInfos, opt)
+      simplifyNestedBulletLists(tokens, bulletListInfos, opt, listInfoMap)
     }
   }
 }
@@ -209,6 +210,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             const afterContent = itemCloseIdx - (innerListCloseIdx + 1)  // Token count from after ol to list_item_close
             const hasExtraContent = beforeContent > 0 || afterContent > 0
             
+            const innerListInfo = listInfoMap?.get(innerListOpen)
             itemIndices.push({
               outerItemOpen: idx,
               outerItemClose: itemCloseIdx,
@@ -217,7 +219,8 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
               innerListType: innerListType,
               hasExtraContent: hasExtraContent,
               extraContentStart: innerListCloseIdx + 1,
-              extraContentEnd: itemCloseIdx
+              extraContentEnd: itemCloseIdx,
+              innerListInfo
             })
           }
           
@@ -280,6 +283,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                   type: 'decimal',
                   marker: number + suffix,
                   number: number,
+                  originalNumber: number,
                   prefix: '',
                   suffix: suffix
                 })
@@ -299,6 +303,12 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
         
         // Add first inner list open token and save merged marker info
         const firstListToken = tokens[itemIndices[0].innerListOpen]
+        if (firstListToken.attrs) {
+          const startAttr = firstListToken.attrs.find(attr => attr[0] === 'start')
+          if (startAttr) {
+            firstListToken._startOverride = startAttr[1]
+          }
+        }
         
         // If outer ul is convertible, convert inner list to ordered_list
         // (Don't limit to bullet_list as inner list might already be ordered_list)
@@ -316,11 +326,38 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
         // Merge and save marker info
         if (allMarkers.length > 0) {
           const firstMarkerType = allMarkers[0]?.type
+          const literalNumbers = allMarkers.map(m => (typeof m.originalNumber === 'number' ? m.originalNumber : undefined))
+          const hasLiteralNumbers = literalNumbers.length === allMarkers.length &&
+            literalNumbers.every(n => typeof n === 'number')
+          let allNumbersIdentical = false
+          if (hasLiteralNumbers) {
+            const firstLiteral = literalNumbers[0]
+            if (literalNumbers.every(n => n === firstLiteral) && firstLiteral === 1) {
+              allNumbersIdentical = true
+            }
+          }
           firstListToken._markerInfo = {
             markers: allMarkers,
             type: firstMarkerType,
             isConsistent: allMarkers.every(m => m.type === firstMarkerType),
-            count: allMarkers.length
+            count: allMarkers.length,
+            allNumbersIdentical
+          }
+          const firstNumber = allMarkers[0]?.originalNumber ?? allMarkers[0]?.number
+          if (typeof firstNumber === 'number' && firstNumber !== 1) {
+            if (!firstListToken.attrs) firstListToken.attrs = []
+            const startIndex = firstListToken.attrs.findIndex(attr => attr[0] === 'start')
+            if (startIndex >= 0) {
+              firstListToken.attrs[startIndex][1] = String(firstNumber)
+            } else {
+              firstListToken.attrs.push(['start', String(firstNumber)])
+            }
+          } else if (firstListToken.attrs) {
+            const idx = firstListToken.attrs.findIndex(attr => attr[0] === 'start')
+            if (idx >= 0) {
+              firstListToken.attrs.splice(idx, 1)
+              if (firstListToken.attrs.length === 0) firstListToken.attrs = null
+            }
           }
         }
         
@@ -501,19 +538,14 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             }
           }
           
-          // Process list_items in this inner list (ordered_list)
-          // Inner list usually contains only one list_item (ul>li>ol>li structure)
-          let innerListItemOpen = -1
-          let innerListItemClose = -1
-          
-          for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-            if (tokens[j].type === 'list_item_open' && 
-                tokens[j].level === tokens[item.innerListOpen].level + 1) {
-              innerListItemOpen = j
-              innerListItemClose = findMatchingClose(tokens, j, 'list_item_open', 'list_item_close')
-              break
-            }
+          const listItemRanges = collectListItemRanges(tokens, item.innerListOpen, item.innerListClose)
+          if (listItemRanges.length === 0) {
+            continue
           }
+          const parentRange = listItemRanges[0]
+          const childRanges = listItemRanges.slice(1)
+          const innerListItemOpen = parentRange.open
+          const innerListItemClose = parentRange.close
           
           if (innerListItemOpen !== -1 && innerListItemClose !== -1) {
             // Add list_item_open (use original token to preserve info)
@@ -660,6 +692,26 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
               }
             }
             
+            if (childRanges.length > 0) {
+              const parentLevel = tokens[innerListItemOpen].level || 0
+              const targetNestedLevel = parentLevel + 1
+              const originalListLevel = tokens[item.innerListOpen].level || 0
+              const levelShift = targetNestedLevel - originalListLevel
+              const markerStartIndex = childRanges[0].markerIndex
+              const nestedTokens = buildNestedListTokens(
+                tokens,
+                childRanges,
+                item.innerListOpen,
+                item.innerListClose,
+                levelShift,
+                markerStartIndex,
+                item.innerListInfo
+              )
+              for (const nestedToken of nestedTokens) {
+                newTokens.push(nestedToken)
+              }
+            }
+            
             // Add list_item_close
             newTokens.push(tokens[innerListItemClose])
           }
@@ -741,4 +793,135 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       }
     }
   }
+}
+
+function buildListInfoMap(listInfos) {
+  const map = new Map()
+  if (!Array.isArray(listInfos)) {
+    return map
+  }
+  for (const info of listInfos) {
+    if (info && typeof info.startIndex === 'number') {
+      map.set(info.startIndex, info)
+    }
+  }
+  return map
+}
+
+function collectListItemRanges(tokens, listOpenIdx, listCloseIdx) {
+  const ranges = []
+  if (listOpenIdx === -1 || listCloseIdx === -1 || listCloseIdx <= listOpenIdx) {
+    return ranges
+  }
+  const baseLevel = tokens[listOpenIdx]?.level ?? 0
+  let markerIndex = 0
+  for (let i = listOpenIdx + 1; i < listCloseIdx; i++) {
+    const token = tokens[i]
+    if (token.type === 'list_item_open' && token.level === baseLevel + 1) {
+      const closeIdx = findMatchingClose(tokens, i, 'list_item_open', 'list_item_close')
+      if (closeIdx === -1) {
+        break
+      }
+      ranges.push({ open: i, close: closeIdx, markerIndex })
+      markerIndex++
+      i = closeIdx
+    }
+  }
+  return ranges
+}
+
+function buildNestedListTokens(tokens, childRanges, innerListOpenIdx, innerListCloseIdx, levelShift, markerStartIndex, innerListInfo) {
+  if (!Array.isArray(childRanges) || childRanges.length === 0) {
+    return []
+  }
+  const nestedTokens = []
+  const nestedOpen = cloneToken(tokens[innerListOpenIdx], { levelShift })
+  const markerInfoSlice = createMarkerInfoSlice(innerListInfo?.markerInfo, markerStartIndex)
+  if (markerInfoSlice) {
+    nestedOpen._markerInfo = markerInfoSlice
+    const firstMarker = markerInfoSlice.markers?.[0]
+    const firstNumber = firstMarker ? (firstMarker.originalNumber ?? firstMarker.number) : undefined
+    if (typeof firstNumber === 'number') {
+      nestedOpen._startOverride = firstNumber
+    }
+  }
+  nestedTokens.push(nestedOpen)
+  for (const range of childRanges) {
+    for (let i = range.open; i <= range.close; i++) {
+      nestedTokens.push(cloneToken(tokens[i], { levelShift, deep: true }))
+    }
+  }
+  const nestedClose = cloneToken(tokens[innerListCloseIdx], { levelShift })
+  nestedTokens.push(nestedClose)
+  return nestedTokens
+}
+
+function cloneToken(token, options = {}) {
+  const { levelShift = 0, deep = false } = options
+  const TokenClass = token.constructor
+  const cloned = new TokenClass(token.type, token.tag, token.nesting)
+  cloned.attrs = token.attrs ? token.attrs.map(([name, value]) => [name, value]) : null
+  cloned.map = token.map ? [...token.map] : null
+  cloned.level = (token.level || 0) + levelShift
+  cloned.content = token.content
+  cloned.markup = token.markup
+  cloned.info = token.info
+  cloned.meta = token.meta ? { ...token.meta } : null
+  cloned.block = token.block
+  cloned.hidden = token.hidden
+  if (Array.isArray(token.children)) {
+    cloned.children = token.children.length > 0
+      ? token.children.map(child => cloneToken(child, { levelShift, deep: true }))
+      : []
+  } else {
+    cloned.children = token.children ?? null
+  }
+  if (token._markerInfo) {
+    cloned._markerInfo = cloneMarkerInfo(token._markerInfo)
+  }
+  if (token._convertedFromBullet) {
+    cloned._convertedFromBullet = token._convertedFromBullet
+  }
+  if (token._parentIsLoose) {
+    cloned._parentIsLoose = token._parentIsLoose
+  }
+  if (token._startOverride !== undefined) {
+    cloned._startOverride = token._startOverride
+  }
+  return cloned
+}
+
+function cloneMarkerInfo(markerInfo) {
+  if (!markerInfo) {
+    return null
+  }
+  const cloned = { ...markerInfo }
+  cloned.markers = Array.isArray(markerInfo.markers)
+    ? markerInfo.markers.map(marker => ({ ...marker }))
+    : null
+  return cloned
+}
+
+function createMarkerInfoSlice(markerInfo, startIndex) {
+  if (!markerInfo || !Array.isArray(markerInfo.markers)) {
+    return null
+  }
+  const markers = markerInfo.markers.slice(startIndex)
+  if (markers.length === 0) {
+    return null
+  }
+  const clonedMarkers = markers.map(marker => ({ ...marker }))
+  const literalNumbers = clonedMarkers.map(m => (typeof m.originalNumber === 'number' ? m.originalNumber : m.number))
+  let allNumbersIdentical = false
+  if (literalNumbers.length === clonedMarkers.length && literalNumbers.every(n => typeof n === 'number')) {
+    const firstNumber = literalNumbers[0]
+    if (literalNumbers.every(n => n === firstNumber) && firstNumber === 1) {
+      allNumbersIdentical = true
+    }
+  }
+  const slicedInfo = { ...markerInfo }
+  slicedInfo.markers = clonedMarkers
+  slicedInfo.count = clonedMarkers.length
+  slicedInfo.allNumbersIdentical = allNumbersIdentical
+  return slicedInfo
 }

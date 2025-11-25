@@ -99,7 +99,7 @@ export function moveNestedListAttributes(tokens) {
       const [key, value] = childToken.attrs[j]
       
       // Exclude plugin-generated attributes
-      if (key === 'type' || key === 'role' || key === 'style' || key.startsWith('data-marker-')) {
+      if (key === 'type' || key === 'role' || key === 'style' || key === 'start' || key.startsWith('data-marker-')) {
         remainingAttrs.push([key, value])
         continue
       }
