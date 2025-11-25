@@ -1,41 +1,22 @@
-# markdown-it-numbering-ul-regarded-as-ol
+# p7d-markdown-it-numbering-ul-regarded-as-ol
 
-Note. I'll tidy it up a bit later.
+Markdown's default ordered list markers are limited. This plugin extends Markdown's unordered lists so they can use many kinds of ordered markers.
 
-A markdown-it plugin that detects numbering markers inside unordered list items (for example `- 1.`, `- a)`, `- IV.`) and converts those lists into real, semantic ordered lists (`<ol>`).
+Also, this plugin option provides a description-list conversion. Unordered list items whose first line is wrapped in `**` and followed by two spaces are converted into `<dl>` elements.
 
-This plugin is useful when content uses bullet syntax with explicit markers and you want clean HTML ordered lists with correct numbering, attributes and styling hooks.
+## Ordered lists conversion behavior
 
-## Why this plugin?
+This plugin detects unordered lists that use number-like markers (for example `- a.`, `- ①`) and converts them into appropriate ordered lists (`<ol>`). During conversion the plugin also attaches informative attributes to the generated elements.
 
-- Converts bullet lists that contain manual markers into true ordered lists so the output is semantic and accessible.
-- Supports many marker systems (decimal, roman, latin, circled numbers, katakana, iroha, and more) via `listTypes.json`.
-- Preserves nesting, handles tight/loose lists, and supports optional behaviors (like preserving original `ul>li>ol` nesting).
+Code. Conversion of a lowercase Roman numeral list.
 
-
-## Core behavior
-
-- Detects markers such as `1.`, `a)`, `IV.`, `①`, `イ.`, `一.` and converts a `bullet_list` into an `ordered_list` when appropriate.
-- For standard HTML-compatible markers (decimal, latin, roman), the plugin sets the `type` attribute on `<ol>`.
-- For custom marker systems, the plugin emits `role="list"`, CSS-ready class names (like `ol-circled-decimal`) and `data-*` attributes.
-- Handles flattened patterns (e.g. `- 1.`) by converting `ul > li > ol` into a single `ol` if it makes sense, while providing an option to preserve the original nesting.
-
-
-## Numbered List Examples
-
-### Ordered list with type attribute
-
-lowercase roman
-
-```markdown
+```
+[Markdown]
 - i. Roman lowercase
 - ii. Second item
 - iii. Third item
-```
 
-Output:
-
-```html
+[HTML]
 <ol type="i" class="ol-lower-roman" data-marker-suffix=".">
 <li>Roman lowercase</li>
 <li>Second item</li>
@@ -43,17 +24,102 @@ Output:
 </ol>
 ```
 
-Uppercase Latin
+### Supported Marker Types
 
-```markdown
+The plugin supports the following marker types.
+
+- **HTML Standard Markers (with `type` attribute)**
+    - decimal: `1`, `2`, `3`, pattern: common
+    - lower-latin: `a`, `b`, `c`, pattern: common
+    - upper-latin: `A`, `B`, `C`, pattern: common
+    - lower-roman: `i`, `ii`, `iii`, pattern: common
+    - upper-roman: `I`, `II`, `III`, pattern: common
+- **Custom Markers (with `role="list"`)**
+    - circled-decimal: `①`, `②`, `③`, pattern: enclosed
+    - filled-circled-decimal: `❶`, `❷`, `❸`, pattern: enclosed
+    - circled-lower-latin: `ⓐ`, `ⓑ`, `ⓒ`, pattern: enclosed
+    - circled-upper-latin: `Ⓐ`, `Ⓑ`, `Ⓒ`, pattern: enclosed
+    - filled-circled-upper-latin: `🅐`, `🅑`, `🅒`, pattern: enclosed
+    - squared-decimal: `1⃣`, `2⃣`, `3⃣`, pattern: enclosed
+    - squared-upper-latin: `🄰`, `🄱`, `🄲`, pattern: enclosed
+    - filled-squared-upper-latin: `🅰`, `🅱`, `🅲`, pattern: enclosed
+    - fullwidth-lower-roman: `ⅰ`, `ⅱ`, `ⅲ`, pattern: fullwidth
+    - fullwidth-upper-roman: `Ⅰ`, `Ⅱ`, `Ⅲ`, pattern: fullwidth
+    - japanese-informal: `一`, `二`, `三`, pattern: fullwidth
+    - katakana: `ア`, `イ`, `ウ`, pattern: fullwidth
+    - katakana-iroha: `イ`, `ロ`, `ハ`, pattern: fullwidth
+    - lower-greek: `α`, `β`, `γ`, pattern: common
+
+Marker separators differ depending on the character style used for the ordinal marker: ASCII markers (`- a.`, `- a)`, `(a)`), fullwidth markers (`- 一、`, `- 一．`), or enclosed glyphs (`- ①`, `- ❶`). The `pattern` value for each marker type indicates which separator rules apply:
+
+- `common`: examples include `a.`, `a)`, `(a)`;
+- `fullwidth`: includes fullwidth separators such as `イ．`, `イ）`, `（イ）`;
+- `enclosed`: enclosed glyphs like `①` which do not use `.` or `)` as separators.
+
+After the marker separator, an ASCII space is normally expected. For `fullwidth` and `enclosed` patterns a fullwidth space is accepted in place of the ASCII space; enclosed markers may also appear without a following space. See `listTypes.json` for the canonical marker definitions.
+
+### Attributes and markers
+
+- The generated `<ol>` receives a `class` of the form `ol-<marker-name>`. For example, a `- a.` marker results in `class="ol-lower-latin"` on the `<ol>`.
+- Standard HTML markers (decimal, latin, roman) produce an `<ol>` with a `type` attribute (for example `type="1"`, `type="a"`, `type="i"`). Custom markers (circled numbers, Katakana, Kanji, etc.) do not set a `type` attribute by default; instead the plugin emits `role="list"` on the `<ol>`.
+- When the starting number is not `1`, the plugin adds a native `start` attribute to the `<ol>` for both standard and custom markers.
+- When a marker separator is present, the plugin adds `data-marker-prefix` and/or `data-marker-suffix` attributes with the matched strings. These attributes are omitted if there is no prefix/suffix (or if the suffix is visually only whitespace). For example, `- a.` results in `data-marker-suffix="."`.
+- For custom markers the plugin inserts the visible marker text inside a `span` with the configured `markerSpanClass` (default: `li-num`). Example: `- ①` becomes `<li><span class="li-num" aria-hidden="true">①</span> A item.</li>`.
+- When individual list item numbers jump, the plugin sets the native `value` attribute on the `li` element for both standard and custom markers.
+
+### Structures
+
+### How the marker type is chosen
+
+The plugin uses the following deterministic selection procedure:
+
+1. Collect all marker strings at the same nesting level and match each marker against the canonical definitions to produce candidate types. When appropriate, also detect whether the sequence appears to be a numeric enumeration.
+2. For each candidate type evaluate how many items it would match and whether the numbering appears continuous (so that native `start`/`value` attributes would be correct). Prefer the type that explains the most items while preserving numeric continuity. If a type matches every item, select it.
+3. If candidates remain tied or ambiguous, fall back to the order specified in `listTypes.json`.
+- Flattening: A pattern like `- 1.` is represented by the default `ul > li > ol` nesting structure in markdown-it, but this plugin simplifies it to a single `ol` by default to match the representation of other markers.
+
+Note: For custom marker lists (those rendered with `role="list"`) the plugin assumes you will hide the native marker via CSS (for example `ol[role="list"] { list-style: none; }`). The `hasListStyleNone` option can be enabled to add `style="list-style: none;"` directly to generated `<ol>` elements.
+
+### Behavior customization
+
+You can customize the conversion using options.
+
+- `unremoveUlNest` (boolean) — If `true`, preserve the original `ul > li > ol` nesting instead of flattening into `ol > li`.
+- `alwaysMarkerSpan` (boolean) — Wrap markers in a `<span>` (class `markerSpanClass`, default: `li-num`). When markers are rendered as custom markers the plugin emits `role="list"` and does not set a `type` attribute on the `<ol>`.
+- `useCounterStyle` (boolean) — When `true` the plugin suppresses generated marker spans (no `span.li-num`) and prefers native `start`/`value` attributes so you can style lists with CSS `@counter-style`. Note that in this case the marker will not be selectable, as browsers currently do not support CSS `user-select` on markers.
+- `markerSpanClass` (string) — Specify the class name applied to the marker `<span>` (default: `li-num`).
+- `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
+- `descriptionListDivClass` (string) — Class applied to the `<div>` wrappers when `descriptionListWithDiv` is enabled (empty string means no class).
+- `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
+
+## Description lists conversion behavior
+
+When the `descriptionList` option is enabled the plugin converts specially formatted bullet lists into HTML description lists (`<dl>`).
+
+- Each list item must start with a `**Term**` line.
+  - If the Term line is not separated from the description by a blank line, then the Term line must end with two ASCII spaces (a Markdown line-break) or a backslash `\` to indicate the description follows.
+
+In the conversion the `**Term**` line becomes a `<dt>` and the subsequent lines become the corresponding `<dd>`.
+
+Note: Currently the content inside `<dd>` elements is always wrapped in `<p>` elements.
+
+### Description list options
+
+- `descriptionList` (boolean) — Enable conversion of `**Term**` list patterns into `<dl>` description lists.
+- `descriptionListWithDiv` (boolean) — Wrap `<dt>/<dd>` pairs in a `<div>` when enabled.
+- `descriptionListDivClass` (string) — Class applied to the wrapper `<div>` when `descriptionListWithDiv` is enabled (empty string disables the class).
+
+## Examples: Ordered Lists
+
+HTML standard marker conversion (markers that set the `type` attribute). The plugin also accepts `)` as a separator in place of `.`:
+
+```
+[Markdown]
 - A) First
 - B) Second
 - C) Third
-```
 
-Output:
-
-```html
+[HTML]
 <ol type="A" class="ol-upper-latin" data-marker-suffix=")">
 <li>First</li>
 <li>Second</li>
@@ -61,39 +127,46 @@ Output:
 </ol>
 ```
 
-### Custom markers (circled numbers) with no `type` attribute
+Custom marker conversion example:
 
-```markdown
+```
+[Markdown]
 - ① First
 - ② Second
 - ③ Third
+
+[HTML]
+<ol role="list" class="ol-filled-circled-decimal">
+<li><span class="li-num" aria-hidden="true">①</span> First</li>
+<li><span class="li-num" aria-hidden="true">②</span> Second</li>
+<li><span class="li-num" aria-hidden="true">③</span> Third</li>
+</ol>
+<!-- In this case the stylesheet is expected to hide the native marker, e.g. ol[role="list"] { list-style: none; } -->
 ```
 
-Output as follows. Custom markers do not use the `type` attribute, ol element has `role="list"` instead, and markers are wrapped in `<span class="li-num">`.
+Standard numeric markdown is converted as usual:
 
-```html
-<ol role="list" class="ol-filled-circled-decimal">
-<li><span class="li-num">①</span> First</li>
-<li><span class="li-num">②</span> Second</li>
-<li><span class="li-num">③</span> Third</li>
+```
+[Markdown]
+1. First item
+2. Second item
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First item</li>
+<li>Second item</li>
 </ol>
 ```
 
-### Special case: Decimal markers
+For lists written in the `- 1.` style this plugin flattens the default `ul > li > ol` nesting into a single `ol > li` structure to match other conversion patterns:
 
-Defaultly, `-` markers with decimal numbers are converted to `<ol type="1">` lists.
-
-Input:
-
-```markdown
+```
+[Markdown]
 - 1. First item
 - 2. Second item
 - 3. Third item
-```
 
-Output:
-
-```html
+[HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>First item</li>
 <li>Second item</li>
@@ -101,18 +174,33 @@ Output:
 </ol>
 ```
 
-### Nested lists
+Nested lists are supported as well:
 
-```markdown
+```
+[Markdown]
+- ② First item
+    - i. Subitem A
+    - iii. Subitem C
+- ④ Second item
+
+[HTML]
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> First item
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Subitem A</li>
+<li value="3">Subitem C</li>
+</ol>
+</li>
+<li value="4"><span class="li-num" aria-hidden="true">④</span> Second item</li>
+</ol>
+
+[Markdown]
 - 1. Parent item
     - a. Child item A
     - b. Child item B
 - 2. Another parent
-```
 
-Output:
-
-```html
+[HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Parent item
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
@@ -124,47 +212,59 @@ Output:
 </ol>
 ```
 
+The plugin also handles loose lists (lists where items are separated by blank lines):
 
-## How marker types are chosen
+```
+[Markdown]
+- a. First item
 
-- Marker definitions live in `listTypes.json`.
-- The plugin detects the best matching marker system by inspecting markers at the same list level, using pattern checks and contextual heuristics when available.
-- When multiple types match, the plugin prefers the type that best fits the whole list (and falls back to the JSON order when ambiguous).
+- b. Second item
 
-## Developer notes (architecture)
-
-Processing runs in multiple phases to keep logic separated and testable:
-
-- Phase 0 — Description-list detection and conversion (if enabled)
-- Phase 1 — Marker detection and list analysis (builds listInfo metadata)
-- Phase 2 — Convert `bullet_list` tokens into `ordered_list` tokens and flatten nested patterns
-- Phase 3 — Add attributes and `value` normalization
-- Phase 4 — Normalize/remove list-related HTML block indentation
-- Phase 5 — Optionally wrap markers with `<span>` elements for styling
-- Phase 6 — Migrate attributes from nested list items to parent lists (for markdown-it-attrs integration)
-
-The main code is under `src/` and marker systems are defined by `listTypes.json`.
-
-**Note on Phase 6:** When using with [markdown-it-attrs](https://github.com/arve0/markdown-it-attrs), attributes placed after nested lists are automatically moved to the correct parent list element. This phase runs after `curly_attributes` processing to ensure proper attribute placement.
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>
+<p>First item</p>
+</li>
+<li>
+<p>Second item</p>
+</li>
+</ol>
 
 
-## Description Lists
+[Markdown]
+- a. First item first paragraph.
 
-When `descriptionList` option is enabled, the plugin detects `**Term**` patterns in bullet lists and converts them to semantic `<dl>` (description list) HTML.
+    First item second paragraph.
 
-### Basic syntax
+- b. Second item first paragraph.
 
-```markdown
-- **Term 1**
-    Description text for term 1
+    Second item second paragraph.
 
-- **Term 2**  
-  Description text for term 2
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>
+<p>First item first paragraph.</p>
+<p>First item second paragraph.</p>
+</li>
+<li>
+<p>Second item first paragraph.</p>
+<p>Second item second paragraph.</p>
+</li>
+</ol>
 ```
 
-Output:
+## Examples: Description Lists
 
-```html
+When description lists are enabled the plugin can convert the following patterns:
+
+```
+[Markdown]
+- **Term 1**  
+Description text for term 1
+- **Term 2**  
+Description text for term 2
+
+[HTML]
 <dl>
 <dt>Term 1</dt>
 <dd>
@@ -175,217 +275,52 @@ Output:
 <p>Description text for term 2</p>
 </dd>
 </dl>
-```
 
-### Pattern variations
+[Markdown]
+- **Term 1**\
+Description text for term 1
+- **Term 2**\
+Description text for term 2
 
-The plugin recognizes several patterns after `**Term**`:
-
-1. **Two or more spaces** (including newlines): `**Term**  description`
-2. **Colon**: `**Term**: description`
-3. **Backslash**: `**Term**\ description`
-4. **Term only**: `**Term**` (no description)
-5. **With attributes**: `**Term** {.class}` (see markdown-it-attrs integration below)
-
-### Multiple paragraphs
-
-When the term is in its own paragraph:
-
-```markdown
-- **Term 1**
-
-  Description paragraph 1
-  
-  Description paragraph 2
-
-- **Term 2**
-
-  Description paragraph
-```
-
-### Nested lists in descriptions
-
-```markdown
-- **Item with nested list**  
-  Description text:
-    - i. Nested item 1
-    - ii. Nested item 2
-```
-
-Output:
-
-```html
+[HTML]
 <dl>
-<dt>Item with nested list</dt>
-<dd>
-<p>Description text:</p>
-<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
-<li>Nested item 1</li>
-<li>Nested item 2</li>
-</ol>
-</dd>
-</dl>
-```
-
-### `descriptionListWithDiv` option
-
-Wraps each `<dt>`/`<dd>` pair with a `<div>`:
-
-```javascript
-md.use(mdNumberingUl, {
-  descriptionList: true,
-  descriptionListWithDiv: true
-})
-```
-
-Output:
-
-```html
-<dl>
-<div>
-<dt>Term</dt>
-<dd>
-<p>Description</p>
-</dd>
-</div>
-</dl>
-```
-
-### Integration with markdown-it-attrs
-
-The plugin works seamlessly with [markdown-it-attrs](https://github.com/arve0/markdown-it-attrs) to add classes and other attributes using `{.className}` syntax. **Place attributes at the end of the description**:
-
-```markdown
-- **Term 1**
-
-  Description 1
-
-- **Term 2**
-
-  Description 2
-{.custom-dl}
-```
-
-Output:
-
-```html
-<dl class="custom-dl">
 <dt>Term 1</dt>
 <dd>
-<p>Description 1</p>
+<p>Description text for term 1</p>
 </dd>
 <dt>Term 2</dt>
 <dd>
-<p>Description 2</p>
+<p>Description text for term 2</p>
 </dd>
 </dl>
-```
 
-**Plugin loading order:** Load markdown-it-attrs before or after this plugin - both orders work correctly:
+[Markdown]
+- **Term 1**
 
-```javascript
-// Either order works:
-md.use(require('markdown-it-attrs'))
-  .use(mdNumberingUl, { descriptionList: true })
+    Description 1, line 1.
 
-// Or:
-md.use(mdNumberingUl, { descriptionList: true })
-  .use(require('markdown-it-attrs'))
-```
+    Description 1, line 2.
 
-You can also apply attributes to individual `<dt>` or `<dd>` elements:
+- **Term 2**
 
-```markdown
-- **Term** {.term-class}
-    Description {.desc-class}
-```
+    Description 2, line 1.
 
-**Nested list attributes:** When using attributes with nested numbered lists, the plugin automatically moves attributes to the correct parent list:
+    Description 2, line 2.
 
-```markdown
-- 1. Parent item
-    - a. Child A
-    - b. Child B
-{.parent-list}
-```
-
-Output (Phase 6 automatically moves the attribute to the parent `<ol>`):
-
-```html
-<ol type="1" class="ol-decimal parent-list" data-marker-suffix=".">
-<li>Parent item
-<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
-<li>Child A</li>
-<li>Child B</li>
-</ol>
-</li>
-</ol>
-```
-
-### Emphasis and formatting in terms
-
-When used with [@peaceroad/markdown-it-strong-ja](https://github.com/peaceroad/markdown-it-strong-ja) or similar plugins, inline formatting is preserved in terms:
-
-```markdown
-- **API *endpoint* definition**
-    This term contains emphasis
-
-- ***Important* Term**
-    This term has emphasis inside
-```
-
-Output:
-
-```html
+[HTML]
 <dl>
-<dt>API <em>endpoint</em> definition</dt>
+<dt>Term 1</dt>
 <dd>
-<p>This term contains emphasis</p>
+<p>Description 1, line 1.</p>
+<p>Description 1, line 2.</p>
 </dd>
-<dt><em>Important</em> Term</dt>
+<dt>Term 2</dt>
 <dd>
-<p>This term has emphasis inside</p>
+<p>Description 2, line 1.</p>
+<p>Description 2, line 2.</p>
 </dd>
 </dl>
 ```
-
-### Compatibility with other plugins
-
-This plugin works well with:
-
-- **markdown-it-deflist**: Standard definition list syntax (`:` prefix) works alongside `**Term**` syntax
-- **@peaceroad/markdown-it-strong-ja**: `*` for emphasis and `**` for strong in Japanese text
-- **markdown-it-attrs**: Attribute syntax as shown above
-
-
-## Supported Marker Types
-
-See `listTypes.json` for full details. Main marker types:
-
-### HTML Standard Markers (with `type` attribute)
-
-- **decimal**: `1`, `2`, `3`
-- **lower-latin**: `a`, `b`, `c`
-- **upper-latin**: `A`, `B`, `C`
-- **lower-roman**: `i`, `ii`, `iii`
-- **upper-roman**: `I`, `II`, `III`
-
-### Custom Markers (with `role="list"`)
-
-- **circled-decimal**: `①`, `②`, `③` (circled numbers)
-- **filled-circled-decimal**: `❶`, `❷`, `❸` (filled circled numbers)
-- **circled-lower-latin**: `ⓐ`, `ⓑ`, `ⓒ` (circled lowercase)
-- **circled-upper-latin**: `Ⓐ`, `Ⓑ`, `Ⓒ` (circled uppercase)
-- **filled-circled-upper-latin**: `🅐`, `🅑`, `🅒` (filled circled uppercase)
-- **squared-upper-latin**: `🄰`, `🄱`, `🄲` (squared uppercase)
-- **filled-squared-upper-latin**: `🅰`, `🅱`, `🅲` (filled squared uppercase)
-- **fullwidth-lower-roman**: `ⅰ`, `ⅱ`, `ⅲ` (fullwidth lowercase Roman)
-- **fullwidth-upper-roman**: `Ⅰ`, `Ⅱ`, `Ⅲ` (fullwidth uppercase Roman)
-- **japanese-informal**: `一`, `二`, `三` (Japanese Kanji numerals)
-- **katakana**: `ア`, `イ`, `ウ` (Katakana)
-- **katakana-iroha**: `イ`, `ロ`, `ハ` (Katakana Iroha order)
-- **lower-greek**: `α`, `β`, `γ` (lowercase Greek)
-
 
 ## Install
 
@@ -405,15 +340,3 @@ md.use(mditNumberingUl)
 const html = md.render(`- a. First\n- b. Second`)
 console.log(html)
 ```
-
-## Options
-
-The plugin accepts an options object when used. Key options:
-
-- `alwaysMarkerSpan` (boolean) — Wrap markers in a `<span>` (class `li-num`) even when not strictly necessary. Useful for consistent styling.
-- `unremoveUlNest` (boolean) — If `true`, keep the original `ul > li > ol` nesting instead of flattening into `ol > li`.
-- `descriptionList` (boolean) — Enable conversion of special `**Term**` list patterns into `<dl>` description lists.
-- `descriptionListWithDiv` (boolean) — Wrap `<dd>` content in `<div>` when descriptionList is enabled.
-- `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
-- `useCounterStyle` (boolean) — Set `useCounterStyle: true` to suppress marker spans and prefer native `start`/`value` attributes for CSS `@counter-style` usage.
-- `markerSpanClass` (string) — Specify the class name applied to the marker `<span>` (default: `li-num`).
