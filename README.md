@@ -69,13 +69,7 @@ After the marker separator, an ASCII space is normally expected. For `fullwidth`
 
 ### Structures
 
-### How the marker type is chosen
-
-The plugin uses the following deterministic selection procedure:
-
-1. Collect all marker strings at the same nesting level and match each marker against the canonical definitions to produce candidate types. When appropriate, also detect whether the sequence appears to be a numeric enumeration.
-2. For each candidate type evaluate how many items it would match and whether the numbering appears continuous (so that native `start`/`value` attributes would be correct). Prefer the type that explains the most items while preserving numeric continuity. If a type matches every item, select it.
-3. If candidates remain tied or ambiguous, fall back to the order specified in `listTypes.json`.
+- Marker type detection is deterministic: gather all markers at a nesting level, match them against the canonical definitions, keep the type that explains the most items while preserving numeric continuity, and use the order in `listTypes.json` only as a final tiebreaker.
 - Flattening: A pattern like `- 1.` is represented by the default `ul > li > ol` nesting structure in markdown-it, but this plugin simplifies it to a single `ol` by default to match the representation of other markers.
 
 Note: For custom marker lists (those rendered with `role="list"`) the plugin assumes you will hide the native marker via CSS (for example `ol[role="list"] { list-style: none; }`). The `hasListStyleNone` option can be enabled to add `style="list-style: none;"` directly to generated `<ol>` elements.
@@ -89,7 +83,6 @@ You can customize the conversion using options.
 - `useCounterStyle` (boolean) — When `true` the plugin suppresses generated marker spans (no `span.li-num`) and prefers native `start`/`value` attributes so you can style lists with CSS `@counter-style`. Note that in this case the marker will not be selectable, as browsers currently do not support CSS `user-select` on markers.
 - `markerSpanClass` (string) — Specify the class name applied to the marker `<span>` (default: `li-num`).
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
-- `descriptionListDivClass` (string) — Class applied to the `<div>` wrappers when `descriptionListWithDiv` is enabled (empty string means no class).
 - `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
 
 ## Description lists conversion behavior
