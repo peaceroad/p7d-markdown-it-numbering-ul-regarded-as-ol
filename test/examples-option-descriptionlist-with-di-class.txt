@@ -1,0 +1,13 @@
+[Markdown]
+- **Classed title**  
+  Some description
+
+[HTML]
+<dl>
+<div class="di">
+<dt>Classed title</dt>
+<dd>
+<p>Some description</p>
+</dd>
+</div>
+</dl>

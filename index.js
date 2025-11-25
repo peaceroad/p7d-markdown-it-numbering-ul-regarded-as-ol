@@ -10,8 +10,9 @@ import { moveNestedListAttributes } from './src/phase6-attrs-migration.js'
 const mditNumberingUlRegardedAsOl = (md, option) => {
   const opt = {
     // Core options
-    descriptionList: false,
-    descriptionListWithDiv: false,
+    descriptionList: false,       // Convert **Term** patterns to <dl>/<dt>/<dd>
+    descriptionListWithDiv: false,// Wrap description list items in <div> blocks
+    descriptionListDivClass: '',  // Class name applied to generated <div>. For example, `di` (Description Item).
     unremoveUlNest: false,        // true=preserve ul>li>ol nesting, false=flatten to ol>li
     alwaysMarkerSpan: false,      // true=use <span class="li-num">, false=normal numbering
     markerSpanClass: 'li-num',    // class name to use for marker spans (customizable)
@@ -109,7 +110,7 @@ const mditNumberingUlRegardedAsOl = (md, option) => {
     md.renderer.rules.dd_close = () => '</dd>\n'
     
     if (opt.descriptionListWithDiv) {
-      md.renderer.rules.div_open = () => '<div>\n'
+      md.renderer.rules.div_open = (tokens, idx) => `<div${renderAttrs(tokens[idx])}>\n`
       md.renderer.rules.div_close = () => '</div>\n'
     }
   }

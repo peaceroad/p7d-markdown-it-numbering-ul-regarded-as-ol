@@ -372,6 +372,10 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     const divOpen = new tokens[firstPara].constructor('div_open', 'div', 1)
     divOpen.level = parentLevel + 1
     divOpen.block = true
+    const divClass = typeof opt.descriptionListDivClass === 'string' ? opt.descriptionListDivClass : ''
+    if (divClass) {
+      divOpen.attrs = [['class', divClass]]
+    }
     result.push(divOpen)
   }
   

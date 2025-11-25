@@ -69,6 +69,9 @@ const testConfigs = [
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-di.txt'
   ]),
+  createTestConfig('description list with div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 'di' }, [
+    'examples-option-descriptionlist-with-di-class.txt'
+  ]),
   createTestConfig('unremoveUlNest option', { unremoveUlNest: true }, [
     'examples-option-unremoveulnest.txt'
   ]),

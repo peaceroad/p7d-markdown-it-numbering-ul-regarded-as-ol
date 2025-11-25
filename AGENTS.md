@@ -271,6 +271,7 @@ markdown-it-attrsは`{.className}`を`<p>`に付与するため、Phase 0.5で`<
 ```
 
 変換: `<p class="custom-dl">` → `<dl class="custom-dl">`
+descriptionListWithDiv有効時は各dt/ddペアを<div>で包み、descriptionListDivClassに指定したクラス（例: di）がその<div>に付与される。
 
 ### リスト構造の設計
 
