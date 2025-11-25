@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/peaceroad/p7d-markdown-it-numbering-ul-regarded-as-ol#readme",
   "devDependencies": {
-    "@peaceroad/markdown-it-strong-ja": "^0.4.5",
+    "@peaceroad/markdown-it-strong-ja": "^0.5.1",
     "markdown-it": "^14.1.0",
     "markdown-it-attrs": "^4.3.1",
     "markdown-it-deflist": "^3.0.0"

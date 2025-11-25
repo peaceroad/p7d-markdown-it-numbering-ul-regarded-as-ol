@@ -12,13 +12,13 @@ Code. Conversion of a lowercase Roman numeral list.
 
 ```
 [Markdown]
-- i. Roman lowercase
+- i. First item
 - ii. Second item
 - iii. Third item
 
 [HTML]
 <ol type="i" class="ol-lower-roman" data-marker-suffix=".">
-<li>Roman lowercase</li>
+<li>First item</li>
 <li>Second item</li>
 <li>Third item</li>
 </ol>
