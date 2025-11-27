@@ -243,7 +243,7 @@
     2. Child B1
     1. Child B2
 [HTML]
-<ol type="a" class="ol-decimal" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
@@ -257,7 +257,7 @@
     2. Child B1
     1. Child B2
 [HTML]
-<ol type="1" class="ol-decimal" data-marker-suffix=")">
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
@@ -267,15 +267,15 @@
 </ol>
 
 [Markdown]
--i) Parent B
+- i) Parent B
     - a. Child B1
     - b. Child B2
         1. Grandchild B2-1
         1. Grandchild B2-2
 [HTML]
-<ol type="i" class="ol-decimal" data-marker-suffix=")">
+<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
 <li>Parent B
-<ol type="a" class="ol-decimal" data-marker-suffix=".">
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>Child B1</li>
 <li>Child B2
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
