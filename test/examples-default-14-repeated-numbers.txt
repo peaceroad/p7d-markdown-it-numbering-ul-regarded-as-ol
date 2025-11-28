@@ -176,45 +176,11 @@
 
 
 [Markdown]
-2. Parent A
-    - 1. Child A1
-    - 1. Child A2
-1. Parent B
-    - 2. Child B1
-    - 1. Child B2
-
-[HTML]
-<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
-<li>Parent A
-<ol type="1" class="ol-decimal" data-marker-suffix=".">
-<li>Child A1</li>
-<li>Child A2</li>
-</ol>
-</li>
-<li value="1">Parent B
-<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
-<li>Child B1</li>
-<li value="1">Child B2</li>
-</ol>
-</li>
-</ol>
-
-[Markdown]
-- 1. Parent A
-    - 1. Child A1
-    - 1. Child A2
 - 1. Parent B
     2. Child B1
     1. Child B2
-
 [HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
-<li>Parent A
-<ol type="1" class="ol-decimal" data-marker-suffix=".">
-<li>Child A1</li>
-<li>Child A2</li>
-</ol>
-</li>
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
@@ -225,14 +191,14 @@
 
 [Markdown]
 - 1. Parent B
-    2. Child B1
-    1. Child B2
+    1. Child B1
+    2. Child B2
 [HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Parent B
-<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
-<li value="1">Child B2</li>
+<li>Child B2</li>
 </ol>
 </li>
 </ol>
@@ -305,3 +271,76 @@
 </ol>
 </li>
 </ol>
+
+[Markdown]
+- 1. Parent A
+    - 1. Child A1
+    - 1. Child A2
+- 1. Parent B
+    2. Child B1
+    1. Child B2
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li>Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li>Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent A
+    - 1. Child A1
+    - 1. Child A2
+- 3. Parent B
+    2. Child B1
+    1. Child B2
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li value="3">Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li>Child B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+2. Parent A
+    - 1. Child A1
+    - 1. Child A2
+1. Parent B
+    - 2. Child B1
+    - 1. Child B2
+
+[HTML]
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Parent A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child A1</li>
+<li>Child A2</li>
+</ol>
+</li>
+<li value="1">Parent B
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child B1</li>
+<li value="1">Child B2</li>
+</ol>
+</li>
+</ol>
+
