@@ -193,22 +193,36 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           // Find inner list within list_item
           let innerListOpen = -1
           let innerListType = null
+          let innerListCloseIdx = -1
           for (let j = idx + 1; j < itemCloseIdx; j++) {
-                      if (tokens[j].type === 'bullet_list_open' || tokens[j].type === 'ordered_list_open') {
+            if (tokens[j].type === 'bullet_list_open' || tokens[j].type === 'ordered_list_open') {
+              const candidateType = tokens[j].type
+              const candidateClose = findMatchingClose(tokens, j, candidateType, candidateType.replace('_open', '_close'))
+              if (tokens[j]._literalList) {
+                if (candidateClose === -1) {
+                  break
+                }
+                j = candidateClose
+                continue
+              }
               innerListOpen = j
-              innerListType = tokens[j].type
-                          break
+              innerListType = candidateType
+              innerListCloseIdx = candidateClose
+              break
             }
           }
           
           if (innerListOpen !== -1) {
             const innerListCloseType = innerListType === 'bullet_list_open' ? 'bullet_list_close' : 'ordered_list_close'
-            const innerListCloseIdx = findMatchingClose(tokens, innerListOpen, innerListType, innerListCloseType)
+            if (innerListCloseIdx === -1) {
+              innerListCloseIdx = findMatchingClose(tokens, innerListOpen, innerListType, innerListCloseType)
+            }
             
             // Check if there's extra content before/after ol (whether it's only ol)
             const beforeContent = innerListOpen - (idx + 1)  // Token count from after list_item_open to ol
             const afterContent = itemCloseIdx - (innerListCloseIdx + 1)  // Token count from after ol to list_item_close
             const hasExtraContent = beforeContent > 0 || afterContent > 0
+            const literalNumber = extractFirstListItemNumber(tokens, innerListOpen, innerListCloseIdx)
             
             const innerListInfo = listInfoMap?.get(innerListOpen)
             itemIndices.push({
@@ -220,7 +234,8 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
               hasExtraContent: hasExtraContent,
               extraContentStart: innerListCloseIdx + 1,
               extraContentEnd: itemCloseIdx,
-              innerListInfo
+              innerListInfo,
+              literalNumber
             })
           }
           
@@ -262,6 +277,10 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           const innerListToken = tokens[item.innerListOpen]
           
           // If went through Phase2 convertBulletToOrdered
+          if (innerListToken._literalList) {
+            continue
+          }
+
           if (innerListToken._markerInfo && innerListToken._markerInfo.markers) {
             allMarkers.push(...innerListToken._markerInfo.markers)
           } 
@@ -325,6 +344,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
         
         // Merge and save marker info
         if (allMarkers.length > 0) {
+          normalizeParentMarkers(allMarkers, itemIndices)
           const firstMarkerType = allMarkers[0]?.type
           const literalNumbers = allMarkers.map(m => (typeof m.originalNumber === 'number' ? m.originalNumber : undefined))
           const hasLiteralNumbers = literalNumbers.length === allMarkers.length &&
@@ -512,7 +532,9 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                 for (let k = listItemOpen + 1; k < listItemClose; k++) {
                   if (tokens[k].type === 'paragraph_open' && 
                       tokens[k].level === tokens[listItemOpen].level + 1) {
-                    tokens[k].hidden = false
+                    if (!tokens[k]._literalTight) {
+                      tokens[k].hidden = false
+                    }
                     break // Only first paragraph
                   }
                 }
@@ -579,7 +601,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             // is obtained from Phase1-analyzed listInfo.items[itemIdx]
             const listItem = outerListInfo?.items?.[itemIdx]
             const firstParagraphIsLoose = listItem?.firstParagraphIsLoose || false
-            
+
             // Make loose if outer ul, entire inner list, or this item has extraContent
             // - However, consider cases with multiple paragraphs in item (innerListIsLoose) or
             //   block elements (hasBlockElement)
@@ -635,11 +657,15 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                   // Process first paragraph
                   if (firstParagraphInItem) {
                     // If tight list (shouldBeLoose = false), hide first paragraph
-                    tokenToPush.hidden = !shouldBeLoose
+                    if (!tokenToPush._literalTight) {
+                      tokenToPush.hidden = !shouldBeLoose
+                    }
                     firstParagraphInItem = false
                   } else {
                     // Always show second and subsequent paragraphs
-                    tokenToPush.hidden = false
+                    if (!tokenToPush._literalTight) {
+                      tokenToPush.hidden = false
+                    }
                   }
                 } else {
                   // Match paragraph_close hidden state to corresponding paragraph_open
@@ -685,7 +711,9 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                 
                 // If shouldBeLoose, set paragraph hidden to false (only outside nested lists)
                 if (shouldBeLoose && extraNestedListDepth === 0 && (tokenToPush.type === 'paragraph_open' || tokenToPush.type === 'paragraph_close')) {
-                  tokenToPush.hidden = false
+                  if (!tokenToPush._literalTight) {
+                    tokenToPush.hidden = false
+                  }
                 }
                 
                 newTokens.push(tokenToPush)
@@ -924,4 +952,57 @@ function createMarkerInfoSlice(markerInfo, startIndex) {
   slicedInfo.count = clonedMarkers.length
   slicedInfo.allNumbersIdentical = allNumbersIdentical
   return slicedInfo
+}
+
+function extractFirstListItemNumber(tokens, listOpenIdx, listCloseIdx) {
+  if (listOpenIdx === -1 || listCloseIdx === -1) {
+    return null
+  }
+  const baseLevel = tokens[listOpenIdx]?.level ?? 0
+  for (let i = listOpenIdx + 1; i < listCloseIdx; i++) {
+    const token = tokens[i]
+    if (token.type === 'list_item_open' && token.level === baseLevel + 1) {
+      if (token.info) {
+        const parsed = parseInt(token.info, 10)
+        if (!Number.isNaN(parsed)) {
+          return parsed
+        }
+      }
+      break
+    }
+  }
+  return null
+}
+
+function normalizeParentMarkers(allMarkers, itemIndices) {
+  if (!Array.isArray(itemIndices) || itemIndices.length === 0) {
+    return
+  }
+  const literalNumbers = []
+  for (const item of itemIndices) {
+    literalNumbers.push(typeof item.literalNumber === 'number' ? item.literalNumber : null)
+  }
+  if (literalNumbers.some(n => n === null)) {
+    return
+  }
+  const firstNumber = literalNumbers[0]
+  const allSame = literalNumbers.every(n => n === firstNumber)
+  if (!allSame) {
+    return
+  }
+  if (firstNumber !== 1) {
+    return
+  }
+  for (let i = 0; i < itemIndices.length; i++) {
+    const marker = allMarkers[i]
+    if (!marker) {
+      continue
+    }
+    const adjustedNumber = (firstNumber ?? 1) + i
+    marker.originalNumber = literalNumbers[i]
+    marker.number = adjustedNumber
+    const prefix = marker.prefix || ''
+    const suffix = marker.suffix || ''
+    marker.marker = `${prefix}${adjustedNumber}${suffix}`
+  }
 }

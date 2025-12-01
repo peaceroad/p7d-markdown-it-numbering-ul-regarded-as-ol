@@ -13,7 +13,7 @@
 - (ii) Roman 2
 
 [HTML]
-<ol type="i" class="ol-lower-roman-with-round-round">
+<ol type="i" class="ol-lower-roman">
 <li>Roman</li>
 <li>Roman 2</li>
 </ol>

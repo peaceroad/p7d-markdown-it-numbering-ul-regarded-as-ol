@@ -81,6 +81,9 @@ const testConfigs = [
   createTestConfig('hasListStyleNone option', { hasListStyleNone: true }, [
     'examples-option-hasliststylenone.txt'
   ]),
+  createTestConfig('addMarkerStyleToClass option', { addMarkerStyleToClass: true }, [
+    'examples-option-add-marker-style.txt'
+  ]),
   createTestConfig('useCounterStyle option', { useCounterStyle: true }, [
     'examples-option-usecounterstyle.txt'
   ]),

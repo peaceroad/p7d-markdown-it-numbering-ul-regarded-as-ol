@@ -530,7 +530,7 @@ const generateClassName = (baseClass, prefix, suffix) => {
   return `${baseClass}-with-${p}-${s}`
 }
 
-export const getTypeAttributes = (markerType, markerInfo = null) => {
+export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   const { typeInfoByName } = getTypeSeparation()
   const type = typeInfoByName.get(markerType)
   if (!type) {
@@ -564,9 +564,13 @@ export const getTypeAttributes = (markerType, markerInfo = null) => {
   
   if (standardTypes[type.name]) {
     const std = standardTypes[type.name]
+    const baseClass = std.baseClass
+    const decoratedClass = opt.addMarkerStyleToClass
+      ? generateClassName(baseClass, prefix, suffix)
+      : baseClass
     mappedType = { 
       type: std.type, 
-      class: generateClassName(std.baseClass, prefix, suffix)
+      class: decoratedClass
     }
   } else {
     // Custom marker types

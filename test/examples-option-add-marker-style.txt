@@ -1,0 +1,13 @@
+[Markdown]
+- (a) Prefixed lower latin
+[HTML]
+<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<li>Prefixed lower latin</li>
+</ol>
+
+[Markdown]
+- 1) Decimal with suffix
+[HTML]
+<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<li>Decimal with suffix</li>
+</ol>

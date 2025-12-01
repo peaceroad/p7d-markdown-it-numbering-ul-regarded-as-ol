@@ -28,17 +28,17 @@
 [HTML]
 <ul>
 <li>
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>first item</li>
 </ol>
 </li>
 <li>
-<ol type="1" start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=")">
 <li>second item</li>
 </ol>
 </li>
 <li>
-<ol type="1" start="3" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=")">
 <li>third item</li>
 </ol>
 </li>

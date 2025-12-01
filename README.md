@@ -84,6 +84,7 @@ You can customize the conversion using options.
 - `markerSpanClass` (string) — Specify the class name applied to the marker `<span>` (default: `li-num`).
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
 - `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
+- `addMarkerStyleToClass` (boolean) — When `true`, append suffix-style information to the generated class name (e.g. `ol-decimal-with-round-round`). When `false` (default) the class stays as `ol-decimal`.
 
 ## Description lists conversion behavior
 

@@ -95,7 +95,7 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = nu
   // Attributes according to marker type
   // Pass first marker's prefix/suffix info to determine class name
   const firstMarker = markerInfo.markers[0]
-  const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker)
+  const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker, opt)
   
   // Reset attribute array
   token.attrs = []

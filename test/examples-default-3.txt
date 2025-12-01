@@ -2,7 +2,7 @@
 - (1) First item
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>First item</li>
 <li>Second item</li>
 </ol>
@@ -13,7 +13,7 @@
     - 2. Second decimal
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>First item
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Nested decimal</li>
@@ -32,7 +32,7 @@
     - 2. Second decimal
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>
 <p>First item</p>
 <p>Content paragraph</p>
@@ -100,7 +100,7 @@
 - (a) Letter with parentheses
 - (b) Second letter
 [HTML]
-<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin" data-marker-prefix="(" data-marker-suffix=")">
 <li>Letter with parentheses</li>
 <li>Second letter</li>
 </ol>
@@ -111,9 +111,9 @@
     - (2) Second number
 - (b) Second letter
 [HTML]
-<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin" data-marker-prefix="(" data-marker-suffix=")">
 <li>Letter with parentheses
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>Nested number</li>
 <li>Second number</li>
 </ol>
@@ -153,7 +153,7 @@
     
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>
 <p>First item</p>
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
@@ -175,7 +175,7 @@
     - 2. Second decimal
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>First item
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>
@@ -197,7 +197,7 @@
     - 2. Second decimal
 - (2) Second item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>First item
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>

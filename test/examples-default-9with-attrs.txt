@@ -13,7 +13,7 @@
 - b) Second item
 {.alpha-round}
 [HTML]
-<ol type="a" class="ol-lower-latin-with-none-round alpha-round" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin alpha-round" data-marker-suffix=")">
 <li>First item</li>
 <li>Second item</li>
 </ol>
@@ -253,7 +253,7 @@ Text between lists.
 - e) Next alpha
 {.alpha-paren}
 [HTML]
-<ol type="a" start="4" class="ol-lower-latin-with-none-round alpha-paren" data-marker-suffix=")">
+<ol type="a" start="4" class="ol-lower-latin alpha-paren" data-marker-suffix=")">
 <li>Alpha with paren</li>
 <li>Next alpha</li>
 </ol>

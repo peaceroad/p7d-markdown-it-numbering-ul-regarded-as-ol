@@ -65,7 +65,7 @@
 - 1) Paren style
 - 2) Second
 [HTML]
-<ol class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol class="ol-decimal" data-marker-suffix=")">
 <li>Paren style</li>
 <li>Second</li>
 </ol>
@@ -74,7 +74,7 @@
 - (i) Roman
 - (ii) Roman2
 [HTML]
-<ol class="ol-lower-roman-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol class="ol-lower-roman" data-marker-prefix="(" data-marker-suffix=")">
 <li>Roman</li>
 <li>Roman2</li>
 </ol>

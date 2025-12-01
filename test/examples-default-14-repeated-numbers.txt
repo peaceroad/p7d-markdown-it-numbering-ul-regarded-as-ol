@@ -209,7 +209,7 @@
     2. Child B1
     1. Child B2
 [HTML]
-<ol type="a" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin" data-marker-suffix=")">
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
@@ -223,7 +223,7 @@
     2. Child B1
     1. Child B2
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
@@ -239,7 +239,7 @@
         1. Grandchild B2-1
         1. Grandchild B2-2
 [HTML]
-<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
+<ol type="i" class="ol-lower-roman" data-marker-suffix=")">
 <li>Parent B
 <ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li>Child B1</li>
@@ -291,7 +291,7 @@
 <li>Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
-<li>Child B2</li>
+<li value="1">Child B2</li>
 </ol>
 </li>
 </ol>
@@ -315,7 +315,7 @@
 <li value="3">Parent B
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>Child B1</li>
-<li>Child B2</li>
+<li value="1">Child B2</li>
 </ol>
 </li>
 </ol>
@@ -344,3 +344,176 @@
 </li>
 </ol>
 
+[Markdown]
+- 1. Parent rich
+    2. **Child** _A_
+
+        More details with `inline`.
+
+        ```
+        code block
+        ```
+
+    1. Child plain
+
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent rich
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p><strong>Child</strong> <em>A</em></p>
+<p>More details with <code>inline</code>.</p>
+<pre><code>code block
+</code></pre>
+</li>
+<li value="1">
+<p>Child plain</p>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. aaa
+
+    2. bbb
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>bbb</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. aaa
+    2. bbb
+1. aaa
+    2. bbb
+
+1. aaa
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>bbb</li>
+</ol>
+</li>
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>bbb</li>
+</ol>
+</li>
+<li>
+<p>aaa</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent gap
+    2. Child first
+
+    5. Child second
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent gap
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Child first</p>
+</li>
+<li value="5">
+<p>Child second</p>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. Outer gap
+    2. Inner ready
+
+        4. Deep start
+
+        6. Deep continue
+
+1. Outer plain
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Outer gap</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Inner ready</p>
+<ol type="1" start="4" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Deep start</p>
+</li>
+<li value="6">
+<p>Deep continue</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>Outer plain</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent one
+    2. Child one
+
+    4. Child two
+
+- 2. Parent two
+    2. Child three
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent one</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Child one</p>
+</li>
+<li value="4">
+<p>Child two</p>
+</li>
+</ol>
+</li>
+<li>
+<p>Parent two</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child three</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. aaa
+    2. bbb
+
+    2. bbb
+
+1. aaa
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>bbb</p>
+</li>
+<li value="2">
+<p>bbb</p>
+</li>
+</ol>
+</li>
+<li>
+<p>aaa</p>
+</li>
+</ol>

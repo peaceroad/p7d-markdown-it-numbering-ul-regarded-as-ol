@@ -18,7 +18,7 @@ export function generateSpans(tokens, listInfos, opt) {
     if (token.type === 'ordered_list_open' && token._markerInfo) {
       const markerInfo = token._markerInfo
       const firstMarker = markerInfo.markers[0]
-      const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker)
+      const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker, opt)
       
       // Generate span if no type attribute (custom marker) or alwaysMarkerSpan mode
       // If user opts to use @counter-style, do not generate inline marker spans

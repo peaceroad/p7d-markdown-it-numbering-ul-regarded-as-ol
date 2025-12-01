@@ -102,7 +102,7 @@
 - (3) b
 - (4) c
 [HTML]
-<ol type="1" start="2" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" start="2" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>a</li>
 <li>b</li>
 <li>c</li>
@@ -113,7 +113,7 @@
 - 3) b
 - 4) c
 [HTML]
-<ol type="1" start="2" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=")">
 <li>a</li>
 <li>b</li>
 <li>c</li>
@@ -371,7 +371,7 @@
 
 - 5) skip to five
 [HTML]
-<ol type="1" start="0" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="0" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>zero start with complex content</p>
 <p>Zero paragraph content</p>
@@ -449,7 +449,7 @@
 
 - (8) parentheses eight
 [HTML]
-<ol type="1" start="3" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" start="3" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>
 <p>parentheses three start</p>
 <p>Multiple paragraphs here.</p>
@@ -505,7 +505,7 @@
 
 - 7) final item
 [HTML]
-<ol type="1" start="3" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>mixed content with blockquote</p>
 <blockquote>
@@ -567,11 +567,11 @@ in the list item</p>
 
 - (4) Level 1 - Final main item
 [HTML]
-<ol type="1" class="ol-decimal-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
 <li>
 <p>Level 1 - First item with nested content</p>
 <p>This is a paragraph in the first item.</p>
-<ol type="a" class="ol-lower-latin-with-none-round" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin" data-marker-suffix=")">
 <li>
 <p>Level 2 - Nested item with sub-items</p>
 <ol type="i" class="ol-lower-roman" data-marker-suffix=".">
@@ -706,7 +706,7 @@ spanning multiple lines</p>
 </blockquote>
 <ol type="A" class="ol-upper-latin" data-marker-suffix=".">
 <li>Level 2 - Capital letters
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 3 - Numbers with parentheses</p>
 <p>Final level content.</p>
@@ -769,14 +769,14 @@ spanning multiple lines</p>
 
 - 11) Level 1 - Final item
 [HTML]
-<ol type="1" start="5" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" start="5" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with closing parentheses</p>
 <p>First paragraph with content.</p>
-<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
+<ol type="i" class="ol-lower-roman" data-marker-suffix=")">
 <li>
 <p>Level 2 - Lowercase roman with parentheses</p>
-<ol type="A" class="ol-upper-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="A" class="ol-upper-latin" data-marker-prefix="(" data-marker-suffix=")">
 <li>
 <p>Level 3 - Letters with full parentheses</p>
 <p>Deep content here.</p>
@@ -910,7 +910,7 @@ def example():
 <li>
 <p>Level 1 - Capital letters with decimal level 3</p>
 <p>Introduction content.</p>
-<ol type="i" class="ol-lower-roman-with-none-round" data-marker-suffix=")">
+<ol type="i" class="ol-lower-roman" data-marker-suffix=")">
 <li>
 <p>Level 2 - Roman with parentheses</p>
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
@@ -959,7 +959,7 @@ function level3() {
 <blockquote>
 <p>Final blockquote</p>
 </blockquote>
-<ol type="a" class="ol-lower-latin-with-round-round" data-marker-prefix="(" data-marker-suffix=")">
+<ol type="a" class="ol-lower-latin" data-marker-prefix="(" data-marker-suffix=")">
 <li>Level 2 - Lowercase with parentheses
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>
@@ -983,7 +983,7 @@ function level3() {
 
     Final level content.
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with parentheses</p>
 <p>Final level content.</p>
@@ -998,7 +998,7 @@ function level3() {
 
     Final level content.
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with parentheses</p>
 <h2>heading</h2>
@@ -1041,7 +1041,7 @@ function level3() {
 
     </div>
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with parentheses</p>
 <h2>heading</h2>
@@ -1061,7 +1061,7 @@ function level3() {
     Final level content.
     </div>
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with parentheses</p>
 <h2>heading</h2>
@@ -1081,7 +1081,7 @@ Final level content.
     Final level content.
     </section>
 [HTML]
-<ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
 <li>
 <p>Level 1 - Numbers with parentheses</p>
 <h2>heading</h2>

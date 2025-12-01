@@ -6,6 +6,7 @@ import { addAttributes } from './src/phase3-attributes.js'
 import { processHtmlBlocks } from './src/phase4-html-blocks.js'
 import { generateSpans } from './src/phase5-spans.js'
 import { moveNestedListAttributes } from './src/phase6-attrs-migration.js'
+import { normalizeLiteralOrderedLists } from './src/preprocess-literal-lists.js'
 
 const mditNumberingUl = (md, option) => {
   const opt = {
@@ -19,6 +20,7 @@ const mditNumberingUl = (md, option) => {
     hasListStyleNone: false,      // true=add style="list-style: none;" when role="list" is used
     omitMarkerMetadata: false,    // true=omit data-marker-prefix/suffix attributes
     useCounterStyle: false,       // true=users will use @counter-style; suppress marker spans and role attr
+    addMarkerStyleToClass: false, // true=append -with-* marker style suffix to class names
     
     // Override with user options
     ...option
@@ -39,6 +41,9 @@ const mditNumberingUl = (md, option) => {
     // Convert **Term**: pattern from paragraph to bullet_list, then to dl/dt/dd
     // Must run before Phase 1 (parsed as bullet_list)
     processDescriptionList(tokens, opt)
+
+    // Normalize literal nested ordered lists (markdown-it only creates nested lists when they start at 1)
+    normalizeLiteralOrderedLists(tokens)
     
     // ===== PHASE 1: List Structure Analysis =====
     // Analyze marker detection and structure without token conversion
