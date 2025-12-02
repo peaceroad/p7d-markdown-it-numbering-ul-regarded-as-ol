@@ -46,7 +46,7 @@
 
 4. **Phase 2 - `convertLists` + `simplifyNestedBulletLists`**  
    - Converts eligible `bullet_list` instances into `ordered_list`, removes marker text from inline tokens, and stores `_markerInfo`.
-   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern). When flattening, it merges marker metadata from parent and child lists, honours `_literalList` so synthetic lists keep their numbering, and fixes tight/loose states directly (no temporary flags) using `_literalTight`, `_literalLastLine`, and real blank-line checks from token `map` info.
+   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) **only when every `li` is literally just a nested list** (first child is the inner `ol` and there is no extra content). This guard prevents ordinary unordered parents (with paragraphs or inline text) from being rewritten. During flattening we merge marker metadata from parent/child lists, honour `_literalList` so synthetic lists keep their numbering, and fix tight/loose states directly (no temporary flags) using `_literalTight`, `_literalLastLine`, and real blank-line checks from token `map` info.
 
 5. **Phase 3 - `addAttributes`**  
    Applies `type`, `role`, `class`, `data-marker-*`, `start`, and `value` attributes to every ordered list and list item. Uses the stored `_markerInfo` plus `types-utility.js`.
@@ -95,4 +95,5 @@
 - Code-block conversion assumes the `code_block` sits directly under a list item. Nested wrappers (blockquotes, additional lists) may confuse the current parent search.
 - Blank-line checks depend on markdown-it `map` data. If maps are disabled/stripped, Phase 2 can’t reliably determine loose vs tight states for flattened lists.
 - Phase 3+ reuse Phase 1 `listInfos` built before token surgery. Any new preprocessing must keep token order compatible or re-run analysis, otherwise later phases may read stale indices/marker info.
+- Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.
 - The debug scripts are ES modules (`node debug/...mjs`). Run them with `node` (>=18) or via `npm` scripts to avoid `require`-related errors.

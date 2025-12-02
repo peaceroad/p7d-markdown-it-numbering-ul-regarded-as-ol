@@ -259,7 +259,6 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       
       // Check if outer ul is convertible (has markers)
       const outerListInfo = listInfos?.find(info => info.startIndex === i && info.shouldConvert)
-      const outerListHasMarkers = outerListInfo?.shouldConvert && outerListInfo.markerInfo
 
       if (outerListInfo?.shouldConvert) {
         for (const flattenedItem of itemIndices) {
@@ -283,14 +282,20 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       }
       
       // Simplification conditions:
-      // 1. All list_items have inner lists of the same type (traditional logic)
-      // 2. Outer list has markers and at least one item has inner list (new logic)
+      // 1. Every list_item has a nested list (the classic `- 1.` pattern)
+      // 2. That nested list appears as the very first child (no preceding paragraph text)
+      //    This prevents flattening normal `* Parent` lists that intentionally nest an ordered list.
       const allItemsHaveInnerList = itemIndices.length > 0 && itemIndices.length === totalItems
-      const shouldSimplify = allItemsHaveInnerList || outerListHasMarkers
+      const innerListIsFirstChild = allItemsHaveInnerList &&
+        itemIndices.every(item => item.innerListOpen === item.outerItemOpen + 1)
+      const shouldSimplify = allItemsHaveInnerList && innerListIsFirstChild
       
       if (shouldSimplify && itemIndices.length > 0) {
         const allSameType = itemIndices.every(item => item.innerListType === itemIndices[0].innerListType)
         const firstInnerType = itemIndices[0].innerListType
+        if (firstInnerType !== 'ordered_list_open') {
+          continue
+        }
         const hasExtraContent = itemIndices.some(item => item.hasExtraContent)
         
         // Don't simplify if inner lists are mixed types

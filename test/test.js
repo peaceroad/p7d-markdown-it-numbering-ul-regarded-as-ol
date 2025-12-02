@@ -34,7 +34,8 @@ const testConfigs = [
     'examples-default-11fullwidth-joint.txt',
     'examples-default-12space-handling.txt',
     'examples-default-13-class-attributes.txt',
-    'examples-default-14-repeated-numbers.txt'
+    'examples-default-14-repeated-numbers.txt',
+    'examples-default-15-default-ul.txt'
   ]),
   // Integration: numbered lists with attrs (attrs loaded first)
   {

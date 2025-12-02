@@ -1,0 +1,259 @@
+[Markdown]
+* a1
+    * a2
+* b1
+    * b2
+[HTML]
+<ul>
+<li>a1
+<ul>
+<li>a2</li>
+</ul>
+</li>
+<li>b1
+<ul>
+<li>b2</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+- a1
+    - a2
+- b1
+    - b2
+[HTML]
+<ul>
+<li>a1
+<ul>
+<li>a2</li>
+</ul>
+</li>
+<li>b1
+<ul>
+<li>b2</li>
+</ul>
+</li>
+</ul>
+
+
+[Markdown]
+* L1a
+    * L2a
+        * L3a
+* L1b
+    * L2b
+        * L3b
+[HTML]
+<ul>
+<li>L1a
+<ul>
+<li>L2a
+<ul>
+<li>L3a</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>L1b
+<ul>
+<li>L2b
+<ul>
+<li>L3b</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+* Parent tight
+    * Child paragraph
+
+        * Grandchild one
+
+        * Grandchild two
+[HTML]
+<ul>
+<li>Parent tight
+<ul>
+<li>
+<p>Child paragraph</p>
+<ul>
+<li>
+<p>Grandchild one</p>
+</li>
+<li>
+<p>Grandchild two</p>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+* Root A
+
+    * Mid A
+
+        * Deep A
+
+* Root B
+
+    * Mid B paragraph
+
+        Extra details.
+
+        * Deep B1
+
+            * Deep B2
+[HTML]
+<ul>
+<li>
+<p>Root A</p>
+<ul>
+<li>
+<p>Mid A</p>
+<ul>
+<li>Deep A</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Root B</p>
+<ul>
+<li>
+<p>Mid B paragraph</p>
+<p>Extra details.</p>
+<ul>
+<li>
+<p>Deep B1</p>
+<ul>
+<li>Deep B2</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+* Mix text
+    * Inline **bold** child
+        * Grandchild with `code`
+* Another root
+    * list item
+        * final
+[HTML]
+<ul>
+<li>Mix text
+<ul>
+<li>Inline <strong>bold</strong> child
+<ul>
+<li>Grandchild with <code>code</code></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Another root
+<ul>
+<li>list item
+<ul>
+<li>final</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+1. Alpha
+    * Beta
+        1. Gamma
+2. Delta
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Alpha
+<ul>
+<li>Beta
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Gamma</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>Delta</li>
+</ol>
+
+[Markdown]
+* Root
+    1. Child
+        * Grandchild
+* Second
+[HTML]
+<ul>
+<li>Root
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child
+<ul>
+<li>Grandchild</li>
+</ul>
+</li>
+</ol>
+</li>
+<li>Second</li>
+</ul>
+
+[Markdown]
+1. One
+
+    * Bullet paragraph
+
+        More lines.
+
+        1. Deep number
+
+2. Two
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>One</p>
+<ul>
+<li>
+<p>Bullet paragraph</p>
+<p>More lines.</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Deep number</li>
+</ol>
+</li>
+</ul>
+</li>
+<li>
+<p>Two</p>
+</li>
+</ol>
+
+[Markdown]
+1. **Bold** parent
+    * Child with _em_
+        1. Deep `code`
+            * Final
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li><strong>Bold</strong> parent
+<ul>
+<li>Child with <em>em</em>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Deep <code>code</code>
+<ul>
+<li>Final</li>
+</ul>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
