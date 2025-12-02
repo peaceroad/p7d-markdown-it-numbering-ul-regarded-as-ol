@@ -225,6 +225,17 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             const literalNumber = extractFirstListItemNumber(tokens, innerListOpen, innerListCloseIdx)
             
             const innerListInfo = listInfoMap?.get(innerListOpen)
+            const isSimpleMarkerParagraph = (() => {
+              const precedingCount = innerListOpen - (idx + 1)
+              if (precedingCount !== 3) return false
+              const paraOpen = tokens[idx + 1]
+              const inlineToken = tokens[idx + 2]
+              const paraClose = tokens[idx + 3]
+              return paraOpen?.type === 'paragraph_open' &&
+                inlineToken?.type === 'inline' &&
+                paraClose?.type === 'paragraph_close'
+            })()
+
             itemIndices.push({
               outerItemOpen: idx,
               outerItemClose: itemCloseIdx,
@@ -235,10 +246,11 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
               extraContentStart: innerListCloseIdx + 1,
               extraContentEnd: itemCloseIdx,
               innerListInfo,
-              literalNumber
+              literalNumber,
+              flattenFirstParagraph: isSimpleMarkerParagraph
             })
           }
-          
+         
           idx = itemCloseIdx + 1
         } else {
           idx++
@@ -248,6 +260,27 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       // Check if outer ul is convertible (has markers)
       const outerListInfo = listInfos?.find(info => info.startIndex === i && info.shouldConvert)
       const outerListHasMarkers = outerListInfo?.shouldConvert && outerListInfo.markerInfo
+
+      if (outerListInfo?.shouldConvert) {
+        for (const flattenedItem of itemIndices) {
+          const closeIdx = flattenedItem.innerListOpen - 1
+          const inlineIdx = closeIdx - 1
+          const openIdx = closeIdx - 2
+          if (openIdx >= flattenedItem.outerItemOpen + 1) {
+            const paraOpen = tokens[openIdx]
+            const inlineToken = tokens[inlineIdx]
+            const paraClose = tokens[closeIdx]
+            if (paraOpen?.type === 'paragraph_open' &&
+                inlineToken?.type === 'inline' &&
+                paraClose?.type === 'paragraph_close') {
+              const innerListToken = tokens[flattenedItem.innerListOpen]
+              if (innerListToken) {
+                innerListToken._convertedFromFlatten = true
+              }
+            }
+          }
+        }
+      }
       
       // Simplification conditions:
       // 1. All list_items have inner lists of the same type (traditional logic)
@@ -544,8 +577,8 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           }
         }
         
-        // Final innerListIsLoose: _parentIsLoose, outerUlIsLoose, or blank line determination
-        let innerListIsLoose = token._parentIsLoose || outerUlIsLoose || innerListIsLooseDueToBlankLines
+        // Track loose state inherited from parent structures (outer lists or ancestors)
+        const parentStructureIsLoose = token._parentIsLoose || outerUlIsLoose
         
         // ===== Merge each inner list's contents and place extra content appropriately =====
         for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
@@ -560,6 +593,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             }
           }
           
+          const innerListToken = tokens[item.innerListOpen]
           const listItemRanges = collectListItemRanges(tokens, item.innerListOpen, item.innerListClose)
           if (listItemRanges.length === 0) {
             continue
@@ -602,23 +636,19 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             const listItem = outerListInfo?.items?.[itemIdx]
             const firstParagraphIsLoose = listItem?.firstParagraphIsLoose || false
 
-            // Make loose if outer ul, entire inner list, or this item has extraContent
-            // - However, consider cases with multiple paragraphs in item (innerListIsLoose) or
+            // Make loose when parent structure is loose or this item has extra block elements
+            // - However, consider cases with multiple paragraphs in item (firstParagraphIsLoose) or
             //   block elements (hasBlockElement)
             // 
             // Single item determination in flattened pattern (`- 1.` etc):
             // - Parent ul single item AND each inner ol single item → exclude outerUlIsLoose
             // - If parent ul has multiple items, consider outerUlIsLoose (reflect parent's blank lines)
-            let shouldBeLoose
+            let structuralLoose = parentStructureIsLoose || firstParagraphIsLoose
             if (itemIndices.length === 1 && innerListItemCount === 1) {
-              // Exclude outerUlIsLoose if both parent ul and each inner ol are single item
-              // Consider innerListIsLoose and hasBlockElement (block elements)
-              shouldBeLoose = innerListIsLoose || hasBlockElement
-            } else {
-              // Normal determination if multiple items or parent ul has multiple items
-              // Consider outerUlIsLoose (reflect parent list's blank lines)
-              shouldBeLoose = outerUlIsLoose || innerListIsLoose || hasBlockElement
+              // Exclude outerUlIsLoose if both parent ul and inner ol only have a single item
+              structuralLoose = (token._parentIsLoose || firstParagraphIsLoose)
             }
+            const shouldBeLoose = structuralLoose || hasBlockElement
             
             // Determine whether to propagate _parentIsLoose flag to child lists
             // - innerListIsLooseDueToBlankLines: blank lines between converted ol list_items
@@ -631,6 +661,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             // Copy tokens in inner list item (exclude nested list paragraphs)
             let nestedListDepth = 0
             let firstParagraphInItem = true // Track first paragraph in each list_item
+            let shouldFlattenParagraph = !!item.flattenFirstParagraph
             for (let j = innerListItemOpen + 1; j < innerListItemClose; j++) {
               const tokenToPush = tokens[j]
               
@@ -657,7 +688,11 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                   // Process first paragraph
                   if (firstParagraphInItem) {
                     // If tight list (shouldBeLoose = false), hide first paragraph
-                    if (!tokenToPush._literalTight) {
+                    if (shouldFlattenParagraph) {
+                      tokenToPush.hidden = true
+                      tokenToPush._literalTight = true
+                      shouldFlattenParagraph = false
+                    } else if (!tokenToPush._literalTight) {
                       tokenToPush.hidden = !shouldBeLoose
                     }
                     firstParagraphInItem = false

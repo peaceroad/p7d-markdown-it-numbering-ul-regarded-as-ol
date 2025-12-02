@@ -154,7 +154,10 @@ function analyzeList(tokens, startIndex, opt) {
   const level = listToken.level || 0
   const originalType = listToken.type
   const items = analyzeListItems(tokens, startIndex, endIndex, opt)
-  const isLoose = detectLooseList(tokens, startIndex, endIndex)
+  const isLoose = detectLooseList(tokens, startIndex, endIndex, items)
+  if (!isLoose) {
+    hideFirstParagraphsForTightList(tokens, items, level)
+  }
   
   // Extract marker info (for both bullet_list and ordered_list)
   const markerInfo = extractMarkerInfo(tokens, startIndex, endIndex, opt)
@@ -229,9 +232,11 @@ function analyzeListItem(tokens, startIndex, endIndex, opt) {
       // When child list starts, check if blank line exists right after first paragraph
       if (foundParagraph && firstParagraphIndex !== -1) {
         const paragraphToken = tokens[firstParagraphIndex]
-        if (paragraphToken.map && token.map) {
-          const paragraphEndLine = paragraphToken.map[1]
-          const nestedListStartLine = token.map[0]
+        const paragraphEndLine = paragraphToken.map ? paragraphToken.map[1] : undefined
+        const nestedListStartLine = token.map
+          ? token.map[0]
+          : (typeof token._literalStartLine === 'number' ? token._literalStartLine : undefined)
+        if (typeof paragraphEndLine === 'number' && typeof nestedListStartLine === 'number') {
           // Check if blank line exists between paragraph end and child list start
           if (nestedListStartLine > paragraphEndLine) {
             firstParagraphIsLoose = true
@@ -409,15 +414,81 @@ function shouldConvertToOrdered(originalType, markerInfo, opt) {
  * In markdown-it, lists separated by blank lines have paragraphs in each list_item
  * For tight lists, paragraph_open.hidden === true
  */
-function detectLooseList(tokens, startIndex, endIndex) {
+function detectLooseList(tokens, startIndex, endIndex, items = null) {
+  const listLevel = tokens[startIndex]?.level || 0
+  const paragraphLevel = listLevel + 2
   for (let i = startIndex + 1; i < endIndex; i++) {
     const token = tokens[i]
     // Loose list if paragraph_open exists and is not hidden
-    if (token.type === 'paragraph_open' && !token.hidden) {
+    if (token.type === 'paragraph_open' && token.level === paragraphLevel && !token.hidden) {
+      if (items && items.length === 1 && isTightSingleItem(tokens, items[0])) {
+        continue
+      }
       return true
     }
   }
   return false
+}
+
+function isTightSingleItem(tokens, item) {
+  if (!item || item.firstParagraphIsLoose) {
+    return false
+  }
+  const itemOpenToken = tokens[item.startIndex]
+  const childLevel = (itemOpenToken.level || 0) + 1
+  let paragraphCount = 0
+  for (let i = item.startIndex + 1; i < item.endIndex; i++) {
+    const token = tokens[i]
+    if (token.level !== childLevel) {
+      continue
+    }
+    if (token.type === 'paragraph_open') {
+      paragraphCount++
+      if (paragraphCount > 1) {
+        return false
+      }
+    } else if (token.type === 'ordered_list_open' || token.type === 'bullet_list_open') {
+      continue
+    } else if (token.type.endsWith('_open') || token.type === 'html_block' || token.type === 'code_block' || token.type === 'fence') {
+      return false
+    }
+  }
+  return true
+}
+
+function hideFirstParagraphsForTightList(tokens, items, level) {
+  if (!Array.isArray(items) || level !== 0) {
+    return
+  }
+  for (const item of items) {
+    if (!item || item.firstParagraphIsLoose) {
+      continue
+    }
+    const itemToken = tokens[item.startIndex]
+    if (!itemToken) {
+      continue
+    }
+    const paragraphLevel = (itemToken.level || 0) + 1
+    for (let i = item.startIndex + 1; i < item.endIndex; i++) {
+      const token = tokens[i]
+      if (!token) {
+        continue
+      }
+      if (token.type === 'paragraph_open' && token.level === paragraphLevel) {
+        if (!token._literalTight) {
+          break
+        }
+        token.hidden = true
+        const closeIdx = findMatchingClose(tokens, i, 'paragraph_open', 'paragraph_close')
+        if (closeIdx !== -1) {
+          tokens[closeIdx].hidden = true
+        }
+        break
+      } else if (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') {
+        break
+      }
+    }
+  }
 }
 
 /**

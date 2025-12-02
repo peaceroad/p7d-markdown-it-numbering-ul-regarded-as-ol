@@ -3,6 +3,9 @@
 import { detectMarkerType } from './types-utility.js'
 import { findMatchingClose, findListItemEnd } from './list-helpers.js'
 
+const INLINE_LITERAL_HINT = /\n[ \t]+\S/
+const CODE_LITERAL_HINT = /^[ \t]+\S/m
+
 /**
  * Normalize literal nested ordered lists inside list items.
  * Converts indented numeric lines into proper ordered_list tokens before Phase 1.
@@ -47,7 +50,12 @@ export function normalizeLiteralOrderedLists(tokens) {
         }
 
         const inlineToken = tokens[inlineIdx]
-        const segments = parseSegments(inlineToken.content)
+        if (!INLINE_LITERAL_HINT.test(inlineToken.content)) {
+          j = paragraphCloseIdx + 1
+          continue
+        }
+        const baseLine = tokens[j].map ? tokens[j].map[0] : null
+        const segments = parseSegments(inlineToken.content, baseLine)
         if (!segments.hasLiteral) {
           j = paragraphCloseIdx + 1
           continue
@@ -92,9 +100,160 @@ export function normalizeLiteralOrderedLists(tokens) {
     }
     i = listItemClose
   }
+  convertLiteralCodeBlocks(tokens, TokenClass)
 }
 
-function parseSegments(content) {
+function convertLiteralCodeBlocks(tokens, TokenClass) {
+  if (!TokenClass) {
+    return
+  }
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]
+    if (!token || token.type !== 'code_block') {
+      continue
+    }
+    if (token.level === undefined || token.level < 1) {
+      continue
+    }
+    if (!CODE_LITERAL_HINT.test(token.content)) {
+      continue
+    }
+    const rawLines = token.content.split(/\r?\n/)
+    const literalCache = []
+    const baseLine = Array.isArray(token.map) ? token.map[0] : null
+    const { lists, nextIndex } = parseLiteralBlock(rawLines, 0, literalCache, baseLine)
+    const hasRemainingContent = rawLines.slice(nextIndex).some(line => line.trim().length > 0)
+    if (!Array.isArray(lists) || lists.length === 0 || hasRemainingContent) {
+      if (tryConvertCodeBlockContinuation(tokens, i, TokenClass)) {
+        i--
+      }
+      continue
+    }
+
+    const targetItemLevel = token.level + 1
+    let listItemIdx = -1
+    for (let k = i - 1; k >= 0; k--) {
+      const tk = tokens[k]
+      if (tk.type === 'list_item_open' && tk.level === targetItemLevel) {
+        listItemIdx = k
+        break
+      }
+    }
+    if (listItemIdx === -1) {
+      continue
+    }
+    let listItemCloseIdx = findMatchingClose(tokens, listItemIdx, 'list_item_open', 'list_item_close')
+    if (listItemCloseIdx === -1) {
+      continue
+    }
+
+    tokens.splice(i, 1)
+    if (listItemCloseIdx > i) {
+      listItemCloseIdx--
+    }
+    revealFirstParagraph(tokens, listItemIdx, listItemCloseIdx)
+
+    const insertionStart = listItemCloseIdx
+    const replacementTokens = []
+    const newListLevel = targetItemLevel + 1
+    for (const listNode of lists) {
+      replacementTokens.push(...buildListTokens(listNode, newListLevel, TokenClass))
+    }
+    tokens.splice(insertionStart, 0, ...replacementTokens)
+
+    for (let offset = 0; offset < replacementTokens.length; offset++) {
+      if (replacementTokens[offset]?._literalList) {
+        mergeFollowingLists(tokens, insertionStart + offset)
+      }
+    }
+    i = insertionStart + replacementTokens.length - 1
+  }
+}
+
+function tryConvertCodeBlockContinuation(tokens, codeBlockIndex, TokenClass) {
+  const codeToken = tokens[codeBlockIndex]
+  const targetLevel = (codeToken.level ?? 0) + 1
+  let listItemCloseIdx = -1
+  for (let k = codeBlockIndex - 1; k >= 0; k--) {
+    const tk = tokens[k]
+    if (tk.type === 'list_item_close' && tk.level === targetLevel) {
+      listItemCloseIdx = k
+      break
+    }
+    if (tk.type === 'list_item_open' && tk.level <= codeToken.level) {
+      break
+    }
+  }
+  if (listItemCloseIdx === -1) {
+    return false
+  }
+  let listItemOpenIdx = -1
+  for (let k = listItemCloseIdx; k >= 0; k--) {
+    if (tokens[k].type === 'list_item_open' && tokens[k].level === targetLevel) {
+      const closeIdx = findListItemEnd(tokens, k)
+      if (closeIdx === listItemCloseIdx) {
+        listItemOpenIdx = k
+        break
+      }
+    }
+  }
+  if (listItemOpenIdx === -1) {
+    return false
+  }
+  revealFirstParagraph(tokens, listItemOpenIdx, listItemCloseIdx)
+  const paragraphLevel = (tokens[listItemOpenIdx].level ?? 0) + 1
+  const paragraphs = buildParagraphTokensFromCodeBlock(codeToken.content, paragraphLevel, TokenClass)
+  if (paragraphs.length === 0) {
+    return false
+  }
+  tokens.splice(listItemCloseIdx, 0, ...paragraphs)
+  const newIndex = codeBlockIndex + paragraphs.length
+  tokens.splice(newIndex, 1)
+  return true
+}
+
+function buildParagraphTokensFromCodeBlock(content, paragraphLevel, TokenClass) {
+  if (!content) {
+    return []
+  }
+  const normalized = content.replace(/\r\n?/g, '\n')
+  const lines = normalized.split('\n')
+  const nonEmpty = lines.filter(line => line.trim().length > 0)
+  if (nonEmpty.length === 0) {
+    return []
+  }
+  const indent = Math.min(...nonEmpty.map(line => line.match(/^\s*/)[0].length))
+  const dedented = lines
+    .map(line => (indent > 0 ? line.slice(Math.min(indent, line.length)) : line))
+    .join('\n')
+  const blocks = dedented.split(/\n{2,}/).map(block => block.trim()).filter(Boolean)
+  if (blocks.length === 0) {
+    return []
+  }
+  const paragraphs = []
+  for (const block of blocks) {
+    const pOpen = new TokenClass('paragraph_open', 'p', 1)
+    pOpen.level = paragraphLevel
+    pOpen.block = true
+    pOpen.hidden = false
+    paragraphs.push(pOpen)
+
+    const inline = new TokenClass('inline', '', 0)
+    inline.level = paragraphLevel + 1
+    inline.content = block
+    inline.children = []
+    paragraphs.push(inline)
+
+    const pClose = new TokenClass('paragraph_close', 'p', -1)
+    pClose.level = paragraphLevel
+    pClose.block = true
+    pClose.hidden = false
+    paragraphs.push(pClose)
+  }
+  return paragraphs
+}
+
+function parseSegments(content, baseLine = null) {
   if (!content) {
     return { hasLiteral: false, list: [{ type: 'text', text: '', tight: false }] }
   }
@@ -109,6 +268,7 @@ function parseSegments(content) {
 
   const flushBuffer = ({ trimTrailing = false } = {}) => {
     if (buffer.length === 0) return
+    const hadBlankLine = blankLinesInBuffer > 0
     if (trimTrailing) {
       while (buffer.length > 0 && buffer[buffer.length - 1].trim().length === 0) {
         buffer.pop()
@@ -119,7 +279,7 @@ function parseSegments(content) {
       }
     }
     const textValue = buffer.join('\n')
-    const hasBlankLine = blankLinesInBuffer > 0
+    const hasBlankLine = hadBlankLine
     segments.push({ type: 'text', text: textValue, tight: !hasBlankLine })
     buffer = []
     blankLinesInBuffer = 0
@@ -138,7 +298,7 @@ function parseSegments(content) {
 
     hasLiteral = true
     flushBuffer({ trimTrailing: true })
-    const { lists, nextIndex } = parseLiteralBlock(lines, idx, literalCache)
+    const { lists, nextIndex } = parseLiteralBlock(lines, idx, literalCache, baseLine)
     if (lists.length > 0) {
       segments.push({ type: 'literal', lists })
     }
@@ -181,13 +341,25 @@ function detectLiteralLine(line) {
   }
 }
 
-function parseLiteralBlock(lines, startIndex, literalCache = null) {
+function parseLiteralBlock(lines, startIndex, literalCache = null, baseLine = null) {
   const rootLists = []
   const stack = []
   let idx = startIndex
   let baseIndent = null
 
   while (idx < lines.length) {
+    const rawLine = lines[idx]
+    if (rawLine !== undefined && rawLine.trim().length === 0) {
+      if (stack.length > 0) {
+        stack[stack.length - 1].list.isLoose = true
+        if (baseLine !== null) {
+          stack[stack.length - 1].list.lastLine = baseLine + idx
+        }
+      }
+      idx++
+      continue
+    }
+
     const literalInfo = getLiteralInfo(lines, idx, literalCache)
     if (!literalInfo) {
       break
@@ -204,7 +376,7 @@ function parseLiteralBlock(lines, startIndex, literalCache = null) {
     }
 
     if (stack.length === 0 || literalInfo.indent > stack[stack.length - 1].indent) {
-      const newList = createListNode(literalInfo)
+      const newList = createListNode(literalInfo, baseIndent === null || baseLine === null ? null : baseLine + idx)
       if (stack.length === 0) {
         rootLists.push(newList)
       } else {
@@ -230,7 +402,9 @@ function parseLiteralBlock(lines, startIndex, literalCache = null) {
       content: literalInfo.content,
       children: []
     })
-
+    if (baseLine !== null) {
+      currentList.lastLine = baseLine + idx
+    }
     idx++
   }
 
@@ -247,14 +421,17 @@ function getLiteralInfo(lines, index, cache = null) {
   return cache[index]
 }
 
-function createListNode(literalInfo) {
+function createListNode(literalInfo, lineNumber = null) {
   const markerInfo = literalInfo.markerInfo || {}
   return {
     markerType: markerInfo.type || 'decimal',
     suffix: markerInfo.suffix || '.',
     prefix: markerInfo.prefix || '',
     startNumber: markerInfo.number || 1,
-    items: []
+    items: [],
+    isLoose: false,
+    startLine: lineNumber,
+    lastLine: lineNumber
   }
 }
 
@@ -295,10 +472,9 @@ function createParagraphTokens(text, listItemLevel, TokenClass, template, forceT
   open.level = level
   open.block = true
   const baseHidden = template && typeof template.open?.hidden === 'boolean' ? template.open.hidden : false
-  const literalTight = forceTight && baseHidden
   const shouldHide = baseHidden
   open.hidden = shouldHide
-  if (literalTight) {
+  if (forceTight) {
     open._literalTight = true
   }
   tokens.push(open)
@@ -336,13 +512,20 @@ function buildListTokens(listNode, listLevel, TokenClass) {
   listOpen.markup = listNode.suffix || '.'
   listOpen.attrs = null
   listOpen._literalList = true
+  if (typeof listNode.startLine === 'number') {
+    listOpen._literalStartLine = listNode.startLine
+  }
+  if (typeof listNode.lastLine === 'number') {
+    listOpen._literalLastLine = listNode.lastLine
+  }
   if (typeof listNode.startNumber === 'number' && listNode.startNumber !== 1) {
     listOpen.attrs = [['start', String(listNode.startNumber)]]
   }
   tokens.push(listOpen)
 
+  const listIsLoose = !!listNode.isLoose
   for (const item of listNode.items) {
-    tokens.push(...buildListItemTokens(item, listLevel, TokenClass))
+    tokens.push(...buildListItemTokens(item, listLevel, TokenClass, listIsLoose))
   }
 
   const listClose = new TokenClass('ordered_list_close', 'ol', -1)
@@ -353,7 +536,7 @@ function buildListTokens(listNode, listLevel, TokenClass) {
   return tokens
 }
 
-function buildListItemTokens(item, listLevel, TokenClass) {
+function buildListItemTokens(item, listLevel, TokenClass, parentListIsLoose = false) {
   const tokens = []
   const itemLevel = listLevel + 1
   const liOpen = new TokenClass('list_item_open', 'li', 1)
@@ -367,7 +550,10 @@ function buildListItemTokens(item, listLevel, TokenClass) {
   const pOpen = new TokenClass('paragraph_open', 'p', 1)
   pOpen.level = paragraphLevel
   pOpen.block = true
-  pOpen.hidden = true
+  pOpen.hidden = !parentListIsLoose
+  if (!parentListIsLoose) {
+    pOpen._literalTight = true
+  }
   tokens.push(pOpen)
 
   const inline = new TokenClass('inline', '', 0)
@@ -379,7 +565,10 @@ function buildListItemTokens(item, listLevel, TokenClass) {
   const pClose = new TokenClass('paragraph_close', 'p', -1)
   pClose.level = paragraphLevel
   pClose.block = true
-  pClose.hidden = true
+  pClose.hidden = !parentListIsLoose
+  if (!parentListIsLoose) {
+    pClose._literalTight = true
+  }
   tokens.push(pClose)
 
   if (item.children && item.children.length > 0) {
@@ -414,6 +603,22 @@ function cloneToken(token) {
   return cloned
 }
 
+function revealFirstParagraph(tokens, listItemOpenIdx, listItemCloseIdx) {
+  const paragraphLevel = (tokens[listItemOpenIdx].level ?? 0) + 1
+  for (let k = listItemOpenIdx + 1; k < listItemCloseIdx; k++) {
+    if (tokens[k].type === 'paragraph_open' && tokens[k].level === paragraphLevel) {
+      tokens[k].hidden = false
+      for (let m = k + 1; m < listItemCloseIdx; m++) {
+        if (tokens[m].type === 'paragraph_close' && tokens[m].level === paragraphLevel) {
+          tokens[m].hidden = false
+          break
+        }
+      }
+      break
+    }
+  }
+}
+
 function mergeFollowingLists(tokens, listOpenIndex) {
   if (listOpenIndex < 0 || listOpenIndex >= tokens.length) {
     return 0
@@ -429,6 +634,7 @@ function mergeFollowingLists(tokens, listOpenIndex) {
     return 0
   }
 
+  let forceLoose = false
   while (listCloseIndex + 1 < tokens.length) {
     const nextToken = tokens[listCloseIndex + 1]
     if (!nextToken ||
@@ -440,6 +646,7 @@ function mergeFollowingLists(tokens, listOpenIndex) {
     if (nextClose === -1) {
       break
     }
+    const nextIsLiteral = !!nextToken._literalList
     const innerTokens = tokens.slice(listCloseIndex + 2, nextClose)
     const removeCount = nextClose - (listCloseIndex + 1) + 1
     tokens.splice(listCloseIndex + 1, removeCount)
@@ -447,9 +654,47 @@ function mergeFollowingLists(tokens, listOpenIndex) {
 
     listCloseIndex = listCloseIndex + innerTokens.length
     totalDelta -= 2
+    if (!nextIsLiteral) {
+      const startLine = Array.isArray(nextToken.map) ? nextToken.map[0] : null
+      if (typeof startLine === 'number' && typeof listOpen._literalLastLine === 'number') {
+        if (startLine - listOpen._literalLastLine > 1) {
+          forceLoose = true
+        }
+      }
+    }
+    if (typeof nextToken._literalLastLine === 'number') {
+      listOpen._literalLastLine = nextToken._literalLastLine
+    } else if (Array.isArray(nextToken.map) && typeof nextToken.map[1] === 'number') {
+      listOpen._literalLastLine = nextToken.map[1]
+    }
   }
 
+  if (forceLoose) {
+    markLiteralListLoose(tokens, listOpenIndex)
+  }
   return totalDelta
+}
+
+function markLiteralListLoose(tokens, listOpenIndex) {
+  const listOpen = tokens[listOpenIndex]
+  if (!listOpen || listOpen.type !== 'ordered_list_open') {
+    return
+  }
+  const listCloseIndex = findMatchingClose(tokens, listOpenIndex, 'ordered_list_open', 'ordered_list_close')
+  if (listCloseIndex === -1) {
+    return
+  }
+  const paragraphLevel = (listOpen.level ?? 0) + 2
+  for (let i = listOpenIndex + 1; i < listCloseIndex; i++) {
+    const token = tokens[i]
+    if ((token.type === 'paragraph_open' || token.type === 'paragraph_close') &&
+        token.level === paragraphLevel) {
+      token.hidden = false
+      if (token._literalTight) {
+        delete token._literalTight
+      }
+    }
+  }
 }
 
 function splitOrderedListForLiteralChildren(tokens, listOpenIndex, TokenClass) {
