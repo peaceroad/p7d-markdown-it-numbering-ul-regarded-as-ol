@@ -577,3 +577,61 @@
 </ol>
 </li>
 </ol>
+
+
+[Markdown]
+1. aaa
+
+    2. bbb
+
+        ccc
+
+        3. ddd
+        4. eee
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>bbb</p>
+<p>ccc</p>
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>ddd</li>
+<li>eee</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+1. aaa
+
+    2. bbb
+
+        ccc
+
+        3. ddd
+
+        4. eee
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>bbb</p>
+<p>ccc</p>
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>ddd</p>
+</li>
+<li>
+<p>eee</p>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
