@@ -3,6 +3,8 @@
 // This phase moves custom attributes from child lists to parent lists
 // in flattened `- 1. Parent\n    - a. Child\n{.class}` patterns
 
+import { buildListCloseIndexMap } from './list-helpers.js'
+
 /**
  * Move custom attributes from nested child ordered_list to parent ordered_list
  * 
@@ -23,6 +25,9 @@
  */
 export function moveNestedListAttributes(tokens) {
   const tokensLength = tokens.length
+  const closeMap = buildListCloseIndexMap(tokens)
+  const listCloseByOpen = closeMap.listCloseByOpen
+  const listItemCloseByOpen = closeMap.listItemCloseByOpen
   
   // Single pass: find top-level ordered_lists and process immediately
   for (let i = 0; i < tokensLength; i++) {
@@ -37,15 +42,18 @@ export function moveNestedListAttributes(tokens) {
     const parentLevel = token.level
     
     // Find list end
-    let listEndIndex = tokensLength
-    let depth = 1
-    for (let j = i + 1; j < tokensLength; j++) {
-      if (tokens[j].type === 'ordered_list_open') depth++
-      else if (tokens[j].type === 'ordered_list_close') {
-        depth--
-        if (depth === 0) {
-          listEndIndex = j
-          break
+    let listEndIndex = listCloseByOpen[i]
+    if (typeof listEndIndex !== 'number' || listEndIndex === -1) {
+      listEndIndex = tokensLength
+      let depth = 1
+      for (let j = i + 1; j < tokensLength; j++) {
+        if (tokens[j].type === 'ordered_list_open') depth++
+        else if (tokens[j].type === 'ordered_list_close') {
+          depth--
+          if (depth === 0) {
+            listEndIndex = j
+            break
+          }
         }
       }
     }
@@ -59,15 +67,18 @@ export function moveNestedListAttributes(tokens) {
       
       if (t.type === 'list_item_open' && t.level === parentLevel + 1) {
         firstItemOpen = j
-        // Find matching close
-        let itemDepth = 1
-        for (let k = j + 1; k < tokensLength; k++) {
-          if (tokens[k].type === 'list_item_open') itemDepth++
-          else if (tokens[k].type === 'list_item_close') {
-            itemDepth--
-            if (itemDepth === 0) {
-              firstItemClose = k
-              break
+        firstItemClose = listItemCloseByOpen[j]
+        if (typeof firstItemClose !== 'number' || firstItemClose === -1) {
+          // Find matching close
+          let itemDepth = 1
+          for (let k = j + 1; k < tokensLength; k++) {
+            if (tokens[k].type === 'list_item_open') itemDepth++
+            else if (tokens[k].type === 'list_item_close') {
+              itemDepth--
+              if (itemDepth === 0) {
+                firstItemClose = k
+                break
+              }
             }
           }
         }

@@ -2,7 +2,7 @@
 // Convert markers to span for custom markers and alwaysMarkerSpan mode
 
 import { getTypeAttributes, getSymbolForNumber } from './types-utility.js'
-import { findMatchingClose } from './list-helpers.js'
+import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 
 /**
  * Generate marker spans
@@ -11,6 +11,12 @@ import { findMatchingClose } from './list-helpers.js'
  * @param {Object} opt - Options
  */
 export function generateSpans(tokens, listInfos, opt) {
+  if (opt.useCounterStyle) {
+    return
+  }
+  const closeMap = buildListCloseIndexMap(tokens)
+  const listCloseByOpen = closeMap.listCloseByOpen
+
   // Traverse token array and add spans to ordered_list_open tokens
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
@@ -21,11 +27,8 @@ export function generateSpans(tokens, listInfos, opt) {
       const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker, opt)
       
       // Generate span if no type attribute (custom marker) or alwaysMarkerSpan mode
-      // If user opts to use @counter-style, do not generate inline marker spans
-      if (opt.useCounterStyle) continue
-
       if (!typeAttrs.type || opt.alwaysMarkerSpan) {
-        addMarkerSpans(tokens, token, i, markerInfo, opt)
+        addMarkerSpans(tokens, token, i, markerInfo, opt, listCloseByOpen)
       }
     }
   }
@@ -34,9 +37,12 @@ export function generateSpans(tokens, listInfos, opt) {
 /**
  * Add marker <span> to the first inline token of each list item.
  */
-function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt) {
+function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, listCloseByOpen = null) {
   // Find end position of this ordered_list
-  const listCloseIndex = findMatchingClose(tokens, listIndex, 'ordered_list_open', 'ordered_list_close')
+  let listCloseIndex = listCloseByOpen ? listCloseByOpen[listIndex] : -1
+  if (typeof listCloseIndex !== 'number' || listCloseIndex === -1) {
+    listCloseIndex = findMatchingClose(tokens, listIndex, 'ordered_list_open', 'ordered_list_close')
+  }
   if (listCloseIndex === -1) return
   
   let markerIndex = 0

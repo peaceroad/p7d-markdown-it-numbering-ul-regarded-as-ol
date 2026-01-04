@@ -45,3 +45,51 @@ export function findListEnd(tokens, startIndex) {
 export function findListItemEnd(tokens, startIndex) {
   return findMatchingClose(tokens, startIndex, 'list_item_open', 'list_item_close')
 }
+
+/**
+ * Build close-index maps for list and list_item tokens.
+ * @param {Array} tokens - Token array
+ * @returns {{ listCloseByOpen: number[], listItemCloseByOpen: number[] }}
+ */
+export function buildListCloseIndexMap(tokens) {
+  const listCloseByOpen = new Array(tokens.length).fill(-1)
+  const listItemCloseByOpen = new Array(tokens.length).fill(-1)
+  const bulletStack = []
+  const orderedStack = []
+  const listItemStack = []
+
+  for (let i = 0; i < tokens.length; i++) {
+    const type = tokens[i]?.type
+    if (type === 'bullet_list_open') {
+      bulletStack.push(i)
+      continue
+    }
+    if (type === 'bullet_list_close') {
+      if (bulletStack.length > 0) {
+        listCloseByOpen[bulletStack.pop()] = i
+      }
+      continue
+    }
+    if (type === 'ordered_list_open') {
+      orderedStack.push(i)
+      continue
+    }
+    if (type === 'ordered_list_close') {
+      if (orderedStack.length > 0) {
+        listCloseByOpen[orderedStack.pop()] = i
+      }
+      continue
+    }
+    if (type === 'list_item_open') {
+      listItemStack.push(i)
+      continue
+    }
+    if (type === 'list_item_close') {
+      if (listItemStack.length > 0) {
+        listItemCloseByOpen[listItemStack.pop()] = i
+      }
+    }
+  }
+
+  return { listCloseByOpen, listItemCloseByOpen }
+}

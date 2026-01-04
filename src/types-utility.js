@@ -388,6 +388,14 @@ const tryMatchPattern = (trimmed, compiledType, typeInfo) => {
 
 // Enhanced marker type detection with context awareness
 export const detectMarkerType = (content, allContents = null) => {
+  let contextResult = null
+  if (Array.isArray(allContents) && allContents.length > 0) {
+    contextResult = detectSequencePattern(allContents)
+  }
+  return detectMarkerTypeWithContext(content, contextResult)
+}
+
+export const detectMarkerTypeWithContext = (content, contextResult = null) => {
   if (!content || typeof content !== 'string') {
     return { type: null, marker: null }
   }
@@ -395,32 +403,15 @@ export const detectMarkerType = (content, allContents = null) => {
   const trimmed = content.trim()
   if (!trimmed) return { type: null, marker: null }
 
-  const { sortedSymbolTypes, rangeBasedTypes, typeInfoByName } = getTypeSeparation()
-  
-  // If we have context (even single element), try to detect the overall pattern first
-  if (allContents && Array.isArray(allContents) && allContents.length >= 1) {
-    const contextResult = detectSequencePattern(allContents)
-    if (contextResult) {
-      // If context suggests a specific type, verify current content matches
-      const typeInfo = typeInfoByName.get(contextResult.type)
-      if (typeInfo) {
-        // Check both symbol-based and range-based types
-        const allCompiledTypes = [...sortedSymbolTypes, ...rangeBasedTypes]
-        for (const compiledType of allCompiledTypes) {
-          if (compiledType.name === contextResult.type) {
-            const matchResult = tryMatchPattern(trimmed, compiledType, typeInfo)
-            if (matchResult) return matchResult
-          }
-        }
-      }
-    }
+  if (contextResult && contextResult.type) {
+    const contextMatch = tryMatchAgainstType(trimmed, contextResult.type)
+    if (contextMatch) return contextMatch
   }
-  
-  // Fallback to original logic
+
   // Fast fallback: try a flattened precompiled pattern list to avoid nested loops
   const flatMatch = tryMatchAgainstFlattened(trimmed)
   if (flatMatch) return flatMatch
-  
+
   return { type: null, marker: null }
 }
 
@@ -530,6 +521,22 @@ const generateClassName = (baseClass, prefix, suffix) => {
   return `${baseClass}-with-${p}-${s}`
 }
 
+// Standard marker types mapping
+const STANDARD_TYPES = {
+  'decimal': { type: '1', baseClass: 'ol-decimal' },
+  'lower-latin': { type: 'a', baseClass: 'ol-lower-latin' },
+  'upper-latin': { type: 'A', baseClass: 'ol-upper-latin' },
+  'lower-roman': { type: 'i', baseClass: 'ol-lower-roman' },
+  'upper-roman': { type: 'I', baseClass: 'ol-upper-roman' }
+}
+
+// Custom marker types with no suffix
+const CUSTOM_TYPES_NO_SUFFIX = new Set([
+  'filled-circled-decimal', 'circled-decimal',
+  'circled-upper-latin', 'filled-circled-upper-latin',
+  'circled-lower-latin', 'katakana', 'katakana-iroha'
+])
+
 export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   const { typeInfoByName } = getTypeSeparation()
   const type = typeInfoByName.get(markerType)
@@ -541,29 +548,13 @@ export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   const detectedPrefix = markerInfo?.prefix || null
   const detectedSuffix = markerInfo?.suffix || '.'
   
-  // Standard marker types mapping
-  const standardTypes = {
-    'decimal': { type: '1', baseClass: 'ol-decimal' },
-    'lower-latin': { type: 'a', baseClass: 'ol-lower-latin' },
-    'upper-latin': { type: 'A', baseClass: 'ol-upper-latin' },
-    'lower-roman': { type: 'i', baseClass: 'ol-lower-roman' },
-    'upper-roman': { type: 'I', baseClass: 'ol-upper-roman' }
-  }
-  
-  // Custom marker types with no suffix
-  const customTypesNoSuffix = [
-    'filled-circled-decimal', 'circled-decimal', 
-    'circled-upper-latin', 'filled-circled-upper-latin', 
-    'circled-lower-latin', 'katakana', 'katakana-iroha'
-  ]
-  
   let mappedType
   let suffix = detectedSuffix
   let prefix = detectedPrefix
   let customMarker = false
   
-  if (standardTypes[type.name]) {
-    const std = standardTypes[type.name]
+  if (STANDARD_TYPES[type.name]) {
+    const std = STANDARD_TYPES[type.name]
     const baseClass = std.baseClass
     const decoratedClass = opt.addMarkerStyleToClass
       ? generateClassName(baseClass, prefix, suffix)
@@ -576,7 +567,7 @@ export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
     // Custom marker types
     mappedType = { type: '1', class: `ol-${type.name}` }
     customMarker = true
-    if (customTypesNoSuffix.includes(type.name)) {
+    if (CUSTOM_TYPES_NO_SUFFIX.has(type.name)) {
       suffix = null
     }
   }
@@ -823,6 +814,17 @@ const _FLATTENED_PATTERNS = (() => {
   }
   return arr
 })()
+
+const tryMatchAgainstType = (trimmed, typeName) => {
+  if (!typeName) return null
+  const compiled = _COMPILED_BY_NAME.get(typeName)
+  if (!compiled || !Array.isArray(compiled.patterns)) return null
+  for (const entry of compiled.patterns) {
+    const m = matchRegexEntry(trimmed, typeName, entry)
+    if (m) return m
+  }
+  return null
+}
 
 // Fast matcher over flattened list
 const tryMatchAgainstFlattened = (trimmed) => {

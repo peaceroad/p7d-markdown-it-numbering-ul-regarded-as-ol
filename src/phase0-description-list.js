@@ -2,7 +2,7 @@
 // Converts bullet_list with **Term** pattern to description_list (dl/dt/dd)
 // This must run before Phase 1
 
-import { findMatchingClose, findListEnd as coreFindListEnd, findListItemEnd as coreFindListItemEnd } from './list-helpers.js'
+import { findMatchingClose, findListEnd as coreFindListEnd } from './list-helpers.js'
 
 /**
  * Parse attribute string like ".class1 .class2 #id data-foo="bar""
@@ -73,11 +73,32 @@ const findListEnd = (tokens, startIndex) => {
 }
 
 /**
- * Find matching list_item close token
+ * Collect direct list_item ranges within a list in a single pass.
  */
-const findListItemEnd = (tokens, startIndex) => {
-  const result = coreFindListItemEnd(tokens, startIndex)
-  return result === -1 ? tokens.length - 1 : result
+const collectListItemRanges = (tokens, listStart, listEnd) => {
+  const listToken = tokens[listStart]
+  if (!listToken) {
+    return []
+  }
+  const childLevel = (listToken.level ?? 0) + 1
+  const ranges = []
+  let currentOpen = -1
+
+  for (let i = listStart + 1; i < listEnd; i++) {
+    const token = tokens[i]
+    if (token.type === 'list_item_open' && token.level === childLevel) {
+      currentOpen = i
+      continue
+    }
+    if (token.type === 'list_item_close' && token.level === childLevel) {
+      if (currentOpen !== -1) {
+        ranges.push({ open: currentOpen, close: i })
+        currentOpen = -1
+      }
+    }
+  }
+
+  return ranges
 }
 
 /**
@@ -103,77 +124,72 @@ const findDDEnd = (tokens, startIndex) => {
 const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
   // First pass: validate all items match DL pattern
   let hasAnyDLItem = false
-  let i = listStart + 1
-  
-  while (i < listEnd) {
-    if (tokens[i].type === 'list_item_open') {
-      const itemEnd = findListItemEnd(tokens, i)
-      
-      // Find first paragraph
-      let firstPara = -1
-      for (let j = i + 1; j < itemEnd; j++) {
-        if (tokens[j].type === 'paragraph_open') {
-          firstPara = j
-          break
-        }
+  const itemRanges = collectListItemRanges(tokens, listStart, listEnd)
+
+  for (const range of itemRanges) {
+    const itemStart = range.open
+    const itemEnd = range.close
+    
+    // Find first paragraph
+    let firstPara = -1
+    for (let j = itemStart + 1; j < itemEnd; j++) {
+      if (tokens[j].type === 'paragraph_open') {
+        firstPara = j
+        break
       }
-      
-      if (firstPara !== -1) {
-        const inlineToken = tokens[firstPara + 1]
-        if (inlineToken && inlineToken.type === 'inline') {
-          const dlCheck = isDLPattern(inlineToken.content)
-          if (dlCheck.isMatch) {
-            // Check if there's a description
-            let hasDescription = false
-            
-            const afterStrong = dlCheck.afterStrong
-            
-            // Pattern 1: **Term**  description (2+ spaces, including newlines)
-            // Pattern 2: **Term**: description (colon)
-            // Pattern 3: **Term**\ description (backslash escape)
-            if (/^\s{2,}/.test(afterStrong) || /^\s*:/.test(afterStrong) || /^\\/.test(afterStrong)) {
-              // Remove leading space/colon/backslash and check remaining text
-              const cleaned = afterStrong.replace(/^[\s:]+/, '').replace(/^\\/, '').trim()
-              if (cleaned) {
-                hasDescription = true
-              }
+    }
+    
+    if (firstPara !== -1) {
+      const inlineToken = tokens[firstPara + 1]
+      if (inlineToken && inlineToken.type === 'inline') {
+        const dlCheck = isDLPattern(inlineToken.content)
+        if (dlCheck.isMatch) {
+          // Check if there's a description
+          let hasDescription = false
+          
+          const afterStrong = dlCheck.afterStrong
+          
+          // Pattern 1: **Term**  description (2+ spaces, including newlines)
+          // Pattern 2: **Term**: description (colon)
+          // Pattern 3: **Term**\ description (backslash escape)
+          if (/^\s{2,}/.test(afterStrong) || /^\s*:/.test(afterStrong) || /^\\/.test(afterStrong)) {
+            // Remove leading space/colon/backslash and check remaining text
+            const cleaned = afterStrong.replace(/^[\s:]+/, '').replace(/^\\/, '').trim()
+            if (cleaned) {
+              hasDescription = true
             }
-            
-            // Pattern 4: Description in next paragraph (only **Term** in first para)
-            if (!hasDescription) {
-              // Check for additional paragraphs/lists
-              for (let k = firstPara + 3; k < itemEnd; k++) {
-                if (tokens[k].type === 'paragraph_open' || 
-                    tokens[k].type === 'bullet_list_open' || 
-                    tokens[k].type === 'ordered_list_open') {
-                  hasDescription = true
-                  break
-                }
-              }
-            }
-            
-            // If no description, not a DL item
-            if (!hasDescription) {
-              return false
-            }
-            
-            hasAnyDLItem = true
-          } else {
-            // Not all items are DL pattern - not a description list
-            return { nextIndex: listEnd + 1 }
           }
+          
+          // Pattern 4: Description in next paragraph (only **Term** in first para)
+          if (!hasDescription) {
+            // Check for additional paragraphs/lists
+            for (let k = firstPara + 3; k < itemEnd; k++) {
+              if (tokens[k].type === 'paragraph_open' || 
+                  tokens[k].type === 'bullet_list_open' || 
+                  tokens[k].type === 'ordered_list_open') {
+                hasDescription = true
+                break
+              }
+            }
+          }
+          
+          // If no description, not a DL item
+          if (!hasDescription) {
+            return false
+          }
+          
+          hasAnyDLItem = true
+        } else {
+          // Not all items are DL pattern - not a description list
+          return { nextIndex: listEnd + 1 }
         }
       }
-      
-      i = itemEnd + 1
-    } else {
-      i++
     }
   }
   
   // If valid DL, convert immediately (avoid re-scanning)
   if (hasAnyDLItem) {
-    convertBulletListToDL(tokens, listStart, listEnd, opt)
+    convertBulletListToDL(tokens, listStart, listEnd, opt, itemRanges)
     // After conversion, tokens are replaced - continue from original listEnd position
     // Note: convertBulletListToDL may change token count, but we use original listEnd
     return { nextIndex: listStart + 1 }  // Re-check from start since tokens changed
@@ -212,7 +228,7 @@ const isDLPattern = (content) => {
 /**
  * Convert bullet_list to dl/dt/dd structure using dl_open/dl_close tokens
  */
-const convertBulletListToDL = (tokens, listStart, listEnd, opt) => {
+const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = null) => {
   const newTokens = []
   const listLevel = tokens[listStart].level
   
@@ -242,33 +258,31 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt) => {
   const listAttrsFromItems = []
   
   // Process each list_item
-  let i = listStart + 1
-  while (i < listEnd) {
-    if (tokens[i].type === 'list_item_open') {
-      const itemEnd = findListItemEnd(tokens, i)
-      const result = convertListItemToDtDd(tokens, i, itemEnd, listLevel, opt)
-      
-      // Update metadata
-      dlOpen._dlMetadata.itemCount++
-      
-      // Check for list-level attrs returned from item
-      if (result.listAttrs && result.listAttrs.length > 0) {
-        listAttrsFromItems.push(...result.listAttrs)
-      }
-      
-      if (result.tokens) {
-        // Track last dd_open position (relative to newTokens)
-        for (let j = 0; j < result.tokens.length; j++) {
-          if (result.tokens[j].type === 'dd_open') {
-            dlOpen._dlMetadata.lastDdTokenIndex = newTokens.length + j
-          }
+  const ranges = Array.isArray(itemRanges) && itemRanges.length > 0
+    ? itemRanges
+    : collectListItemRanges(tokens, listStart, listEnd)
+
+  for (const range of ranges) {
+    const itemStart = range.open
+    const itemEnd = range.close
+    const result = convertListItemToDtDd(tokens, itemStart, itemEnd, listLevel, opt)
+    
+    // Update metadata
+    dlOpen._dlMetadata.itemCount++
+    
+    // Check for list-level attrs returned from item
+    if (result.listAttrs && result.listAttrs.length > 0) {
+      listAttrsFromItems.push(...result.listAttrs)
+    }
+    
+    if (result.tokens) {
+      // Track last dd_open position (relative to newTokens)
+      for (let j = 0; j < result.tokens.length; j++) {
+        if (result.tokens[j].type === 'dd_open') {
+          dlOpen._dlMetadata.lastDdTokenIndex = newTokens.length + j
         }
-        newTokens.push(...result.tokens)
       }
-      
-      i = itemEnd + 1
-    } else {
-      i++
+      newTokens.push(...result.tokens)
     }
   }
   

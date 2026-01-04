@@ -1,7 +1,7 @@
 // Phase 1: List Structure Analysis and Marker Detection
 // Analyze only, no token conversion
-import { detectMarkerType } from './types-utility.js'
-import { findMatchingClose } from './list-helpers.js'
+import { detectMarkerType, detectMarkerTypeWithContext, detectSequencePattern } from './types-utility.js'
+import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 
 /**
  * Pre-compute DL scope (identify all DL ranges in O(n))
@@ -74,7 +74,7 @@ function isInsideDL(index, dlState) {
  */
 export function analyzeListStructure(tokens, opt) {
   const listInfos = []
-  const processed = new Set()
+  const closeMap = buildListCloseIndexMap(tokens)
   
   // Check DL existence (O(n) but optimized with early return)
   let hasDL = false
@@ -92,11 +92,10 @@ export function analyzeListStructure(tokens, opt) {
   // Process only top-level lists (nested lists collected recursively)
   // Also process lists inside DL
   for (let i = 0; i < tokens.length; i++) {
-    if (processed.has(i)) {
+    const token = tokens[i]
+    if (!token) {
       continue
     }
-    
-    const token = tokens[i]
     
     // Process level-0 lists or lists at any level inside DD
     const isTopLevelList = (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') && 
@@ -106,16 +105,13 @@ export function analyzeListStructure(tokens, opt) {
                        isInsideDL(i, dlScope)
     
     if (isTopLevelList || isListInDD) {
-      const listInfo = analyzeList(tokens, i, opt)
+      const listInfo = analyzeList(tokens, i, opt, closeMap)
       if (listInfo) {
         listInfos.push(listInfo)
-        // Mark this list range as processed
-        for (let j = listInfo.startIndex; j <= listInfo.endIndex; j++) {
-          processed.add(j)
-        }
         
         // Recursively collect nested lists
         collectNestedLists(listInfo, listInfos)
+        i = listInfo.endIndex
       }
     }
   }
@@ -143,9 +139,9 @@ function collectNestedLists(listInfo, listInfos) {
 /**
  * Analyze detailed information of a single list
  */
-function analyzeList(tokens, startIndex, opt) {
+function analyzeList(tokens, startIndex, opt, closeMap) {
   const listToken = tokens[startIndex]
-  const endIndex = findListEnd(tokens, startIndex)
+  const endIndex = findListEnd(tokens, startIndex, closeMap)
   
   if (endIndex === -1) {
     return null
@@ -153,7 +149,7 @@ function analyzeList(tokens, startIndex, opt) {
   
   const level = listToken.level || 0
   const originalType = listToken.type
-  const items = analyzeListItems(tokens, startIndex, endIndex, opt)
+  const items = analyzeListItems(tokens, startIndex, endIndex, opt, closeMap)
   const isLoose = detectLooseList(tokens, startIndex, endIndex, items)
   if (!isLoose) {
     hideFirstParagraphsForTightList(tokens, items, level)
@@ -188,7 +184,7 @@ function analyzeList(tokens, startIndex, opt) {
 /**
  * Analyze list items
  */
-function analyzeListItems(tokens, startIndex, endIndex, opt) {
+function analyzeListItems(tokens, startIndex, endIndex, opt, closeMap) {
   const items = []
   let i = startIndex + 1
   
@@ -196,8 +192,8 @@ function analyzeListItems(tokens, startIndex, endIndex, opt) {
     const token = tokens[i]
     
     if (token.type === 'list_item_open') {
-      const itemEndIndex = findListItemEnd(tokens, i)
-      const item = analyzeListItem(tokens, i, itemEndIndex, opt)
+      const itemEndIndex = findListItemEnd(tokens, i, closeMap)
+      const item = analyzeListItem(tokens, i, itemEndIndex, opt, closeMap)
       items.push(item)
       i = itemEndIndex + 1
     } else {
@@ -211,65 +207,58 @@ function analyzeListItems(tokens, startIndex, endIndex, opt) {
 /**
  * Analyze a single list item
  */
-function analyzeListItem(tokens, startIndex, endIndex, opt) {
+function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
   let content = ''
   let markerInfo = null
   let hasNestedList = false
   let nestedLists = []
   let firstParagraphIsLoose = false
+  let lastInlineContent = ''
   
   // Check if blank line exists right after first paragraph (only before child lists)
   // paragraph.hidden alone is insufficient: when parent list is loose, all paragraphs have hidden=false
   // Need to use map info to verify actual blank line after paragraph
-  let nestedDepth = 0
   let foundParagraph = false
   let firstParagraphIndex = -1
+  let checkedFirstParagraphLoose = false
   
   for (let i = startIndex + 1; i < endIndex; i++) {
     const token = tokens[i]
     
+    if (token.type === 'inline' && token.content) {
+      lastInlineContent = token.content
+    }
+    
+    if (!checkedFirstParagraphLoose && token.type === 'paragraph_open' && !foundParagraph) {
+      foundParagraph = true
+      firstParagraphIndex = i
+    }
+
     if (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') {
-      // When child list starts, check if blank line exists right after first paragraph
-      if (foundParagraph && firstParagraphIndex !== -1) {
+      if (!checkedFirstParagraphLoose && foundParagraph && firstParagraphIndex !== -1) {
         const paragraphToken = tokens[firstParagraphIndex]
         const paragraphEndLine = paragraphToken.map ? paragraphToken.map[1] : undefined
         const nestedListStartLine = token.map
           ? token.map[0]
           : (typeof token._literalStartLine === 'number' ? token._literalStartLine : undefined)
         if (typeof paragraphEndLine === 'number' && typeof nestedListStartLine === 'number') {
-          // Check if blank line exists between paragraph end and child list start
           if (nestedListStartLine > paragraphEndLine) {
             firstParagraphIsLoose = true
           }
         }
-        break
       }
-      nestedDepth++
-    } else if (token.type === 'bullet_list_close' || token.type === 'ordered_list_close') {
-      nestedDepth--
-    } else if (nestedDepth === 0 && token.type === 'paragraph_open') {
-      // First paragraph outside nested lists
-      foundParagraph = true
-      firstParagraphIndex = i
-    }
-  }
-  
-  for (let i = startIndex + 1; i < endIndex; i++) {
-    const token = tokens[i]
-    
-    if (token.type === 'inline' && token.content) {
-      content = token.content
-      // Detect marker
-      markerInfo = detectMarkerType(content, opt)
-    }
-    
-    if (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') {
+      checkedFirstParagraphLoose = true
       hasNestedList = true
-      const nestedListInfo = analyzeList(tokens, i, opt)
+      const nestedListInfo = analyzeList(tokens, i, opt, closeMap)
       nestedLists.push(nestedListInfo)
       i = nestedListInfo.endIndex
     }
   }
+  
+  if (firstParagraphIsLoose && hasNestedList && lastInlineContent) {
+    markerInfo = detectMarkerType(lastInlineContent)
+  }
+  content = lastInlineContent
   
   return {
     startIndex,
@@ -288,7 +277,6 @@ function analyzeListItem(tokens, startIndex, endIndex, opt) {
 function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
   const listToken = tokens[startIndex]
   const markers = []
-  let level = 0
   
   // For ordered_list, get numbers from list_item_open's info
   if (listToken.type === 'ordered_list_open') {
@@ -314,23 +302,25 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
     // Target only direct children list_items of this list
     const targetLevel = (listToken.level || 0) + 3  // list_open(0) -> list_item(1) -> paragraph(2) -> inline(3)
     
-    // First, collect all contents (for detecting iroha sequence etc.)
+    // Collect inline tokens and contents once (for detecting iroha sequence etc.)
+    const inlineTokens = []
     const allContents = []
     for (let i = startIndex + 1; i < endIndex; i++) {
       const token = tokens[i]
       if (token.type === 'inline' && token.content && token.level === targetLevel) {
+        inlineTokens.push(token)
         allContents.push(token.content)
       }
     }
     
+    const contextResult = allContents.length > 0 ? detectSequencePattern(allContents) : null
+
     // Detect markers using full context
     let sequentialNumber = 1  // Sequential number counter
-    for (let i = startIndex + 1; i < endIndex; i++) {
-      const token = tokens[i]
-      
+    for (const token of inlineTokens) {
       // Process only inline tokens of direct child items of this list
       if (token.type === 'inline' && token.content && token.level === targetLevel) {
-        const markerInfo = detectMarkerType(token.content, allContents)
+        const markerInfo = detectMarkerTypeWithContext(token.content, contextResult)
         if (markerInfo && markerInfo.type) {
           // Use sequential numbers when same marker continues
           // (e.g., "イ. イ. イ." → interpreted as "イ、ロ、ハ")
@@ -494,7 +484,11 @@ function hideFirstParagraphsForTightList(tokens, items, level) {
 /**
  * Find list end position
  */
-function findListEnd(tokens, startIndex) {
+function findListEnd(tokens, startIndex, closeMap) {
+  const mapped = closeMap?.listCloseByOpen?.[startIndex]
+  if (typeof mapped === 'number' && mapped !== -1) {
+    return mapped
+  }
   const startToken = tokens[startIndex]
   const openType = startToken.type
   const closeType = openType.replace('_open', '_close')
@@ -505,7 +499,11 @@ function findListEnd(tokens, startIndex) {
 /**
  * Find list item end position
  */
-function findListItemEnd(tokens, startIndex) {
+function findListItemEnd(tokens, startIndex, closeMap) {
+  const mapped = closeMap?.listItemCloseByOpen?.[startIndex]
+  if (typeof mapped === 'number' && mapped !== -1) {
+    return mapped
+  }
   const result = findMatchingClose(tokens, startIndex, 'list_item_open', 'list_item_close')
   return result === -1 ? tokens.length - 1 : result
 }

@@ -1,7 +1,7 @@
 // Phase 2: Token Conversion
 // Convert bullet_list to ordered_list based on Phase1 analysis, simplify nesting in default mode
 
-import { findMatchingClose } from './list-helpers.js'
+import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 
 /**
  * Convert tokens based on list information
@@ -10,7 +10,6 @@ import { findMatchingClose } from './list-helpers.js'
  * @param {Object} opt - Options
  */
 export function convertLists(tokens, listInfos, opt) {
-  const listInfoMap = buildListInfoMap(listInfos)
   // Convert bullet_list to ordered_list
   // listInfos already collected in depth-first order in Phase 1, no sorting needed
   for (const listInfo of listInfos) {
@@ -22,9 +21,10 @@ export function convertLists(tokens, listInfos, opt) {
   // In default mode (unremoveUlNest=false), simplify ul>li>ol structure
   // Runs after conversion, so already-converted ordered_lists are also processed
   if (!opt.unremoveUlNest) {
-    const bulletListInfos = listInfos.filter(info => info.originalType === 'bullet_list_open')
-    if (bulletListInfos.length > 0) {
-      simplifyNestedBulletLists(tokens, bulletListInfos, opt, listInfoMap)
+    const hasBulletLists = listInfos.some(info => info.originalType === 'bullet_list_open')
+    if (hasBulletLists) {
+      const listInfoMap = buildListInfoMap(listInfos)
+      simplifyNestedBulletLists(tokens, opt, listInfoMap)
     }
   }
 }
@@ -114,38 +114,25 @@ function convertBulletToOrdered(tokens, listInfo) {
 function removeMarkersFromContent(tokens, startIndex, endIndex, markerInfo, listInfo) {
   const listToken = tokens[startIndex]
   const targetLevel = (listToken.level || 0) + 3  // list_open(0) -> list_item(1) -> paragraph(2) -> inline(3)
-  
-  // Pre-generate all marker regexes (avoid repeated regex creation in loop)
-  const markerPatterns = markerInfo.markers.map(marker => 
-    marker && marker.marker ? new RegExp(`^${escapeRegExp(marker.marker)}\\s*`) : null
-  )
-  
+
+  const markers = markerInfo.markers
   let markerIndex = 0
-  for (let i = startIndex + 1; i < endIndex && markerIndex < markerPatterns.length; i++) {
+  for (let i = startIndex + 1; i < endIndex && markerIndex < markers.length; i++) {
     const token = tokens[i]
     
     if (token.type === 'inline' && token.content && token.level === targetLevel) {
-      const markerPattern = markerPatterns[markerIndex]
-      if (markerPattern) {
-        // Remove marker and trailing spaces
-        const newContent = token.content.replace(markerPattern, '')
-        
-        // Only advance to next marker if actually removed
-        if (newContent !== token.content) {
-          token.content = newContent
-          markerIndex++
-        }
+      const marker = markers[markerIndex]
+      if (marker && marker.marker && token.content.startsWith(marker.marker)) {
+        let newContent = token.content.slice(marker.marker.length)
+        newContent = newContent.replace(LEADING_SPACE_REGEX, '')
+        token.content = newContent
+        markerIndex++
       }
     }
   }
 }
 
-/**
- * 正規表現の特殊文字をエスケープ
- */
-function escapeRegExp(string) {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-}
+const LEADING_SPACE_REGEX = /^\s+/
 
 /**
  * Simplify nested ul>li>ul and ul>li>ol structures.
@@ -156,16 +143,34 @@ function escapeRegExp(string) {
  * When the middle list_item is empty (contains only the inner list),
  * remove the outer ul and the intermediate li.
  * @param {Array} tokens - Token array
- * @param {Array} listInfos - List information analyzed in Phase 1
  * @param {Object} opt - Options
  * @param {Map} listInfoMap - Map of listInfo keyed by startIndex
  */
-function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
+function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
   let modified = true
   
   // ===== Phase 1: Simplify ul>li>ol structure (multiple passes needed) =====
   while (modified) {
     modified = false
+    const { listCloseByOpen, listItemCloseByOpen } = buildListCloseIndexMap(tokens)
+    const getListClose = (openIdx) => {
+      const mapped = listCloseByOpen[openIdx]
+      if (typeof mapped === 'number' && mapped !== -1) {
+        return mapped
+      }
+      const openType = tokens[openIdx]?.type
+      if (!openType) {
+        return -1
+      }
+      return findMatchingClose(tokens, openIdx, openType, openType.replace('_open', '_close'))
+    }
+    const getListItemClose = (openIdx) => {
+      const mapped = listItemCloseByOpen[openIdx]
+      if (typeof mapped === 'number' && mapped !== -1) {
+        return mapped
+      }
+      return findMatchingClose(tokens, openIdx, 'list_item_open', 'list_item_close')
+    }
     
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i]
@@ -176,7 +181,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       }
           
       // Check if this bullet_list is all ul>li>ol/ul pattern
-      const listCloseIdx = findMatchingClose(tokens, i, 'bullet_list_open', 'bullet_list_close')
+      const listCloseIdx = getListClose(i)
       if (listCloseIdx === -1) continue
       
       // Check all list_items in bullet_list
@@ -187,7 +192,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       while (idx < listCloseIdx) {
         if (tokens[idx].type === 'list_item_open') {
           totalItems++
-          const itemCloseIdx = findMatchingClose(tokens, idx, 'list_item_open', 'list_item_close')
+          const itemCloseIdx = getListItemClose(idx)
           
                   
           // Find inner list within list_item
@@ -197,7 +202,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           for (let j = idx + 1; j < itemCloseIdx; j++) {
             if (tokens[j].type === 'bullet_list_open' || tokens[j].type === 'ordered_list_open') {
               const candidateType = tokens[j].type
-              const candidateClose = findMatchingClose(tokens, j, candidateType, candidateType.replace('_open', '_close'))
+              const candidateClose = getListClose(j)
               if (tokens[j]._literalList) {
                 if (candidateClose === -1) {
                   break
@@ -213,9 +218,8 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           }
           
           if (innerListOpen !== -1) {
-            const innerListCloseType = innerListType === 'bullet_list_open' ? 'bullet_list_close' : 'ordered_list_close'
             if (innerListCloseIdx === -1) {
-              innerListCloseIdx = findMatchingClose(tokens, innerListOpen, innerListType, innerListCloseType)
+              innerListCloseIdx = getListClose(innerListOpen)
             }
             
             // Check if there's extra content before/after ol (whether it's only ol)
@@ -258,7 +262,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
       }
       
       // Check if outer ul is convertible (has markers)
-      const outerListInfo = listInfos?.find(info => info.startIndex === i && info.shouldConvert)
+      const outerListInfo = listInfoMap ? listInfoMap.get(i) : null
 
       if (outerListInfo?.shouldConvert) {
         for (const flattenedItem of itemIndices) {
@@ -296,8 +300,6 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
         if (firstInnerType !== 'ordered_list_open') {
           continue
         }
-        const hasExtraContent = itemIndices.some(item => item.hasExtraContent)
-        
         // Don't simplify if inner lists are mixed types
         if (!allSameType) {
           continue
@@ -479,7 +481,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
             if (tokens[j].type === 'list_item_open' && 
                 tokens[j].level === tokens[item.innerListOpen].level + 1) {
               const itemOpen = j
-              const itemClose = findMatchingClose(tokens, j, 'list_item_open', 'list_item_close')
+              const itemClose = getListItemClose(j)
               innerListItems.push({ open: itemOpen, close: itemClose })
             }
           }
@@ -526,7 +528,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
               if (tokens[j].type === 'list_item_open' && 
                   tokens[j].level === tokens[item.innerListOpen].level + 1) {
                 innerListItemOpen = j
-                innerListItemClose = findMatchingClose(tokens, j, 'list_item_open', 'list_item_close')
+                innerListItemClose = getListItemClose(j)
                 break
               }
             }
@@ -566,7 +568,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
                   tokens[j].level === tokens[item.innerListOpen].level + 1) {
                 // Find first paragraph in list_item
                 const listItemOpen = j
-                const listItemClose = findMatchingClose(tokens, j, 'list_item_open', 'list_item_close')
+                const listItemClose = getListItemClose(j)
                 for (let k = listItemOpen + 1; k < listItemClose; k++) {
                   if (tokens[k].type === 'paragraph_open' && 
                       tokens[k].level === tokens[listItemOpen].level + 1) {
@@ -599,7 +601,7 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
           }
           
           const innerListToken = tokens[item.innerListOpen]
-          const listItemRanges = collectListItemRanges(tokens, item.innerListOpen, item.innerListClose)
+          const listItemRanges = collectListItemRanges(tokens, item.innerListOpen, item.innerListClose, listItemCloseByOpen)
           if (listItemRanges.length === 0) {
             continue
           }
@@ -834,18 +836,37 @@ function simplifyNestedBulletLists(tokens, listInfos, opt, listInfoMap = null) {
   // ===== Propagate ordered_list's _parentIsLoose flag to child lists =====
   // Check all ordered_list_open, and if _parentIsLoose flag exists,
   // propagate to child lists
+  const postCloseMap = buildListCloseIndexMap(tokens)
+  const getPostListClose = (openIdx) => {
+    const mapped = postCloseMap.listCloseByOpen[openIdx]
+    if (typeof mapped === 'number' && mapped !== -1) {
+      return mapped
+    }
+    const openType = tokens[openIdx]?.type
+    if (!openType) {
+      return -1
+    }
+    return findMatchingClose(tokens, openIdx, openType, openType.replace('_open', '_close'))
+  }
+  const getPostListItemClose = (openIdx) => {
+    const mapped = postCloseMap.listItemCloseByOpen[openIdx]
+    if (typeof mapped === 'number' && mapped !== -1) {
+      return mapped
+    }
+    return findMatchingClose(tokens, openIdx, 'list_item_open', 'list_item_close')
+  }
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     
     if ((token.type === 'ordered_list_open' || token.type === 'bullet_list_open') && token._parentIsLoose) {
       // Find this list's close token
-      const listCloseIdx = findMatchingClose(tokens, i, token.type, token.type.replace('_open', '_close'))
+      const listCloseIdx = getPostListClose(i)
       if (listCloseIdx === -1) continue
       
       // Search list_items in this list and set _parentIsLoose flag to child lists in those list_items
       for (let j = i + 1; j < listCloseIdx; j++) {
         if (tokens[j].type === 'list_item_open' && tokens[j].level === token.level + 1) {
-          const itemCloseIdx = findMatchingClose(tokens, j, 'list_item_open', 'list_item_close')
+          const itemCloseIdx = getPostListItemClose(j)
           
           // Search child lists in this list_item
           for (let k = j + 1; k < itemCloseIdx; k++) {
@@ -876,7 +897,7 @@ function buildListInfoMap(listInfos) {
   return map
 }
 
-function collectListItemRanges(tokens, listOpenIdx, listCloseIdx) {
+function collectListItemRanges(tokens, listOpenIdx, listCloseIdx, listItemCloseByOpen = null) {
   const ranges = []
   if (listOpenIdx === -1 || listCloseIdx === -1 || listCloseIdx <= listOpenIdx) {
     return ranges
@@ -886,7 +907,10 @@ function collectListItemRanges(tokens, listOpenIdx, listCloseIdx) {
   for (let i = listOpenIdx + 1; i < listCloseIdx; i++) {
     const token = tokens[i]
     if (token.type === 'list_item_open' && token.level === baseLevel + 1) {
-      const closeIdx = findMatchingClose(tokens, i, 'list_item_open', 'list_item_close')
+      let closeIdx = listItemCloseByOpen ? listItemCloseByOpen[i] : -1
+      if (typeof closeIdx !== 'number' || closeIdx === -1) {
+        closeIdx = findMatchingClose(tokens, i, 'list_item_open', 'list_item_close')
+      }
       if (closeIdx === -1) {
         break
       }

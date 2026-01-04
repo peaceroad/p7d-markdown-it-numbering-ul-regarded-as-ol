@@ -20,87 +20,116 @@ export function normalizeLiteralOrderedLists(tokens) {
     return
   }
 
+  let hasInlineLiteralHint = false
+  let hasCodeLiteralHint = false
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
-    if (token.type !== 'list_item_open') {
-      continue
+    if (!hasInlineLiteralHint &&
+        token.type === 'inline' &&
+        token.content &&
+        token.content.includes('\n') &&
+        INLINE_LITERAL_HINT.test(token.content)) {
+      hasInlineLiteralHint = true
+    } else if (!hasCodeLiteralHint &&
+        token.type === 'code_block' &&
+        token.content &&
+        CODE_LITERAL_HINT.test(token.content)) {
+      hasCodeLiteralHint = true
     }
-    let listItemClose = findListItemEnd(tokens, i)
-    if (listItemClose === -1) {
-      listItemClose = tokens.length - 1
+    if (hasInlineLiteralHint && hasCodeLiteralHint) {
+      break
     }
+  }
 
-    let j = i + 1
-    while (j < listItemClose) {
-      const current = tokens[j]
-      if (current.type !== 'paragraph_open') {
-        j++
+  if (!hasInlineLiteralHint && !hasCodeLiteralHint) {
+    return
+  }
+
+  if (hasInlineLiteralHint) {
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (token.type !== 'list_item_open') {
         continue
       }
+      let listItemClose = findListItemEnd(tokens, i)
+      if (listItemClose === -1) {
+        listItemClose = tokens.length - 1
+      }
 
-      if (current.type === 'paragraph_open') {
-        const inlineIdx = j + 1
-        const paragraphCloseIdx = j + 2
-        if (inlineIdx >= listItemClose ||
-            paragraphCloseIdx >= tokens.length ||
-            tokens[inlineIdx].type !== 'inline' ||
-            tokens[paragraphCloseIdx].type !== 'paragraph_close') {
+      let j = i + 1
+      while (j < listItemClose) {
+        const current = tokens[j]
+        if (current.type !== 'paragraph_open') {
           j++
           continue
         }
 
-        const inlineToken = tokens[inlineIdx]
-        if (!INLINE_LITERAL_HINT.test(inlineToken.content)) {
-          j = paragraphCloseIdx + 1
+        if (current.type === 'paragraph_open') {
+          const inlineIdx = j + 1
+          const paragraphCloseIdx = j + 2
+          if (inlineIdx >= listItemClose ||
+              paragraphCloseIdx >= tokens.length ||
+              tokens[inlineIdx].type !== 'inline' ||
+              tokens[paragraphCloseIdx].type !== 'paragraph_close') {
+            j++
+            continue
+          }
+
+          const inlineToken = tokens[inlineIdx]
+          if (!INLINE_LITERAL_HINT.test(inlineToken.content)) {
+            j = paragraphCloseIdx + 1
+            continue
+          }
+          const baseLine = tokens[j].map ? tokens[j].map[0] : null
+          const segments = parseSegments(inlineToken.content, baseLine)
+          if (!segments.hasLiteral) {
+            j = paragraphCloseIdx + 1
+            continue
+          }
+
+          const listItemLevel = tokens[i].level ?? 0
+          const { tokens: replacementTokens, literalListPositions } = buildReplacementTokens(
+            segments.list,
+            listItemLevel,
+            TokenClass,
+            tokens[j],
+            tokens[inlineIdx],
+            tokens[paragraphCloseIdx]
+          )
+
+          const originalLength = paragraphCloseIdx - j + 1
+          tokens.splice(j, originalLength, ...replacementTokens)
+
+          const delta = replacementTokens.length - originalLength
+          listItemClose += delta
+
+          let mergeDelta = 0
+          for (const info of literalListPositions) {
+            const absoluteIdx = j + info.relativeIndex
+            mergeDelta += mergeFollowingLists(tokens, absoluteIdx)
+          }
+          listItemClose += mergeDelta
+
+          j = j + replacementTokens.length
           continue
         }
-        const baseLine = tokens[j].map ? tokens[j].map[0] : null
-        const segments = parseSegments(inlineToken.content, baseLine)
-        if (!segments.hasLiteral) {
-          j = paragraphCloseIdx + 1
+
+        if (current.type === 'ordered_list_open' &&
+            current.level === (tokens[i].level ?? 0) + 1) {
+          const delta = splitOrderedListForLiteralChildren(tokens, j, TokenClass)
+          listItemClose += delta
+          j++
           continue
         }
 
-        const listItemLevel = tokens[i].level ?? 0
-        const { tokens: replacementTokens, literalListPositions } = buildReplacementTokens(
-          segments.list,
-          listItemLevel,
-          TokenClass,
-          tokens[j],
-          tokens[inlineIdx],
-          tokens[paragraphCloseIdx]
-        )
-
-        const originalLength = paragraphCloseIdx - j + 1
-        tokens.splice(j, originalLength, ...replacementTokens)
-
-        const delta = replacementTokens.length - originalLength
-        listItemClose += delta
-
-        let mergeDelta = 0
-        for (const info of literalListPositions) {
-          const absoluteIdx = j + info.relativeIndex
-          mergeDelta += mergeFollowingLists(tokens, absoluteIdx)
-        }
-        listItemClose += mergeDelta
-
-        j = j + replacementTokens.length
-        continue
-      }
-
-      if (current.type === 'ordered_list_open' &&
-          current.level === (tokens[i].level ?? 0) + 1) {
-        const delta = splitOrderedListForLiteralChildren(tokens, j, TokenClass)
-        listItemClose += delta
         j++
-        continue
       }
-
-      j++
+      i = listItemClose
     }
-    i = listItemClose
   }
-  convertLiteralCodeBlocks(tokens, TokenClass)
+  if (hasCodeLiteralHint) {
+    convertLiteralCodeBlocks(tokens, TokenClass)
+  }
 }
 
 function convertLiteralCodeBlocks(tokens, TokenClass) {
@@ -188,13 +217,23 @@ function tryConvertCodeBlockContinuation(tokens, codeBlockIndex, TokenClass) {
     return false
   }
   let listItemOpenIdx = -1
+  let depth = 0
   for (let k = listItemCloseIdx; k >= 0; k--) {
-    if (tokens[k].type === 'list_item_open' && tokens[k].level === targetLevel) {
-      const closeIdx = findListItemEnd(tokens, k)
-      if (closeIdx === listItemCloseIdx) {
+    const tk = tokens[k]
+    if (tk.type === 'list_item_close' && tk.level === targetLevel) {
+      depth++
+      continue
+    }
+    if (tk.type === 'list_item_open' && tk.level === targetLevel) {
+      depth--
+      if (depth === 0) {
         listItemOpenIdx = k
         break
       }
+      continue
+    }
+    if (tk.type === 'list_item_open' && tk.level <= codeToken.level) {
+      break
     }
   }
   if (listItemOpenIdx === -1) {
@@ -670,17 +709,19 @@ function mergeFollowingLists(tokens, listOpenIndex) {
   }
 
   if (forceLoose) {
-    markLiteralListLoose(tokens, listOpenIndex)
+    markLiteralListLoose(tokens, listOpenIndex, listCloseIndex)
   }
   return totalDelta
 }
 
-function markLiteralListLoose(tokens, listOpenIndex) {
+function markLiteralListLoose(tokens, listOpenIndex, listCloseIndex = null) {
   const listOpen = tokens[listOpenIndex]
   if (!listOpen || listOpen.type !== 'ordered_list_open') {
     return
   }
-  const listCloseIndex = findMatchingClose(tokens, listOpenIndex, 'ordered_list_open', 'ordered_list_close')
+  if (typeof listCloseIndex !== 'number') {
+    listCloseIndex = findMatchingClose(tokens, listOpenIndex, 'ordered_list_open', 'ordered_list_close')
+  }
   if (listCloseIndex === -1) {
     return
   }
@@ -705,16 +746,18 @@ function splitOrderedListForLiteralChildren(tokens, listOpenIndex, TokenClass) {
   }
   const childLevel = (listToken.level ?? 0) + 1
   const ranges = []
-
+  let currentOpen = -1
   for (let idx = listOpenIndex + 1; idx < listCloseIndex; idx++) {
     const token = tokens[idx]
     if (token.type === 'list_item_open' && token.level === childLevel) {
-      const closeIdx = findMatchingClose(tokens, idx, 'list_item_open', 'list_item_close')
-      if (closeIdx === -1) {
-        break
+      currentOpen = idx
+      continue
+    }
+    if (token.type === 'list_item_close' && token.level === childLevel) {
+      if (currentOpen !== -1) {
+        ranges.push({ open: currentOpen, close: idx })
+        currentOpen = -1
       }
-      ranges.push({ open: idx, close: closeIdx })
-      idx = closeIdx
     }
   }
 
