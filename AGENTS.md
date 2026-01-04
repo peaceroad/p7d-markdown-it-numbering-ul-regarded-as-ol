@@ -37,6 +37,7 @@
    Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser runs two quick passes:
    - **Paragraph pass** (guarded by a cheap indented-line regex). It splits the paragraph into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
    - **Code-block pass** (guarded by another regex). It detects `code_block` tokens that markdown-it produced for literal lists. When the block is a continuation of a literal list, it is removed, converted into real `<p>` tokens (dedented, multi-paragraph-aware), and inserted before the parent `li` close.
+   The normaliser short-circuits when no literal list hints are present in the token stream.
    Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap.
 
 3. **Phase 1 - `analyzeListStructure`**  
@@ -78,6 +79,7 @@
 ## Description Lists
 
 - `src/phase0-description-list.js` rewrites bullet list patterns `- **Term** ...` into `<dl>` structures. Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
+- Description list conversion collects direct list_item ranges once and reuses them for validation and conversion.
 - Phase 6 also handles description lists so nested `<ol>` structures created inside `<dd>` stay aligned with markdown-it-attrs output.
 
 ## HTML Blocks Inside Lists
