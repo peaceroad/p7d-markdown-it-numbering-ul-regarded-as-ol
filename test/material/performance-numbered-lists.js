@@ -1,13 +1,22 @@
 import markdownit from 'markdown-it'
 import mditNumberingUlRegardedAsOl from '../../index.js'
 
+const makeRng = (seed) => {
+  let state = seed >>> 0
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0
+    return state / 0x100000000
+  }
+}
+
 // Generate numbered lists with various markers
 const generateNumberedLists = (size) => {
+  const rng = makeRng(0x9e3779b9 ^ size)
   let content = ''
   const markers = ['1.', 'i.', 'a.', 'I.', 'A.', '(1)', '1)', 'ⅰ.', 'α.', '①']
   
   for (let i = 1; i <= size; i++) {
-    const indent = Math.floor(Math.random() * 3) // 0-2 levels of indent
+    const indent = Math.floor(rng() * 3) // 0-2 levels of indent
     const spaces = '  '.repeat(indent)
     const marker = markers[i % markers.length]
     const number = Math.floor(i / markers.length) + 1

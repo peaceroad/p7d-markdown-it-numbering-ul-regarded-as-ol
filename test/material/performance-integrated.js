@@ -2,17 +2,26 @@ import markdownit from 'markdown-it'
 import mditAttrs from 'markdown-it-attrs'
 import mditNumberingUlRegardedAsOl from '../../index.js'
 
+const makeRng = (seed) => {
+  let state = seed >>> 0
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0
+    return state / 0x100000000
+  }
+}
+
 console.log('🎯 Integrated Performance Test for markdown-it-numbering-ul-regarded-as-ol')
 console.log(`📅 Started at: ${new Date().toLocaleString()}`)
 console.log(`🚀 Testing unified processing performance...\n`)
 
 // Test data generators
 const generateNumberedList = (size) => {
+  const rng = makeRng(0x9e3779b9 ^ size)
   let content = ''
   for (let i = 1; i <= size; i++) {
-    const indent = Math.floor(Math.random() * 3) // 0-2 levels of indent
+    const indent = Math.floor(rng() * 3) // 0-2 levels of indent
     const spaces = '  '.repeat(indent)
-    const type = Math.random() > 0.5 ? i : String.fromCharCode(97 + (i % 26)) // number or alphabet
+    const type = rng() > 0.5 ? i : String.fromCharCode(97 + (i % 26)) // number or alphabet
     content += `${spaces}- ${type}. Item ${i}\n`
   }
   return content

@@ -1,8 +1,17 @@
 import markdownit from 'markdown-it'
 import mditNumberingUlRegardedAsOl from '../../index.js'
 
+const makeRng = (seed) => {
+  let state = seed >>> 0
+  return () => {
+    state = (state * 1664525 + 1013904223) >>> 0
+    return state / 0x100000000
+  }
+}
+
 // Generate mixed content with all features
 const generateMixedContent = (size) => {
+  const rng = makeRng(0x9e3779b9 ^ size)
   let content = ''
   const contentTypes = ['numbered', 'description', 'complex', 'nested']
   
@@ -37,7 +46,7 @@ const generateMixedContent = (size) => {
     }
     
     // Add random spacing
-    if (Math.random() > 0.7) {
+    if (rng() > 0.7) {
       content += '\n'
     }
   }
