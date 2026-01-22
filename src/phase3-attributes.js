@@ -7,32 +7,20 @@ import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 /**
  * Add attributes to lists
  * @param {Array} tokens - Token array
- * @param {Array} listInfos - List information
  * @param {Object} opt - Options
  */
-export function addAttributes(tokens, listInfos, opt) {
-  const listInfoMap = buildListInfoMap(listInfos)
+export function addAttributes(tokens, opt) {
   const closeMap = buildListCloseIndexMap(tokens)
   const listCloseByOpen = closeMap.listCloseByOpen
   
   // Traverse token array and add attributes to ordered_list_open tokens
   // Token array may have been rebuilt in Phase2,
-  // so don't use listInfo.startIndex, check token's _markerInfo/_listInfo
+  // so rely on token._markerInfo instead of index-based lookups.
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     
     if (token.type === 'ordered_list_open') {
-      // Find listInfo corresponding to this token
-      // Check _markerInfo or _convertedFromBullet flag saved in Phase2
-      if (token._markerInfo || token._convertedFromBullet) {
-        addListAttributesForToken(tokens, token, i, opt, null, listCloseByOpen)
-      } else {
-        // If originally ordered_list, find from listInfos
-        const listInfo = listInfoMap.get(i)
-        if (listInfo) {
-          addListAttributesForToken(tokens, token, i, opt, listInfo, listCloseByOpen)
-        }
-      }
+      addListAttributesForToken(tokens, token, i, opt, listCloseByOpen)
     }
   }
   
@@ -43,36 +31,16 @@ export function addAttributes(tokens, listInfos, opt) {
 }
 
 /**
- * Build a lookup map for listInfos keyed by startIndex.
- */
-function buildListInfoMap(listInfos) {
-  if (!Array.isArray(listInfos) || listInfos.length === 0) {
-    return new Map()
-  }
-  
-  const map = new Map()
-  for (const info of listInfos) {
-    if (!info || typeof info.startIndex !== 'number' || !info.markerInfo) {
-      continue
-    }
-    if (!map.has(info.startIndex)) {
-      map.set(info.startIndex, info)
-    }
-  }
-  return map
-}
-
-/**
  * Add attributes to a single list token
  */
-function addListAttributesForToken(tokens, token, tokenIndex, opt, listInfo = null, listCloseByOpen = null) {
+function addListAttributesForToken(tokens, token, tokenIndex, opt, listCloseByOpen = null) {
   // Initialize attribute array
   if (!token.attrs) {
     token.attrs = []
   }
   
   // Get marker info
-  const markerInfo = token._markerInfo || listInfo?.markerInfo
+  const markerInfo = token._markerInfo
   
   if (!markerInfo) {
     // Default attributes for lists without markerInfo

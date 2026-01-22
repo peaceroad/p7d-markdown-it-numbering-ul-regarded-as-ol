@@ -1,4 +1,3 @@
-
 # Markdown-it Numbering UL Developer Guide
 
 ## Working Style
@@ -28,37 +27,50 @@
 | `src/phase5-spans.js` | optional marker span generation |
 | `src/phase6-attrs-migration.js` | move attrs for flattened nested lists |
 
-## Pipeline Flow (registered in `index.js`)
+## Core Rules (registered in `index.js`)
 
-1. **Phase 0 - `processDescriptionList`**  
-   Detects `**Term**` bullet patterns and rewrites them into `<dl>/<dt>/<dd>`, optionally wrapping each pair in `<div>` when `descriptionListWithDiv` is enabled.
+1. **`numbering_dl_parser` (before `inline`)**
+   - Runs `processDescriptionList` to rewrite bullet `**Term**` patterns into `<dl>/<dt>/<dd>` (optionally wrapped in `<div>`).
 
-2. **Literal ordered-list normalisation - `normalizeLiteralOrderedLists`**  
+2. **`numbering_ul_phases` (after `numbering_dl_parser`)**
+   - Runs the list pipeline: literal list normalisation, analysis, conversion, attribute attachment, HTML block normalisation, and optional marker spans.
+
+3. **`numbering_ul_nested_attrs` (after `curly_attributes`)**
+   - Runs `moveNestedListAttributes` only when flattening is enabled (`unremoveUlNest=false`).
+
+4. **`numbering_dl_attrs` (after `curly_attributes`)**
+   - Runs `moveParagraphAttributesToDL` only when description lists are enabled.
+
+## Pipeline Flow (inside `numbering_ul_phases`)
+
+1. **Literal ordered-list normalisation - `normalizeLiteralOrderedLists`**
    Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser runs two quick passes:
    - **Paragraph pass** (guarded by a cheap indented-line regex). It splits the paragraph into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
    - **Code-block pass** (guarded by another regex). It detects `code_block` tokens that markdown-it produced for literal lists. When the block is a continuation of a literal list, it is removed, converted into real `<p>` tokens (dedented, multi-paragraph-aware), and inserted before the parent `li` close.
    The normaliser short-circuits when no literal list hints are present in the token stream.
    Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap.
 
-3. **Phase 1 - `analyzeListStructure`**  
-   Walks the token stream, collects every list (top-level plus nested), and builds `listInfo` objects with:
-   - `items`, their inline content, nested lists, and looseness hints.
-   - `markerInfo` (type, sequence count, literal numbers) via `detectMarkerType`.
+2. **Phase 1 - `analyzeListStructure`**
+   Walks the token stream, collects every list (top-level plus nested), and builds `listInfo` objects. It also writes metadata onto tokens to avoid index drift after mutations:
+   - list open tokens: `_markerInfo`, `_shouldConvert` (bullet only), `_isLoose`.
+   - list item open tokens: `_firstParagraphIsLoose`.
+   This metadata is the source of truth for later phases.
 
-4. **Phase 2 - `convertLists` + `simplifyNestedBulletLists`**  
-   - Converts eligible `bullet_list` instances into `ordered_list`, removes marker text from inline tokens, and stores `_markerInfo`.
-   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) **only when every `li` is literally just a nested list** (first child is the inner `ol` and there is no extra content). This guard prevents ordinary unordered parents (with paragraphs or inline text) from being rewritten. During flattening we merge marker metadata from parent/child lists, honour `_literalList` so synthetic lists keep their numbering, and fix tight/loose states directly (no temporary flags) using `_literalTight`, `_literalLastLine`, and real blank-line checks from token `map` info.
+3. **Phase 2 - `convertLists` + `simplifyNestedBulletLists`**
+   - Converts eligible `bullet_list` instances into `ordered_list`, removes marker text from inline tokens, and stores `_markerInfo` on list tokens.
+   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) **only when every `li` is literally just a nested list** (first child is the inner `ol` and there is no extra content). This guard prevents ordinary unordered parents (with paragraphs or inline text) from being rewritten.
+   - During flattening we merge marker metadata from parent/child lists, honour `_literalList` so synthetic lists keep their numbering, and fix tight/loose states directly using `_literalTight`, `_literalLastLine`, token `map` data (when available), or list-level `_isLoose` as a fallback when maps are missing.
 
-5. **Phase 3 - `addAttributes`**  
+4. **Phase 3 - `addAttributes`**
    Applies `type`, `role`, `class`, `data-marker-*`, `start`, and `value` attributes to every ordered list and list item. Uses the stored `_markerInfo` plus `types-utility.js`.
 
-6. **Phase 4 - `processHtmlBlocks`**  
+5. **Phase 4 - `processHtmlBlocks`**
    Dedents HTML blocks nested inside lists, trims unnecessary blank lines, and standardises closing tags.
 
-7. **Phase 5 - `generateSpans`** (optional)  
-   When `alwaysMarkerSpan` is true, inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) in front of list item text.
+6. **Phase 5 - `generateSpans`** (optional)
+   When `alwaysMarkerSpan` is true, inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) in front of list item text. If a marker entry lacks a `marker` string, the span content is rebuilt from number + marker type.
 
-8. **Phase 6 - `moveNestedListAttributes`**  
+7. **Phase 6 - `moveNestedListAttributes`**
    After `curly_attributes`, moves attributes that markdown-it-attrs attached to the last `<li>` onto the parent flattened `<ol>` so nested list classes survive flattening.
 
 ## Loose vs Tight Lists
@@ -66,8 +78,11 @@
 - Tight/loose classification follows markdown-it exactly:
   - A blank line between items makes the entire list loose.
   - Multiple paragraphs or block-level content inside a list item also force loose output.
-- When flattening `- 1.` patterns, use token `map` data (or `_literalStartLine` / `_literalLastLine`) to detect blank lines between the original outer `<li>` blocks. Honour `_literalTight` (and unhide literal code-block parents) to prevent fabricated paragraphs from being forcefully shown.
-- Phase 1 marks an ordered list tight only when there really wasn’t a blank line; for tight lists it rewrites the first paragraph’s `hidden` flag so Phase 2 doesn’t accidentally show it again.
+- Phase 1 uses `paragraph_open.hidden` to detect loose lists, caches the result on list tokens as `_isLoose`, and hides first paragraphs for tight lists at level 0.
+- When flattening `- 1.` patterns:
+  - If `token.map` is available, blank lines between items are detected via line numbers.
+  - If `token.map` is missing (tokens constructed manually, cloned without `map`, or stripped by upstream plugins), the flattener falls back to list `_isLoose` and `paragraph.hidden`.
+- Mapless fallback can render `- 1.` lists with blank lines as tight (no `<p>` wrappers). Avoid stripping `map` data or set `unremoveUlNest: true` if exact loose rendering is required.
 - Values (`start`, `value`) are only emitted when numbering skips, repeats, or decreases.
 
 ## Marker & Attribute Notes
@@ -78,8 +93,9 @@
 
 ## Description Lists
 
-- `src/phase0-description-list.js` rewrites bullet list patterns `- **Term** ...` into `<dl>` structures. Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
-- Description list conversion collects direct list_item ranges once and reuses them for validation and conversion.
+- `processDescriptionList` runs in a dedicated core rule before `inline`, so list analysis always sees already-converted `<dl>` structures.
+- Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
+- Rendering uses markdown-it's default renderer; any needed attributes must be set on tokens (no custom renderer overrides).
 - Phase 6 also handles description lists so nested `<ol>` structures created inside `<dd>` stay aligned with markdown-it-attrs output.
 
 ## HTML Blocks Inside Lists
@@ -90,12 +106,13 @@
 
 - Use `node debug/dump_tokens.mjs <testfile> <index>` or `node debug/dump_listinfos.mjs <testfile> <index>` when you need to inspect tokens or Phase 1 `listInfo` output.
 - Literal nested list normalisation emits `_literalList`, `_literalTight`, `_literalLastLine`, and `_convertedFromFlatten`. When diagnosing tight/loose or merge issues, print those flags to confirm whether the normaliser created or altered a list.
+- Useful flags on list and list-item tokens: `_markerInfo`, `_shouldConvert`, `_isLoose`, `_firstParagraphIsLoose`, `_parentIsLoose`.
 
 ## Caveats / Known Constraints
 
 - Literal detection relies on simple regex guards (indented ASCII markers). If you add marker types that don’t fit that shape, update the hints or the normaliser will skip them entirely.
 - Code-block conversion assumes the `code_block` sits directly under a list item. Nested wrappers (blockquotes, additional lists) may confuse the current parent search.
-- Blank-line checks depend on markdown-it `map` data. If maps are disabled/stripped, Phase 2 can’t reliably determine loose vs tight states for flattened lists.
-- Phase 3+ reuse Phase 1 `listInfos` built before token surgery. Any new preprocessing must keep token order compatible or re-run analysis, otherwise later phases may read stale indices/marker info.
+- When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.
+- Token metadata is attached to list tokens; if you clone or replace tokens, copy `_markerInfo`, `_shouldConvert`, `_isLoose`, and `_parentIsLoose` as needed.
 - Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.
 - The debug scripts are ES modules (`node debug/...mjs`). Run them with `node` (>=18) or via `npm` scripts to avoid `require`-related errors.

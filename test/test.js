@@ -20,6 +20,33 @@ const createTestConfig = (name, options, testFiles) => ({
   testFiles
 })
 
+const stripTokenMaps = (tokens) => {
+  if (!Array.isArray(tokens)) {
+    return
+  }
+  for (const token of tokens) {
+    if (!token) {
+      continue
+    }
+    if (token.map) {
+      token.map = null
+    }
+    if (token.children && token.children.length > 0) {
+      stripTokenMaps(token.children)
+    }
+  }
+}
+
+// Simulate environments where token.map data is stripped by upstream processing.
+const createMaplessTestConfig = (name, options, testFiles) => {
+  const md = mdit({ html: true }).use(mditNumberingUl, options)
+  md.core.ruler.before('numbering_dl_parser', 'strip_maps', (state) => {
+    stripTokenMaps(state.tokens)
+    return true
+  })
+  return { name, md, testFiles }
+}
+
 // Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
   // Default configuration: plugin alone (no attrs/other plugins)
@@ -35,7 +62,11 @@ const testConfigs = [
     'examples-default-12space-handling.txt',
     'examples-default-13-class-attributes.txt',
     'examples-default-14-repeated-numbers.txt',
-    'examples-default-15-default-ul.txt'
+    'examples-default-15-default-ul.txt',
+    'examples-option-mapful.txt'
+  ]),
+  createMaplessTestConfig('mapless configuration (token.map stripped)', {}, [
+    'examples-option-mapless.txt'
   ]),
   // Integration: numbered lists with attrs (attrs loaded first)
   {
@@ -59,12 +90,12 @@ const testConfigs = [
   {
     name: 'description list with attrs (attrs loaded first)',
     md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, { descriptionList: true }),
-    testFiles: ['examples-option-descriptionlist-default.txt']
+    testFiles: ['examples-option-descriptionlist-default.txt', 'examples-option-descriptionlist-escape.txt']
   },
   {
     name: 'description list with attrs (attrs loaded last)',
     md: mdit({ html: true }).use(mditNumberingUl, { descriptionList: true }).use(mditAttrs),
-    testFiles: ['examples-option-descriptionlist-default.txt']
+    testFiles: ['examples-option-descriptionlist-default.txt', 'examples-option-descriptionlist-escape.txt']
   },
   // Option-specific tests (each uses the plugin with particular options)
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [

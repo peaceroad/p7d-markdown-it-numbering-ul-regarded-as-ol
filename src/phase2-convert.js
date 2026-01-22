@@ -23,8 +23,7 @@ export function convertLists(tokens, listInfos, opt) {
   if (!opt.unremoveUlNest) {
     const hasBulletLists = listInfos.some(info => info.originalType === 'bullet_list_open')
     if (hasBulletLists) {
-      const listInfoMap = buildListInfoMap(listInfos)
-      simplifyNestedBulletLists(tokens, opt, listInfoMap)
+      simplifyNestedBulletLists(tokens)
     }
   }
 }
@@ -143,11 +142,11 @@ const LEADING_SPACE_REGEX = /^\s+/
  * When the middle list_item is empty (contains only the inner list),
  * remove the outer ul and the intermediate li.
  * @param {Array} tokens - Token array
- * @param {Object} opt - Options
- * @param {Map} listInfoMap - Map of listInfo keyed by startIndex
  */
-function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
+function simplifyNestedBulletLists(tokens) {
   let modified = true
+  // token.map is stable across passes; used to decide map-based blank-line checks.
+  const hasTokenMaps = tokens.some(token => token && token.map && token.map.length)
   
   // ===== Phase 1: Simplify ul>li>ol structure (multiple passes needed) =====
   while (modified) {
@@ -228,7 +227,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
             const hasExtraContent = beforeContent > 0 || afterContent > 0
             const literalNumber = extractFirstListItemNumber(tokens, innerListOpen, innerListCloseIdx)
             
-            const innerListInfo = listInfoMap?.get(innerListOpen)
+            const innerListMarkerInfo = tokens[innerListOpen]?._markerInfo
             const isSimpleMarkerParagraph = (() => {
               const precedingCount = innerListOpen - (idx + 1)
               if (precedingCount !== 3) return false
@@ -249,7 +248,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
               hasExtraContent: hasExtraContent,
               extraContentStart: innerListCloseIdx + 1,
               extraContentEnd: itemCloseIdx,
-              innerListInfo,
+              innerListMarkerInfo,
               literalNumber,
               flattenFirstParagraph: isSimpleMarkerParagraph
             })
@@ -262,9 +261,11 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
       }
       
       // Check if outer ul is convertible (has markers)
-      const outerListInfo = listInfoMap ? listInfoMap.get(i) : null
+      const outerListToken = tokens[i]
+      const outerShouldConvert = !!outerListToken?._shouldConvert
+      const outerMarkerInfo = outerListToken?._markerInfo || null
 
-      if (outerListInfo?.shouldConvert) {
+      if (outerShouldConvert) {
         for (const flattenedItem of itemIndices) {
           const closeIdx = flattenedItem.innerListOpen - 1
           const inlineIdx = closeIdx - 1
@@ -309,8 +310,8 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
         const allMarkers = []
         
         // Use outer listInfo marker info if available
-        if (outerListInfo && outerListInfo.markerInfo && outerListInfo.markerInfo.markers) {
-          allMarkers.push(...outerListInfo.markerInfo.markers)
+        if (outerMarkerInfo && outerMarkerInfo.markers) {
+          allMarkers.push(...outerMarkerInfo.markers)
         }
         
         for (const item of itemIndices) {
@@ -325,7 +326,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
             allMarkers.push(...innerListToken._markerInfo.markers)
           } 
           // If originally ordered_list, get marker info from start attribute and markup
-          else if (!outerListInfo || !outerListInfo.markerInfo) {
+          else if (!outerMarkerInfo) {
             // Only get from inner if outer has no marker info
             // Get start attribute and markup
             const startAttr = innerListToken.attrs?.find(attr => attr[0] === 'start')
@@ -371,7 +372,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
         
         // If outer ul is convertible, convert inner list to ordered_list
         // (Don't limit to bullet_list as inner list might already be ordered_list)
-        if (outerListInfo && outerListInfo.shouldConvert) {
+        if (outerShouldConvert) {
           if (firstListToken.type === 'bullet_list_open') {
             firstListToken.type = 'ordered_list_open'
             firstListToken.tag = 'ol'
@@ -430,7 +431,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
         // Single item is always tight
         if (itemIndices.length === 1) {
           outerUlIsLoose = false
-        } else {
+        } else if (hasTokenMaps) {
           // For multiple items, check blank lines with map info
           for (let itemIdx = 0; itemIdx < itemIndices.length - 1; itemIdx++) {
             const currentItem = itemIndices[itemIdx]
@@ -458,6 +459,9 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
               }
             }
           }
+        } else {
+          // Mapless fallback: reuse Phase 1 loose/tight decision for the outer list.
+          outerUlIsLoose = !!outerListToken?._isLoose
         }
         
         // ===== Nested list overall loose/tight determination =====
@@ -472,46 +476,49 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
         // In flattened pattern (`- 1.` etc), each outer list_item has one inner ol
         // Check if there are blank lines between list_items in inner ol
         // (Blank lines between outer list_items already checked by outerUlIsLoose)
-        for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
-          const item = itemIndices[itemIdx]
-          
-          // Collect list_items in inner list
-          const innerListItems = []
-          for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-            if (tokens[j].type === 'list_item_open' && 
-                tokens[j].level === tokens[item.innerListOpen].level + 1) {
-              const itemOpen = j
-              const itemClose = getListItemClose(j)
-              innerListItems.push({ open: itemOpen, close: itemClose })
-            }
-          }
-          
-          // Check blank lines between list_items in inner list
-          if (innerListItems.length > 1) {
-            for (let k = 0; k < innerListItems.length - 1; k++) {
-              const currentItem = innerListItems[k]
-              const nextItem = innerListItems[k + 1]
-              
-              // Get currentItem end line
-              let currentEndLine = null
-              for (let m = currentItem.close - 1; m > currentItem.open; m--) {
-                if (tokens[m].map && tokens[m].map[1]) {
-                  currentEndLine = tokens[m].map[1]
-                  break
-                }
-              }
-              
-              const nextMap = tokens[nextItem.open].map
-              
-              if (currentEndLine !== null && nextMap) {
-                const lineGap = nextMap[0] - currentEndLine
-                if (lineGap > 0) {
-                  innerListIsLooseDueToBlankLines = true
-                  break
-                }
+        // When map is missing, skip map-based blank-line checks and fall back to paragraph.hidden.
+        if (hasTokenMaps) {
+          for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
+            const item = itemIndices[itemIdx]
+            
+            // Collect list_items in inner list
+            const innerListItems = []
+            for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
+              if (tokens[j].type === 'list_item_open' && 
+                  tokens[j].level === tokens[item.innerListOpen].level + 1) {
+                const itemOpen = j
+                const itemClose = getListItemClose(j)
+                innerListItems.push({ open: itemOpen, close: itemClose })
               }
             }
-            if (innerListIsLooseDueToBlankLines) break
+            
+            // Check blank lines between list_items in inner list
+            if (innerListItems.length > 1) {
+              for (let k = 0; k < innerListItems.length - 1; k++) {
+                const currentItem = innerListItems[k]
+                const nextItem = innerListItems[k + 1]
+                
+                // Get currentItem end line
+                let currentEndLine = null
+                for (let m = currentItem.close - 1; m > currentItem.open; m--) {
+                  if (tokens[m].map && tokens[m].map[1]) {
+                    currentEndLine = tokens[m].map[1]
+                    break
+                  }
+                }
+                
+                const nextMap = tokens[nextItem.open].map
+                
+                if (currentEndLine !== null && nextMap) {
+                  const lineGap = nextMap[0] - currentEndLine
+                  if (lineGap > 0) {
+                    innerListIsLooseDueToBlankLines = true
+                    break
+                  }
+                }
+              }
+              if (innerListIsLooseDueToBlankLines) break
+            }
           }
         }
         
@@ -639,9 +646,8 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
             }
             
             // Whether this item's first paragraph is loose
-            // is obtained from Phase1-analyzed listInfo.items[itemIdx]
-            const listItem = outerListInfo?.items?.[itemIdx]
-            const firstParagraphIsLoose = listItem?.firstParagraphIsLoose || false
+            // Use metadata recorded on the outer list_item token.
+            const firstParagraphIsLoose = !!tokens[item.outerItemOpen]?._firstParagraphIsLoose
 
             // Make loose when parent structure is loose or this item has extra block elements
             // - However, consider cases with multiple paragraphs in item (firstParagraphIsLoose) or
@@ -775,7 +781,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
                 item.innerListClose,
                 levelShift,
                 markerStartIndex,
-                item.innerListInfo
+                item.innerListMarkerInfo
               )
               for (const nestedToken of nestedTokens) {
                 newTokens.push(nestedToken)
@@ -792,7 +798,7 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
         const lastListCloseToken = tokens[lastItem.innerListClose]
         
         // If outer ul is convertible, also convert close token
-        if (outerListInfo && outerListInfo.shouldConvert) {
+        if (outerShouldConvert) {
           if (lastListCloseToken.type === 'bullet_list_close') {
             lastListCloseToken.type = 'ordered_list_close'
             lastListCloseToken.tag = 'ol'
@@ -884,19 +890,6 @@ function simplifyNestedBulletLists(tokens, opt, listInfoMap = null) {
   }
 }
 
-function buildListInfoMap(listInfos) {
-  const map = new Map()
-  if (!Array.isArray(listInfos)) {
-    return map
-  }
-  for (const info of listInfos) {
-    if (info && typeof info.startIndex === 'number') {
-      map.set(info.startIndex, info)
-    }
-  }
-  return map
-}
-
 function collectListItemRanges(tokens, listOpenIdx, listCloseIdx, listItemCloseByOpen = null) {
   const ranges = []
   if (listOpenIdx === -1 || listCloseIdx === -1 || listCloseIdx <= listOpenIdx) {
@@ -922,13 +915,13 @@ function collectListItemRanges(tokens, listOpenIdx, listCloseIdx, listItemCloseB
   return ranges
 }
 
-function buildNestedListTokens(tokens, childRanges, innerListOpenIdx, innerListCloseIdx, levelShift, markerStartIndex, innerListInfo) {
+function buildNestedListTokens(tokens, childRanges, innerListOpenIdx, innerListCloseIdx, levelShift, markerStartIndex, markerInfo) {
   if (!Array.isArray(childRanges) || childRanges.length === 0) {
     return []
   }
   const nestedTokens = []
   const nestedOpen = cloneToken(tokens[innerListOpenIdx], { levelShift })
-  const markerInfoSlice = createMarkerInfoSlice(innerListInfo?.markerInfo, markerStartIndex)
+  const markerInfoSlice = createMarkerInfoSlice(markerInfo, markerStartIndex)
   if (markerInfoSlice) {
     nestedOpen._markerInfo = markerInfoSlice
     const firstMarker = markerInfoSlice.markers?.[0]

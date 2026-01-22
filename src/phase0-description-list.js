@@ -335,7 +335,8 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   const match = content.match(/^\*\*(.*?)\*\*(.*)/s)  // s flag for including newlines
   
   if (match) {
-    term = match[1]  // Keep spaces for now (will be processed by inline parser)
+    // Trim to avoid leading space when **Term** starts with whitespace (e.g. "** *term*")
+    term = match[1].trim()
     let afterStrong = match[2]
     
     // Extract {.attrs} from afterStrong if present (markdown-it-attrs hasn't processed yet)

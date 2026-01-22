@@ -1,0 +1,65 @@
+[Markdown]
+- 1. Alpha
+
+- 2. Beta
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Alpha</p>
+</li>
+<li>
+<p>Beta</p>
+</li>
+</ol>
+
+[Markdown]
+- i. Roman one
+
+- ii. Roman two
+[HTML]
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>
+<p>Roman one</p>
+</li>
+<li>
+<p>Roman two</p>
+</li>
+</ol>
+
+[Markdown]
+- 1) Paren one
+
+- 2) Paren two
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=")">
+<li>
+<p>Paren one</p>
+</li>
+<li>
+<p>Paren two</p>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent one
+    - a. Child one
+    - b. Child two
+
+- 2. Parent two
+    - c. Child three
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent one</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child one</li>
+<li>Child two</li>
+</ol>
+</li>
+<li>
+<p>Parent two</p>
+<ol type="a" start="3" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child three</li>
+</ol>
+</li>
+</ol>

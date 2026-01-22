@@ -7,10 +7,9 @@ import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 /**
  * Generate marker spans
  * @param {Array} tokens - Token array
- * @param {Array} listInfos - List information
  * @param {Object} opt - Options
  */
-export function generateSpans(tokens, listInfos, opt) {
+export function generateSpans(tokens, opt) {
   if (opt.useCounterStyle) {
     return
   }
@@ -60,54 +59,61 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, listClose
     // Add span only to first inline token in list_item
     else if (token.type === 'inline' && inListItem && !listItemInlineFound) {
       const marker = markerInfo.markers[markerIndex]
-      if (marker && marker.marker) {
-        // Insert span_open, text, span_close before inline token
-        const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
-        const spanClass = (opt && opt.markerSpanClass) ? String(opt.markerSpanClass) : 'li-num'
-        spanOpen.attrSet('class', spanClass)
-        spanOpen.attrSet('aria-hidden', 'true')
-        
-        const text = new tokens[i].constructor('text', '', 0)
-        
-        // Determine marker content
-        // If marker.number exists, get correct symbol based on it
-        let markerContent = marker.marker
-        
-        if (marker.number !== undefined && markerInfo.type) {
-          // Get correct symbol if number is specified
-          const correctSymbol = getSymbolForNumber(markerInfo.type, marker.number)
-          if (correctSymbol) {
-            // Build in prefix + correctSymbol + suffix format
-            markerContent = (marker.prefix || '') + correctSymbol + (marker.suffix || '')
-          }
+      if (!marker) {
+        listItemInlineFound = true
+        continue
+      }
+      // Insert span_open, text, span_close before inline token
+      const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
+      const spanClass = (opt && opt.markerSpanClass) ? String(opt.markerSpanClass) : 'li-num'
+      spanOpen.attrSet('class', spanClass)
+      spanOpen.attrSet('aria-hidden', 'true')
+      
+      const text = new tokens[i].constructor('text', '', 0)
+      
+      // Determine marker content
+      // If marker.number exists, get correct symbol based on it
+      let markerContent = marker.marker || ''
+      
+      if (marker.number !== undefined && markerInfo.type) {
+        // Get correct symbol if number is specified
+        const correctSymbol = getSymbolForNumber(markerInfo.type, marker.number)
+        if (correctSymbol) {
+          // Build in prefix + correctSymbol + suffix format
+          markerContent = (marker.prefix || '') + correctSymbol + (marker.suffix || '')
         }
-        
-        // Include entire marker (prefix+number+suffix) for alwaysMarkerSpan mode
-        if (!opt.alwaysMarkerSpan) {
-          // Normal mode: remove suffix for custom markers
-          if (marker.suffix && markerContent.endsWith(marker.suffix)) {
-            markerContent = markerContent.slice(0, -marker.suffix.length)
-          }
+      }
+
+      if (!markerContent) {
+        listItemInlineFound = true
+        continue
+      }
+      
+      // Include entire marker (prefix+number+suffix) for alwaysMarkerSpan mode
+      if (!opt.alwaysMarkerSpan) {
+        // Normal mode: remove suffix for custom markers
+        if (marker.suffix && markerContent.endsWith(marker.suffix)) {
+          markerContent = markerContent.slice(0, -marker.suffix.length)
         }
-        // Use markerContent as-is (prefix+symbol+suffix) for alwaysMarkerSpan
-        text.content = markerContent
-        
-        const spanClose = new tokens[i].constructor('span_close', 'span', -1)
-        
-        // Initialize children if not exist
-        if (!token.children) {
-          token.children = []
-        }
-        
-        // Add span element at beginning of children
-        token.children.unshift(spanOpen, text, spanClose)
-        
-        // Add space before content if exists
-        if (token.content) {
-          const spaceToken = new tokens[i].constructor('text', '', 0)
-          spaceToken.content = ' '
-          token.children.push(spaceToken)
-        }
+      }
+      // Use markerContent as-is (prefix+symbol+suffix) for alwaysMarkerSpan
+      text.content = markerContent
+      
+      const spanClose = new tokens[i].constructor('span_close', 'span', -1)
+      
+      // Initialize children if not exist
+      if (!token.children) {
+        token.children = []
+      }
+      
+      // Add span element at beginning of children
+      token.children.unshift(spanOpen, text, spanClose)
+      
+      // Add space before content if exists
+      if (token.content) {
+        const spaceToken = new tokens[i].constructor('text', '', 0)
+        spaceToken.content = ' '
+        token.children.push(spaceToken)
       }
       listItemInlineFound = true  // First inline of this list_item is processed
     }

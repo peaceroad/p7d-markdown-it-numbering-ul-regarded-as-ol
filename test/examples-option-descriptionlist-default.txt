@@ -192,6 +192,26 @@ Second description 2</p>
 </dd>
 </dl>
 
+[Markdown]
+- ** *term1* and *term2* combined**
+
+  Definition for combined terms
+
+- ***a*b*c**
+
+  Consecutive emphasis markers
+[HTML]
+<dl>
+<dt><em>term1</em> and <em>term2</em> combined</dt>
+<dd>
+<p>Definition for combined terms</p>
+</dd>
+<dt><em>a</em>b*c</dt>
+<dd>
+<p>Consecutive emphasis markers</p>
+</dd>
+</dl>
+
 
 [Markdown]
 - **First term**

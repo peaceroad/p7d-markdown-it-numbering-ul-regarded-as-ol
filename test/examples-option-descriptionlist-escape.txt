@@ -1,0 +1,24 @@
+[Markdown]
+- **Term** {data-info="a&b"}
+
+  Description text
+[HTML]
+<dl>
+<dt data-info="a&amp;b">Term</dt>
+<dd>
+<p>Description text</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term**
+
+  Description text
+{data-info="a&b"}
+[HTML]
+<dl data-info="a&amp;b">
+<dt>Term</dt>
+<dd>
+<p>Description text</p>
+</dd>
+</dl>

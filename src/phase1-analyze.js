@@ -154,6 +154,9 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
   if (!isLoose) {
     hideFirstParagraphsForTightList(tokens, items, level)
   }
+
+  // Cache loose/tight state for later phases (mapless flattening fallback).
+  listToken._isLoose = isLoose
   
   // Extract marker info (for both bullet_list and ordered_list)
   const markerInfo = extractMarkerInfo(tokens, startIndex, endIndex, opt)
@@ -168,6 +171,13 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
   // Convert even loose lists if markers are consistent
   const shouldConvert = originalType === 'bullet_list_open' && 
                         shouldConvertToOrdered(originalType, markerInfo, opt)
+
+  if (markerInfo) {
+    listToken._markerInfo = markerInfo
+  }
+  if (originalType === 'bullet_list_open') {
+    listToken._shouldConvert = shouldConvert
+  }
   
   return {
     startIndex,
@@ -259,6 +269,10 @@ function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
     markerInfo = detectMarkerType(lastInlineContent)
   }
   content = lastInlineContent
+
+  if (tokens[startIndex]) {
+    tokens[startIndex]._firstParagraphIsLoose = firstParagraphIsLoose
+  }
   
   return {
     startIndex,

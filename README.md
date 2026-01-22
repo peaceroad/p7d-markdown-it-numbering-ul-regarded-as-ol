@@ -72,6 +72,10 @@ After the marker separator, an ASCII space is normally expected. For `fullwidth`
 - Marker type detection is deterministic: gather all markers at a nesting level, match them against the canonical definitions, keep the type that explains the most items while preserving numeric continuity, and use the order in `listTypes.json` only as a final tiebreaker.
 - Flattening: A pattern like `- 1.` is represented by the default `ul > li > ol` nesting structure in markdown-it, but this plugin simplifies it to a single `ol` by default to match the representation of other markers.
 
+### Source map behavior
+
+The flattener uses `token.map` (markdown-it source line numbers) to preserve loose list output for `- 1.` style lists. markdown-it normally assigns `map` to block tokens, but it can be missing if tokens are constructed manually, cloned without `map`, or stripped by upstream plugins to save memory. In that case, the plugin falls back to markdown-it's `paragraph.hidden` flags and `- 1.` lists with blank lines may render as tight lists (no `<p>` wrappers). Avoid stripping `map` data or set `unremoveUlNest: true` if exact loose rendering is required.
+
 Note: For custom marker lists (those rendered with `role="list"`) the plugin assumes you will hide the native marker via CSS (for example `ol[role="list"] { list-style: none; }`). The `hasListStyleNone` option can be enabled to add `style="list-style: none;"` directly to generated `<ol>` elements.
 
 ### Behavior customization

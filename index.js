@@ -25,9 +25,25 @@ const mditNumberingUl = (md, option) => {
     // Override with user options
     ...option
   }
-  
-  // Check if markdown-it-attrs is loaded (detect once at plugin initialization)
-  const hasAttrsPlugin = md.core.ruler.__rules__.some(rule => rule.name === 'curly_attributes')
+
+  const addRuleAfter = (ruler, afterName, ruleName, fn) => {
+    try {
+      ruler.after(afterName, ruleName, fn)
+    } catch {
+      ruler.push(ruleName, fn)
+    }
+  }
+
+  const dlProcessor = (state) => {
+    if (!state.env) {
+      state.env = {}
+    }
+    if (!opt.descriptionList && !opt.descriptionListWithDiv) {
+      return true
+    }
+    processDescriptionList(state.tokens, opt)
+    return true
+  }
 
   const listProcessor = (state) => {
     // Initialize state.env
@@ -36,11 +52,6 @@ const mditNumberingUl = (md, option) => {
     }
 
     const tokens = state.tokens
-    
-    // ===== PHASE 0: Description List =====
-    // Convert **Term**: pattern from paragraph to bullet_list, then to dl/dt/dd
-    // Must run before Phase 1 (parsed as bullet_list)
-    processDescriptionList(tokens, opt)
 
     // Normalize literal nested ordered lists (markdown-it only creates nested lists when they start at 1)
     normalizeLiteralOrderedLists(tokens)
@@ -56,9 +67,8 @@ const mditNumberingUl = (md, option) => {
     
     // ===== PHASE 3: Add Attributes =====
     // Add type, class, data-* attributes to converted lists
-    // Use original listInfos as tokens may have been removed in Phase2
-    // (Uses markerInfo stored in tokens)
-    addAttributes(tokens, listInfos, opt)
+    // Use markerInfo stored on list tokens (safe after Phase2 mutations)
+    addAttributes(tokens, opt)
     
     // ===== PHASE 4: HTML Block Processing =====
     // Remove indents from HTML blocks in lists and normalize line breaks
@@ -66,12 +76,13 @@ const mditNumberingUl = (md, option) => {
     
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
-    generateSpans(tokens, listInfos, opt)
+    generateSpans(tokens, opt)
     
     return true
   }
 
-  md.core.ruler.before('inline', 'numbering_ul_phases', listProcessor)
+  md.core.ruler.before('inline', 'numbering_dl_parser', dlProcessor)
+  md.core.ruler.after('numbering_dl_parser', 'numbering_ul_phases', listProcessor)
   
   if (!opt.unremoveUlNest) {
     // Move nested list attributes only when flattening is enabled
@@ -80,11 +91,7 @@ const mditNumberingUl = (md, option) => {
       return true
     }
     
-    if (hasAttrsPlugin) {
-      md.core.ruler.after('curly_attributes', 'numbering_ul_nested_attrs', nestedListAttrProcessor)
-    } else {
-      md.core.ruler.push('numbering_ul_nested_attrs', nestedListAttrProcessor)
-    }
+    addRuleAfter(md.core.ruler, 'curly_attributes', 'numbering_ul_nested_attrs', nestedListAttrProcessor)
   }
   
   // Description list: Move paragraph attributes to dl and add custom renderers
@@ -95,30 +102,7 @@ const mditNumberingUl = (md, option) => {
       return true
     }
     
-    if (hasAttrsPlugin) {
-      md.core.ruler.after('curly_attributes', 'numbering_dl_attrs', dlAttrProcessor)
-    } else {
-      md.core.ruler.push('numbering_dl_attrs', dlAttrProcessor)
-    }
-    
-    // Add custom renderers for description list tokens
-    // Helper function to render attributes
-    const renderAttrs = (token) => {
-      if (!token.attrs || token.attrs.length === 0) return ''
-      return ' ' + token.attrs.map(([key, value]) => `${key}="${value}"`).join(' ')
-    }
-    
-    md.renderer.rules.dl_open = (tokens, idx) => `<dl${renderAttrs(tokens[idx])}>\n`
-    md.renderer.rules.dl_close = () => '</dl>\n'
-    md.renderer.rules.dt_open = (tokens, idx) => `<dt${renderAttrs(tokens[idx])}>`
-    md.renderer.rules.dt_close = () => '</dt>\n'
-    md.renderer.rules.dd_open = (tokens, idx) => `<dd${renderAttrs(tokens[idx])}>\n`
-    md.renderer.rules.dd_close = () => '</dd>\n'
-    
-    if (opt.descriptionListWithDiv) {
-      md.renderer.rules.div_open = (tokens, idx) => `<div${renderAttrs(tokens[idx])}>\n`
-      md.renderer.rules.div_close = () => '</div>\n'
-    }
+    addRuleAfter(md.core.ruler, 'curly_attributes', 'numbering_dl_attrs', dlAttrProcessor)
   }
 }
 
