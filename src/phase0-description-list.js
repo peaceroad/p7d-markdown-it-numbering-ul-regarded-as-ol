@@ -36,6 +36,13 @@ const parseAttrString = (attrStr) => {
   return attrs
 }
 
+const copyMap = (target, source) => {
+  if (!target || !source || !Array.isArray(source.map)) {
+    return
+  }
+  target.map = source.map.slice()
+}
+
 /**
  * Process description list patterns in tokens
  * @param {Array} tokens - Token array
@@ -150,11 +157,10 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
           const afterStrong = dlCheck.afterStrong
           
           // Pattern 1: **Term**  description (2+ spaces, including newlines)
-          // Pattern 2: **Term**: description (colon)
-          // Pattern 3: **Term**\ description (backslash escape)
-          if (/^\s{2,}/.test(afterStrong) || /^\s*:/.test(afterStrong) || /^\\/.test(afterStrong)) {
-            // Remove leading space/colon/backslash and check remaining text
-            const cleaned = afterStrong.replace(/^[\s:]+/, '').replace(/^\\/, '').trim()
+          // Pattern 2: **Term**\ description (backslash escape)
+          if (/^\s{2,}/.test(afterStrong) || /^\\/.test(afterStrong)) {
+            // Remove leading space/backslash and check remaining text
+            const cleaned = afterStrong.replace(/^\s+/, '').replace(/^\\/, '').trim()
             if (cleaned) {
               hasDescription = true
             }
@@ -212,12 +218,10 @@ const isDLPattern = (content) => {
   const afterStrong = match[2]  // Text after closing **
   
   // Pattern 1: **Term**  description (2+ spaces, including newlines)
-  // Pattern 2: **Term**: description (colon)
-  // Pattern 3: **Term**\ description (backslash escape)
+  // Pattern 2: **Term**\ description (backslash escape)
   // Pattern 4: **Term** only (no content after)
   // Pattern 5: **Term** {.attrs} (markdown-it-attrs syntax, optionally with content after)
   const isMatch = /^\s{2,}/.test(afterStrong) || 
-                  /^\s*:/.test(afterStrong) ||
                   /^\\/.test(afterStrong) ||
                   /^\s*$/.test(afterStrong) ||
                   /^\s*\{[^}]+\}/.test(afterStrong)  // {.class} or {#id} etc
@@ -236,6 +240,7 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
   const dlOpen = new tokens[listStart].constructor('dl_open', 'dl', 1)
   dlOpen.level = listLevel
   dlOpen.block = true
+  copyMap(dlOpen, tokens[listStart])
   
   // Copy attributes from bullet_list_open (e.g., {.class} from markdown-it-attrs)
   if (tokens[listStart].attrs && tokens[listStart].attrs.length > 0) {
@@ -295,6 +300,7 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
   const dlClose = new tokens[listStart].constructor('dl_close', 'dl', -1)
   dlClose.level = listLevel
   dlClose.block = true
+  copyMap(dlClose, tokens[listEnd])
   newTokens.push(dlClose)
   
   // Replace tokens
@@ -371,8 +377,8 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
       afterStrong = afterStrong.replace(/\n\s*\{[^}]+\}\s*$/, '')
     }
     
-    // Clean up afterStrong: remove leading spaces/colon/backslash, then trim each line
-    let cleaned = afterStrong.replace(/^[\s:]+/, '').replace(/^\\/, '')
+    // Clean up afterStrong: remove leading spaces/backslash, then trim each line
+    let cleaned = afterStrong.replace(/^\s+/, '').replace(/^\\/, '')
     
     // Remove leading whitespace from each line (remove list indent)
     cleaned = cleaned.split('\n').map(line => line.replace(/^\s+/, '')).join('\n').trim()
@@ -387,6 +393,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     const divOpen = new tokens[firstPara].constructor('div_open', 'div', 1)
     divOpen.level = parentLevel + 1
     divOpen.block = true
+    copyMap(divOpen, tokens[firstPara])
     const divClass = typeof opt.descriptionListDivClass === 'string' ? opt.descriptionListDivClass : ''
     if (divClass) {
       divOpen.attrs = [['class', divClass]]
@@ -398,6 +405,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   const dtOpen = new tokens[firstPara].constructor('dt_open', 'dt', 1)
   dtOpen.level = parentLevel + 1
   dtOpen.block = true
+  copyMap(dtOpen, tokens[firstPara])
   // Add collected attributes to dt_open
   if (dtAttrs && dtAttrs.length > 0) {
     dtOpen.attrs = dtAttrs
@@ -415,12 +423,14 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   const dtClose = new tokens[firstPara].constructor('dt_close', 'dt', -1)
   dtClose.level = parentLevel + 1
   dtClose.block = true
+  copyMap(dtClose, tokens[firstPara])
   result.push(dtClose)
   
   // Create dd_open token
   const ddOpen = new tokens[firstPara].constructor('dd_open', 'dd', 1)
   ddOpen.level = parentLevel + 1
   ddOpen.block = true
+  copyMap(ddOpen, tokens[firstPara])
   result.push(ddOpen)
   
   // First paragraph in dd (if description exists)
@@ -429,6 +439,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     const pOpen = new tokens[firstPara].constructor('paragraph_open', 'p', 1)
     pOpen.level = parentLevel + 2
     pOpen.block = true  // IMPORTANT: Enable block mode for proper newline rendering
+    copyMap(pOpen, tokens[firstPara])
     result.push(pOpen)
     
     const pInline = new tokens[firstPara].constructor('inline', '', 0)
@@ -443,6 +454,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     const pClose = new tokens[firstPara].constructor('paragraph_close', 'p', -1)
     pClose.level = parentLevel + 2
     pClose.block = true  // IMPORTANT: Enable block mode for proper newline rendering
+    copyMap(pClose, tokens[firstPara])
     result.push(pClose)
     
     hasFirstParagraph = true
@@ -492,6 +504,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   const ddClose = new tokens[firstPara].constructor('dd_close', 'dd', -1)
   ddClose.level = parentLevel + 1
   ddClose.block = true
+  copyMap(ddClose, tokens[firstPara])
   result.push(ddClose)
   
   // Create div_close if descriptionListWithDiv is enabled
@@ -499,6 +512,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     const divClose = new tokens[firstPara].constructor('div_close', 'div', -1)
     divClose.level = parentLevel + 1
     divClose.block = true
+    copyMap(divClose, tokens[firstPara])
     result.push(divClose)
   }
   

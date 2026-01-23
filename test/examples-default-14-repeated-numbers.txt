@@ -262,13 +262,10 @@
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>First
 <ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
-<li>Second
-<ol type="1" start="5" class="ol-decimal" data-marker-suffix=".">
-<li>Third</li>
-<li>Third</li>
+<li>Second</li>
 </ol>
-</li>
-</ol>
+<p>     5. Third
+6. Third</p>
 </li>
 </ol>
 
@@ -446,18 +443,12 @@
 <li>
 <p>Outer gap</p>
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
-<li>
-<p>Inner ready</p>
-<ol type="1" start="4" class="ol-decimal" data-marker-suffix=".">
-<li>
-<p>Deep start</p>
-</li>
-<li value="6">
-<p>Deep continue</p>
-</li>
+<li>Inner ready</li>
 </ol>
-</li>
-</ol>
+<pre><code> 4. Deep start
+
+ 6. Deep continue
+</code></pre>
 </li>
 <li>
 <p>Outer plain</p>
@@ -531,11 +522,10 @@
 <li>
 <p>aaa</p>
 <ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
-<li>
-<p>bbb</p>
-<p>ccc</p>
-</li>
+<li>bbb</li>
 </ol>
+<pre><code> ccc
+</code></pre>
 </li>
 <li>
 <p>aaa</p>
@@ -549,13 +539,13 @@
         ccc
 [HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
-<li>aaa
-<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
 <li>
-<p>bbb</p>
-<p>ccc</p>
-</li>
+<p>aaa</p>
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>bbb</li>
 </ol>
+<pre><code> ccc
+</code></pre>
 </li>
 </ol>
 

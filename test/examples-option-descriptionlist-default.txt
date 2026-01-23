@@ -266,3 +266,12 @@ Second description 2</p>
 Second description 2</p>
 </dd>
 </dl>
+
+[Markdown]
+- **Term**: Description line
+- **Another**: More text
+[HTML]
+<ul>
+<li><strong>Term</strong>: Description line</li>
+<li><strong>Another</strong>: More text</li>
+</ul>

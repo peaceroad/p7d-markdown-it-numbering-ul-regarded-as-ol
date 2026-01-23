@@ -21,6 +21,7 @@ const mditNumberingUl = (md, option) => {
     omitMarkerMetadata: false,    // true=omit data-marker-prefix/suffix attributes
     useCounterStyle: false,       // true=users will use @counter-style; suppress marker spans and role attr
     addMarkerStyleToClass: false, // true=append -with-* marker style suffix to class names
+    enableLiteralNumberingFix: false, // true=normalize nested lists that don't start at 1 (opt-in)
     
     // Override with user options
     ...option
@@ -54,7 +55,7 @@ const mditNumberingUl = (md, option) => {
     const tokens = state.tokens
 
     // Normalize literal nested ordered lists (markdown-it only creates nested lists when they start at 1)
-    normalizeLiteralOrderedLists(tokens)
+    normalizeLiteralOrderedLists(tokens, opt)
     
     // ===== PHASE 1: List Structure Analysis =====
     // Analyze marker detection and structure without token conversion

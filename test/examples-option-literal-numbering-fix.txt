@@ -1,0 +1,42 @@
+[Markdown]
+- Parent
+    2. Child one
+    3. Child two
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child one</li>
+<li>Child two</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+    ② Child two
+    ③ Child three
+[HTML]
+<ul>
+<li>Parent
+<ol role="list" start="2" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">②</span> Child two</li>
+<li><span class="li-num" aria-hidden="true">③</span> Child three</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+
+        2. Code child
+        3. Code child two
+[HTML]
+<ul>
+<li>
+<p>Parent</p>
+<pre><code>  2. Code child
+  3. Code child two
+</code></pre>
+</li>
+</ul>

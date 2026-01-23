@@ -291,9 +291,15 @@ function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
 function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
   const listToken = tokens[startIndex]
   const markers = []
+  const literalMarkerInfo = listToken._literalMarkerInfo || null
   
   // For ordered_list, get numbers from list_item_open's info
   if (listToken.type === 'ordered_list_open') {
+    const literalMarkers = Array.isArray(literalMarkerInfo?.markers) ? literalMarkerInfo.markers : null
+    const literalType = literalMarkerInfo?.type || 'decimal'
+    const literalPrefix = literalMarkers?.[0]?.prefix ?? ''
+    const literalSuffix = literalMarkers?.[0]?.suffix ?? (listToken.markup || '.')
+    let listItemIndex = 0
     for (let i = startIndex + 1; i < endIndex; i++) {
       const token = tokens[i]
       
@@ -301,14 +307,25 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
         // Get number from info
         const itemNumber = token.info ? parseInt(token.info, 10) : markers.length + 1
         const markup = token.markup || listToken.markup || '.'
-        
-        markers.push({
-          number: itemNumber,
-          originalNumber: itemNumber,
-          prefix: '',
-          suffix: markup,
-          type: 'decimal'  // Default (can be extended to detect from markup)
-        })
+        if (literalMarkers && literalMarkers[listItemIndex]) {
+          const marker = { ...literalMarkers[listItemIndex] }
+          if (typeof marker.originalNumber !== 'number') {
+            marker.originalNumber = itemNumber
+          }
+          if (typeof marker.number !== 'number') {
+            marker.number = itemNumber
+          }
+          markers.push(marker)
+        } else {
+          markers.push({
+            number: itemNumber,
+            originalNumber: itemNumber,
+            prefix: literalPrefix,
+            suffix: literalSuffix || markup,
+            type: literalType
+          })
+        }
+        listItemIndex++
       }
     }
   } else {

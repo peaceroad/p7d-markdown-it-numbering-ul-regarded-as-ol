@@ -1,0 +1,13 @@
+[Markdown]
+- Parent
+  2. Child {.red}
+  3. Child two {.blue}
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li class="red">Child</li>
+<li class="blue">Child two</li>
+</ol>
+</li>
+</ul>

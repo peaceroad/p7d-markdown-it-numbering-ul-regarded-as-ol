@@ -2,7 +2,7 @@
 
 Markdown's default ordered list markers are limited. This plugin extends Markdown's unordered lists so they can use many kinds of ordered markers.
 
-Also, this plugin option provides a description-list conversion. Unordered list items whose first line is wrapped in `**` and followed by two spaces are converted into `<dl>` elements.
+Also, this plugin option provides a description-list conversion. Unordered list items whose first line is wrapped in `**` and followed by a description separator (two spaces, `\\`, or a blank line) are converted into `<dl>` elements.
 
 ## Ordered lists conversion behavior
 
@@ -89,17 +89,19 @@ You can customize the conversion using options.
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
 - `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
 - `addMarkerStyleToClass` (boolean) — When `true`, append suffix-style information to the generated class name (e.g. `ol-decimal-with-round-round`). When `false` (default) the class stays as `ol-decimal`.
+- `enableLiteralNumberingFix` (boolean) — Enable literal nested list recovery (for example, nested lists starting with 2 or greater). This is opt-in; it only applies inside list items, evaluates indentation relative to the parent list marker (marker width + 0–3 spaces), and does not convert code blocks (indent >= marker width + 4).
 
 ## Description lists conversion behavior
 
 When the `descriptionList` option is enabled the plugin converts specially formatted bullet lists into HTML description lists (`<dl>`).
 
 - Each list item must start with a `**Term**` line.
-  - If the Term line is not separated from the description by a blank line, then the Term line must end with two ASCII spaces (a Markdown line-break) or a backslash `\` to indicate the description follows.
+  - If the description continues on the next line without a blank line, the Term line must end with two ASCII spaces (a Markdown line-break) or a backslash `\`. Inline `{.attrs}` immediately after the term are allowed.
+  - If the Term line is followed by a blank line, the description can start in the next paragraph or list (line-break control characters are optional).
 
 In the conversion the `**Term**` line becomes a `<dt>` and the subsequent lines become the corresponding `<dd>`.
 
-Note: Currently the content inside `<dd>` elements is always wrapped in `<p>` elements.
+Note: Text descriptions are wrapped in `<p>` elements; additional paragraphs and lists keep markdown-it's block structure.
 
 ### Description list options
 

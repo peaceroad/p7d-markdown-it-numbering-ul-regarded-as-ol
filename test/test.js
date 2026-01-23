@@ -49,8 +49,8 @@ const createMaplessTestConfig = (name, options, testFiles) => {
 
 // Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
-  // Default configuration: plugin alone (no attrs/other plugins)
-  createTestConfig('default configuration', {}, [
+  // Literal numbering fix enabled (legacy behavior + extended tests)
+  createTestConfig('literal numbering fix enabled', { enableLiteralNumberingFix: true }, [
     'examples-default-1.txt',
     'examples-default-2-samesymbol.txt',
     'examples-default-3.txt',
@@ -63,11 +63,27 @@ const testConfigs = [
     'examples-default-13-class-attributes.txt',
     'examples-default-14-repeated-numbers.txt',
     'examples-default-15-default-ul.txt',
-    'examples-option-mapful.txt'
+    'examples-option-mapful.txt',
+    'examples-option-literal-numbering-fix.txt',
+    'examples-option-literal-numbering-indent.txt'
+  ]),
+  createTestConfig('default configuration (literal fix disabled)', {}, [
+    'examples-option-literal-numbering-fix-disabled.txt'
   ]),
   createMaplessTestConfig('mapless configuration (token.map stripped)', {}, [
     'examples-option-mapless.txt'
   ]),
+  // Integration: literal numbering fix with attrs (attrs loaded first/last)
+  {
+    name: 'literal numbering fix with attrs (attrs loaded first)',
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, { enableLiteralNumberingFix: true }),
+    testFiles: ['examples-option-literal-numbering-attrs.txt']
+  },
+  {
+    name: 'literal numbering fix with attrs (attrs loaded last)',
+    md: mdit({ html: true }).use(mditNumberingUl, { enableLiteralNumberingFix: true }).use(mditAttrs),
+    testFiles: ['examples-option-literal-numbering-attrs.txt']
+  },
   // Integration: numbered lists with attrs (attrs loaded first)
   {
     name: 'numbered lists with attrs (attrs loaded first)',

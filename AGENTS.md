@@ -44,11 +44,9 @@
 ## Pipeline Flow (inside `numbering_ul_phases`)
 
 1. **Literal ordered-list normalisation - `normalizeLiteralOrderedLists`**
-   Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser runs two quick passes:
-   - **Paragraph pass** (guarded by a cheap indented-line regex). It splits the paragraph into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
-   - **Code-block pass** (guarded by another regex). It detects `code_block` tokens that markdown-it produced for literal lists. When the block is a continuation of a literal list, it is removed, converted into real `<p>` tokens (dedented, multi-paragraph-aware), and inserted before the parent `li` close.
-   The normaliser short-circuits when no literal list hints are present in the token stream.
-   Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap.
+   Runs only when `enableLiteralNumberingFix` is enabled. Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser scans paragraph content (after the first line) and splits it into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
+   The normaliser short-circuits when no literal list hints are present in the token stream. Literal detection uses the parent list marker width and accepts up to 3 extra indentation spaces (marker width + 0–3). Lines indented beyond that (code blocks) are left intact.
+   Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap. Generated list/list_item/paragraph tokens inherit `map` data when available to preserve map-aware behavior downstream.
 
 2. **Phase 1 - `analyzeListStructure`**
    Walks the token stream, collects every list (top-level plus nested), and builds `listInfo` objects. It also writes metadata onto tokens to avoid index drift after mutations:
@@ -95,6 +93,7 @@
 
 - `processDescriptionList` runs in a dedicated core rule before `inline`, so list analysis always sees already-converted `<dl>` structures.
 - Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
+- Generated `dl/dt/dd/div/p` tokens inherit `map` from the source list/paragraph tokens when available so source-line behavior remains consistent.
 - Rendering uses markdown-it's default renderer; any needed attributes must be set on tokens (no custom renderer overrides).
 - Phase 6 also handles description lists so nested `<ol>` structures created inside `<dd>` stay aligned with markdown-it-attrs output.
 
@@ -110,8 +109,7 @@
 
 ## Caveats / Known Constraints
 
-- Literal detection relies on simple regex guards (indented ASCII markers). If you add marker types that don’t fit that shape, update the hints or the normaliser will skip them entirely.
-- Code-block conversion assumes the `code_block` sits directly under a list item. Nested wrappers (blockquotes, additional lists) may confuse the current parent search.
+- Literal detection only runs on paragraph lines after the first line in a list item and uses marker-width indentation (marker width + 0–3 spaces). Lines indented beyond that are treated as code blocks or plain text and are not converted.
 - When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.
 - Token metadata is attached to list tokens; if you clone or replace tokens, copy `_markerInfo`, `_shouldConvert`, `_isLoose`, and `_parentIsLoose` as needed.
 - Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.

@@ -1,0 +1,25 @@
+[Markdown]
+- Parent
+    2. Child one
+    3. Child two
+[HTML]
+<ul>
+<li>Parent
+2. Child one
+3. Child two</li>
+</ul>
+
+[Markdown]
+- Parent
+
+        2. Code child
+        3. Code child two
+[HTML]
+<ul>
+<li>
+<p>Parent</p>
+<pre><code>  2. Code child
+  3. Code child two
+</code></pre>
+</li>
+</ul>

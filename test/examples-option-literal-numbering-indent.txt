@@ -1,0 +1,107 @@
+[Markdown]
+- Parent
+1. Child
+2. Child two
+[HTML]
+<ul>
+<li>Parent</li>
+</ul>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+
+[Markdown]
+- Parent
+ 1. Child
+ 2. Child two
+[HTML]
+<ul>
+<li>Parent</li>
+</ul>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+
+[Markdown]
+- Parent
+  2. Child
+  3. Child two
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+     2. Child
+     3. Child two
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+      2. Child
+      3. Child two
+[HTML]
+<ul>
+<li>Parent
+2. Child
+3. Child two</li>
+</ul>
+
+[Markdown]
+- Parent
+
+      2. Child
+      3. Child two
+[HTML]
+<ul>
+<li>
+<p>Parent</p>
+<pre><code>2. Child
+3. Child two
+</code></pre>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+	2. Child
+	3. Child two
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+1. Parent
+   2. Child
+   3. Child two
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+<li>Child two</li>
+</ol>
+</li>
+</ol>
