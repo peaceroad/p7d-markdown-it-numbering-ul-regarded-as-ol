@@ -9,6 +9,44 @@
 3. Child two</li>
 </ul>
 
+
+[Markdown]
+- Parent
+    1. Code child
+    2. Code child two
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Code child</li>
+<li>Code child two</li>
+</ol>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+     2. Code child
+     3. Code child two
+[HTML]
+<ul>
+<li>Parent
+2. Code child
+3. Code child two</li>
+</ul>
+
+[Markdown]
+- Parent
+      1. Code child
+      2. Code child two
+[HTML]
+<ul>
+<li>Parent
+1. Code child
+2. Code child two</li>
+</ul>
+
+
 [Markdown]
 - Parent
 
@@ -23,3 +61,4 @@
 </code></pre>
 </li>
 </ul>
+
