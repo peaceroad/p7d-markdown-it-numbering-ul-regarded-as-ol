@@ -1,0 +1,17 @@
+[Markdown]
+- ❶ First
+- ❷ Second
+[HTML]
+<ol class="ol-filled-circled-decimal">
+<li>First</li>
+<li>Second</li>
+</ol>
+
+[Markdown]
+- (1) One
+- (2) Two
+[HTML]
+<ol class="ol-decimal" data-marker-prefix="(" data-marker-suffix=")">
+<li>One</li>
+<li>Two</li>
+</ol>

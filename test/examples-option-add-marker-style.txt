@@ -11,3 +11,12 @@
 <ol type="1" class="ol-decimal-with-none-round" data-marker-suffix=")">
 <li>Decimal with suffix</li>
 </ol>
+
+[Markdown]
+- ❶ Custom marker
+- ❷ Custom marker 2
+[HTML]
+<ol role="list" class="ol-filled-circled-decimal">
+<li><span class="li-num" aria-hidden="true">❶</span> Custom marker</li>
+<li><span class="li-num" aria-hidden="true">❷</span> Custom marker 2</li>
+</ol>

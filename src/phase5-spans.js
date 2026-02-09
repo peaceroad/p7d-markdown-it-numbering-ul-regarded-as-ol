@@ -15,6 +15,11 @@ export function generateSpans(tokens, opt) {
   }
   const closeMap = buildListCloseIndexMap(tokens)
   const listCloseByOpen = closeMap.listCloseByOpen
+  const rawSpanClass = opt?.markerSpanClass
+  const normalizedSpanClass = typeof rawSpanClass === 'string'
+    ? rawSpanClass.trim()
+    : ''
+  const spanClass = normalizedSpanClass || 'li-num'
 
   // Traverse token array and add spans to ordered_list_open tokens
   for (let i = 0; i < tokens.length; i++) {
@@ -27,7 +32,7 @@ export function generateSpans(tokens, opt) {
       
       // Generate span if no type attribute (custom marker) or alwaysMarkerSpan mode
       if (!typeAttrs.type || opt.alwaysMarkerSpan) {
-        addMarkerSpans(tokens, token, i, markerInfo, opt, listCloseByOpen)
+        addMarkerSpans(tokens, token, i, markerInfo, opt, spanClass, listCloseByOpen)
       }
     }
   }
@@ -36,7 +41,7 @@ export function generateSpans(tokens, opt) {
 /**
  * Add marker <span> to the first inline token of each list item.
  */
-function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, listCloseByOpen = null) {
+function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, spanClass, listCloseByOpen = null) {
   // Find end position of this ordered_list
   let listCloseIndex = listCloseByOpen ? listCloseByOpen[listIndex] : -1
   if (typeof listCloseIndex !== 'number' || listCloseIndex === -1) {
@@ -65,7 +70,6 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, listClose
       }
       // Insert span_open, text, span_close before inline token
       const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
-      const spanClass = (opt && opt.markerSpanClass) ? String(opt.markerSpanClass) : 'li-num'
       spanOpen.attrSet('class', spanClass)
       spanOpen.attrSet('aria-hidden', 'true')
       

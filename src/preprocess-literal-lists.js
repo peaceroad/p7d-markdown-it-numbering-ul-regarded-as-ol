@@ -5,6 +5,7 @@ import { findMatchingClose, findListItemEnd } from './list-helpers.js'
 
 // markdown-it treats indent >= marker width + 4 as code blocks inside list items.
 const MAX_LITERAL_INLINE_INDENT = 3
+const LITERAL_LINE_HINT_REGEX = /\n(?:[ \t]{0,3}\S)/
 const getIndentWidth = (indentText) => indentText.replace(/\t/g, '    ').length
 const buildLineMap = (startLine, endLine = null) => {
   if (typeof startLine !== 'number') {
@@ -71,11 +72,6 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
     let j = i + 1
     while (j < listItemClose) {
       const current = tokens[j]
-      if (current.type !== 'paragraph_open') {
-        j++
-        continue
-      }
-
       if (current.type === 'paragraph_open') {
         const inlineIdx = j + 1
         const paragraphCloseIdx = j + 2
@@ -89,6 +85,10 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
 
         const inlineToken = tokens[inlineIdx]
         if (!inlineToken.content.includes('\n')) {
+          j = paragraphCloseIdx + 1
+          continue
+        }
+        if (!LITERAL_LINE_HINT_REGEX.test(inlineToken.content)) {
           j = paragraphCloseIdx + 1
           continue
         }
@@ -126,14 +126,6 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
         continue
       }
 
-      if (current.type === 'ordered_list_open' &&
-          current.level === (tokens[i].level ?? 0) + 1) {
-        const delta = splitOrderedListForLiteralChildren(tokens, j, TokenClass)
-        listItemClose += delta
-        j++
-        continue
-      }
-
       j++
     }
     i = listItemClose
@@ -166,19 +158,16 @@ function parseSegments(content, markerWidth, baseLine = null) {
       }
     }
     const textValue = buffer.join('\n')
-    const hasBlankLine = hadBlankLine
-    segments.push({ type: 'text', text: textValue, tight: !hasBlankLine })
+    segments.push({ type: 'text', text: textValue, tight: !hadBlankLine })
     buffer = []
     blankLinesInBuffer = 0
   }
 
   while (idx < lines.length) {
     const isFirstLine = idx === 0
-    if (isFirstLine && lines[idx].trim().length > 0) {
+    const trimmedLine = lines[idx].trim()
+    if (isFirstLine && trimmedLine.length > 0) {
       buffer.push(lines[idx])
-      if (lines[idx].trim().length === 0) {
-        blankLinesInBuffer++
-      }
       idx++
       continue
     }
@@ -645,90 +634,4 @@ function markLiteralListLoose(tokens, listOpenIndex, listCloseIndex = null) {
       }
     }
   }
-}
-
-function splitOrderedListForLiteralChildren(tokens, listOpenIndex, TokenClass) {
-  const listToken = tokens[listOpenIndex]
-  const listCloseIndex = findMatchingClose(tokens, listOpenIndex, 'ordered_list_open', 'ordered_list_close')
-  if (listCloseIndex === -1) {
-    return 0
-  }
-  const childLevel = (listToken.level ?? 0) + 1
-  const ranges = []
-  let currentOpen = -1
-  for (let idx = listOpenIndex + 1; idx < listCloseIndex; idx++) {
-    const token = tokens[idx]
-    if (token.type === 'list_item_open' && token.level === childLevel) {
-      currentOpen = idx
-      continue
-    }
-    if (token.type === 'list_item_close' && token.level === childLevel) {
-      if (currentOpen !== -1) {
-        ranges.push({ open: currentOpen, close: idx })
-        currentOpen = -1
-      }
-    }
-  }
-
-  if (ranges.length <= 1) {
-    return 0
-  }
-
-  const extraRanges = ranges.slice(1)
-  const childTokens = []
-  let removedCount = 0
-
-  for (const range of extraRanges) {
-    childTokens.push(...tokens.slice(range.open, range.close + 1))
-  }
-
-  for (let k = extraRanges.length - 1; k >= 0; k--) {
-    const range = extraRanges[k]
-    const len = range.close - range.open + 1
-    tokens.splice(range.open, len)
-    removedCount += len
-  }
-
-  if (listToken._markerInfo) {
-    delete listToken._markerInfo
-  }
-
-  const levelShift = 2
-  for (const token of childTokens) {
-    if (typeof token.level === 'number') {
-      token.level += levelShift
-    }
-  }
-
-  const nestedListOpen = new TokenClass('ordered_list_open', 'ol', 1)
-  nestedListOpen.level = (listToken.level ?? 0) + 2
-  nestedListOpen.block = true
-  nestedListOpen.markup = listToken.markup
-  nestedListOpen.attrs = null
-  nestedListOpen._literalList = true
-  if (Array.isArray(listToken.map)) {
-    nestedListOpen.map = listToken.map.slice()
-  }
-
-  const firstChild = childTokens.find(t => t.type === 'list_item_open')
-  if (firstChild?.info) {
-    const num = parseInt(firstChild.info, 10)
-    if (!Number.isNaN(num) && num !== 1) {
-      nestedListOpen.attrs = [['start', String(num)]]
-    }
-  }
-
-  const nestedListClose = new TokenClass('ordered_list_close', 'ol', -1)
-  nestedListClose.level = nestedListOpen.level
-  nestedListClose.block = true
-  nestedListClose.markup = listToken.markup
-  if (Array.isArray(listToken.map)) {
-    nestedListClose.map = listToken.map.slice()
-  }
-
-  const insertionIndex = ranges[0].close
-  tokens.splice(insertionIndex, 0, nestedListOpen, ...childTokens, nestedListClose)
-
-  const addedCount = childTokens.length + 2
-  return addedCount - removedCount
 }

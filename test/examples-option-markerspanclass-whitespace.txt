@@ -1,0 +1,8 @@
+[Markdown]
+- ① One
+- ② Two
+[HTML]
+<ol role="list" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">①</span> One</li>
+<li><span class="li-num" aria-hidden="true">②</span> Two</li>
+</ol>

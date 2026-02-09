@@ -107,6 +107,31 @@ Simple description
 </dl>
 
 [Markdown]
+- **Boolean term** {foo}
+
+  Description
+{data-dl=test}
+[HTML]
+<dl data-dl="test">
+<dt foo="">Boolean term</dt>
+<dd>
+<p>Description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Multi attr term** {.term-class} {#term-id} {data-code=abc-123}
+
+  Multi attr description
+[HTML]
+<dl>
+<dt class="term-class" id="term-id" data-code="abc-123">Multi attr term</dt>
+<dd>
+<p>Multi attr description</p>
+</dd>
+</dl>
+
+[Markdown]
 - **First** {.class1}
 
   Content A {.class2}
@@ -275,3 +300,111 @@ Second description 2</p>
 <li><strong>Term</strong>: Description line</li>
 <li><strong>Another</strong>: More text</li>
 </ul>
+
+[Markdown]
+- **No description**
+
+Paragraph between lists.
+
+- **Term**
+
+  Description text
+[HTML]
+<ul>
+<li><strong>No description</strong></li>
+</ul>
+<p>Paragraph between lists.</p>
+<dl>
+<dt>Term</dt>
+<dd>
+<p>Description text</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term**  
+  Description
+- <div>raw</div>
+[HTML]
+<ul>
+<li><strong>Term</strong><br>
+Description</li>
+<li>
+<div>raw</div>
+</li>
+</ul>
+
+[Markdown]
+- **Term**  
+  Description
+- 
+[HTML]
+<ul>
+<li><strong>Term</strong><br>
+Description</li>
+<li></li>
+</ul>
+
+[Markdown]
+- **Term**  
+  Description
+- 
+  - **Nested**  Desc
+[HTML]
+<ul>
+<li><strong>Term</strong><br>
+Description</li>
+<li>
+<ul>
+<li><strong>Nested</strong>  Desc</li>
+</ul>
+</li>
+</ul>
+
+[Markdown]
+- **Term**  Description
+[HTML]
+<ul>
+<li><strong>Term</strong>  Description</li>
+</ul>
+
+[Markdown]
+- **Term**\ Description
+[HTML]
+<ul>
+<li><strong>Term</strong>\ Description</li>
+</ul>
+
+[Markdown]
+- **Term**  {{not-an-attr}}
+[HTML]
+<ul>
+<li><strong>Term</strong>  {{not-an-attr}}</li>
+</ul>
+
+[Markdown]
+- **Term**  
+  {.not-dt}
+  Description
+[HTML]
+<dl>
+<dt>Term</dt>
+<dd>
+<p>{.not-dt}
+Description</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term**  
+  Description
+  {{not-an-attr}}
+[HTML]
+<dl>
+<dt>Term</dt>
+<dd>
+<p>Description
+{{not-an-attr}}</p>
+</dd>
+</dl>
+

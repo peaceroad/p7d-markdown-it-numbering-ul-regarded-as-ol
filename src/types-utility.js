@@ -371,21 +371,6 @@ const createMarkerResult = (type, marker, number, prefix, suffix) => ({
   suffix
 })
 
-/**
- * Try to match content against compiled type patterns
- * @param {string} trimmed - Trimmed content
- * @param {Object} compiledType - Compiled type info
- * @param {Object} typeInfo - Type info from listTypes.json
- * @returns {Object|null} Match result or null
- */
-const tryMatchPattern = (trimmed, compiledType, typeInfo) => {
-  for (const pattern of compiledType.patterns) {
-    const m = matchRegexEntry(trimmed, compiledType.name, pattern)
-    if (m) return m
-  }
-  return null
-}
-
 // Enhanced marker type detection with context awareness
 export const detectMarkerType = (content, allContents = null) => {
   let contextResult = null

@@ -117,8 +117,17 @@ const testConfigs = [
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-di.txt'
   ]),
+  createTestConfig('description list with div only', { descriptionListWithDiv: true }, [
+    'examples-option-descriptionlist-with-div-only.txt'
+  ]),
   createTestConfig('description list with div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 'di' }, [
     'examples-option-descriptionlist-with-di-class.txt'
+  ]),
+  createTestConfig('description list with blank div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: '   ' }, [
+    'examples-option-descriptionlist-with-di-class-empty.txt'
+  ]),
+  createTestConfig('description list with non-string div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 123 }, [
+    'examples-option-descriptionlist-with-di-class-nonstring.txt'
   ]),
   createTestConfig('unremoveUlNest option', { unremoveUlNest: true }, [
     'examples-option-unremoveulnest.txt'
@@ -135,11 +144,28 @@ const testConfigs = [
   createTestConfig('useCounterStyle option', { useCounterStyle: true }, [
     'examples-option-usecounterstyle.txt'
   ]),
+  createTestConfig('useCounterStyle priority over span/style options', {
+    useCounterStyle: true,
+    alwaysMarkerSpan: true,
+    hasListStyleNone: true,
+    markerSpanClass: 'custom-marker'
+  }, [
+    'examples-option-usecounterstyle-priority.txt'
+  ]),
   createTestConfig('omit marker metadata option', { omitMarkerMetadata: true }, [
     'examples-option-omit-marker-metadata.txt'
   ]),
   createTestConfig('markerSpanClass option', { alwaysMarkerSpan: true, markerSpanClass: 'custom-marker' }, [
     'examples-option-markerspanclass.txt'
+  ]),
+  createTestConfig('markerSpanClass empty option', { alwaysMarkerSpan: true, markerSpanClass: '' }, [
+    'examples-option-markerspanclass-empty.txt'
+  ]),
+  createTestConfig('markerSpanClass whitespace option', { alwaysMarkerSpan: true, markerSpanClass: '   ' }, [
+    'examples-option-markerspanclass-whitespace.txt'
+  ]),
+  createTestConfig('markerSpanClass non-string option', { alwaysMarkerSpan: true, markerSpanClass: 123 }, [
+    'examples-option-markerspanclass-nonstring.txt'
   ]),
 
   // (attrs tests moved earlier)

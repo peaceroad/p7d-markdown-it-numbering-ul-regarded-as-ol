@@ -17,3 +17,13 @@
 <li>Roman</li>
 <li>Roman 2</li>
 </ol>
+
+[Markdown]
+- (1) One
+- (2) Two
+
+[HTML]
+<ol type="1" class="ol-decimal">
+<li>One</li>
+<li>Two</li>
+</ol>

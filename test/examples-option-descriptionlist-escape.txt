@@ -22,3 +22,27 @@
 <p>Description text</p>
 </dd>
 </dl>
+
+[Markdown]
+- **Term** {data-info='a&b'}
+
+  Description text
+[HTML]
+<dl>
+<dt data-info="a&amp;b">Term</dt>
+<dd>
+<p>Description text</p>
+</dd>
+</dl>
+
+[Markdown]
+- **Term** {#term-id .term-class data-code=abc-123}
+
+  Description text
+[HTML]
+<dl>
+<dt class="term-class" id="term-id" data-code="abc-123">Term</dt>
+<dd>
+<p>Description text</p>
+</dd>
+</dl>

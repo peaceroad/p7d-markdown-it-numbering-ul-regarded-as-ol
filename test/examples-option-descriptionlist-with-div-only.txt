@@ -1,0 +1,27 @@
+[Markdown]
+- **Term 1**  
+  Description 1
+- **Term 2**  
+  Description 2
+[HTML]
+<dl>
+<div>
+<dt>Term 1</dt>
+<dd>
+<p>Description 1</p>
+</dd>
+</div>
+<div>
+<dt>Term 2</dt>
+<dd>
+<p>Description 2</p>
+</dd>
+</div>
+</dl>
+
+[Markdown]
+- **Term**\ Description
+[HTML]
+<ul>
+<li><strong>Term</strong>\ Description</li>
+</ul>

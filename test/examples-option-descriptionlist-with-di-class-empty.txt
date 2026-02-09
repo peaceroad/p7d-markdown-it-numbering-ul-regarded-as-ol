@@ -1,27 +1,12 @@
 [Markdown]
-- **Classed title**  
-  Some description
-
+- **Term**  
+  Description text
 [HTML]
 <dl>
-<div class="di">
-<dt>Classed title</dt>
+<div>
+<dt>Term</dt>
 <dd>
-<p>Some description</p>
-</dd>
-</div>
-</dl>
-
-[Markdown]
-- **Div class backslash**\
-  Div class backslash description
-
-[HTML]
-<dl>
-<div class="di">
-<dt>Div class backslash</dt>
-<dd>
-<p>Div class backslash description</p>
+<p>Description text</p>
 </dd>
 </div>
 </dl>
@@ -32,7 +17,7 @@
   Description
 [HTML]
 <dl>
-<div class="di">
+<div>
 <dt foo="">Boolean term</dt>
 <dd>
 <p>Description</p>
@@ -46,48 +31,13 @@
   Multi attr description
 [HTML]
 <dl>
-<div class="di">
+<div>
 <dt class="term-class" id="term-id" data-code="abc-123">Multi attr term</dt>
 <dd>
 <p>Multi attr description</p>
 </dd>
 </div>
 </dl>
-
-[Markdown]
-- **No description**
-
-Paragraph between lists.
-
-- **Term**
-
-  Description text
-[HTML]
-<ul>
-<li><strong>No description</strong></li>
-</ul>
-<p>Paragraph between lists.</p>
-<dl>
-<div class="di">
-<dt>Term</dt>
-<dd>
-<p>Description text</p>
-</dd>
-</div>
-</dl>
-
-[Markdown]
-- **Term**  
-  Description
-- <div>raw</div>
-[HTML]
-<ul>
-<li><strong>Term</strong><br>
-Description</li>
-<li>
-<div>raw</div>
-</li>
-</ul>
 
 [Markdown]
 - **Term**  
@@ -125,7 +75,7 @@ Description</li>
   {{not-an-attr}}
 [HTML]
 <dl>
-<div class="di">
+<div>
 <dt>Term</dt>
 <dd>
 <p>Description
