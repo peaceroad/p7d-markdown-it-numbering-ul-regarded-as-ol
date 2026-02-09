@@ -1,0 +1,10 @@
+[Markdown]
+- イ. One {.item-a}
+- ロ. Two
+{.k-list}
+[HTML]
+<ol role="list" class="ol-katakana-iroha k-list" data-marker-suffix=".">
+<li class="item-a"><span class="custom-marker" aria-hidden="true">イ.</span> One</li>
+<li><span class="custom-marker" aria-hidden="true">ロ.</span> Two</li>
+</ol>
+

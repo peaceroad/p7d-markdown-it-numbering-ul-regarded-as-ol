@@ -1,0 +1,16 @@
+[Markdown]
+- **Term** {.t}
+
+  Desc
+
+{.dl-root}
+[HTML]
+<dl class="dl-root">
+<div class="di">
+<dt class="t">Term</dt>
+<dd>
+<p>Desc</p>
+</dd>
+</div>
+</dl>
+

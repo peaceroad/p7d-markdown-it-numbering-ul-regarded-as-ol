@@ -1,0 +1,10 @@
+[Markdown]
+- a) One {.item-a}
+- b) Two
+{.alpha}
+[HTML]
+<ol type="a" class="ol-lower-latin alpha">
+<li class="item-a">One</li>
+<li>Two</li>
+</ol>
+

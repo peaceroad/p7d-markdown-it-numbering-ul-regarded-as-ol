@@ -20,6 +20,19 @@ const createTestConfig = (name, options, testFiles) => ({
   testFiles
 })
 
+const createAttrsIntegrationConfig = (name, options, testFiles) => ([
+  {
+    name: `${name} with attrs (attrs loaded first)`,
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, options),
+    testFiles
+  },
+  {
+    name: `${name} with attrs (attrs loaded last)`,
+    md: mdit({ html: true }).use(mditNumberingUl, options).use(mditAttrs),
+    testFiles
+  }
+])
+
 const stripTokenMaps = (tokens) => {
   if (!Array.isArray(tokens)) {
     return
@@ -113,6 +126,59 @@ const testConfigs = [
     md: mdit({ html: true }).use(mditNumberingUl, { descriptionList: true }).use(mditAttrs),
     testFiles: ['examples-option-descriptionlist-default.txt', 'examples-option-descriptionlist-escape.txt']
   },
+  ...createAttrsIntegrationConfig('unremoveUlNest option', { unremoveUlNest: true }, [
+    'examples-option-unremoveulnest-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('alwaysMarkerSpan option', { alwaysMarkerSpan: true }, [
+    'examples-option-alwaysmarkerspan-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('hasListStyleNone option', { hasListStyleNone: true }, [
+    'examples-option-hasliststylenone-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('addMarkerStyleToClass option', { addMarkerStyleToClass: true }, [
+    'examples-option-add-marker-style-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('useCounterStyle option', { useCounterStyle: true }, [
+    'examples-option-usecounterstyle-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('useCounterStyle priority over span/style options', {
+    useCounterStyle: true,
+    alwaysMarkerSpan: true,
+    hasListStyleNone: true,
+    markerSpanClass: 'custom-marker'
+  }, [
+    'examples-option-usecounterstyle-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('omit marker metadata option', { omitMarkerMetadata: true }, [
+    'examples-option-omit-marker-metadata-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('markerSpanClass option', { alwaysMarkerSpan: true, markerSpanClass: 'custom-marker' }, [
+    'examples-option-markerspanclass-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('markerSpanClass empty option', { alwaysMarkerSpan: true, markerSpanClass: '' }, [
+    'examples-option-alwaysmarkerspan-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('markerSpanClass whitespace option', { alwaysMarkerSpan: true, markerSpanClass: '   ' }, [
+    'examples-option-alwaysmarkerspan-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('markerSpanClass non-string option', { alwaysMarkerSpan: true, markerSpanClass: 123 }, [
+    'examples-option-alwaysmarkerspan-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('description list with div option', { descriptionList: true, descriptionListWithDiv: true }, [
+    'examples-option-descriptionlist-with-div-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('description list with div only option', { descriptionListWithDiv: true }, [
+    'examples-option-descriptionlist-with-div-only-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('description list with div class option', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 'di' }, [
+    'examples-option-descriptionlist-with-div-class-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('description list with blank div class option', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: '   ' }, [
+    'examples-option-descriptionlist-with-div-attrs.txt'
+  ]),
+  ...createAttrsIntegrationConfig('description list with non-string div class option', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 123 }, [
+    'examples-option-descriptionlist-with-div-attrs.txt'
+  ]),
   // Option-specific tests (each uses the plugin with particular options)
   createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-di.txt'

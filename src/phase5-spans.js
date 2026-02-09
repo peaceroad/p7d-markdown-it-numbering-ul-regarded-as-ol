@@ -13,13 +13,18 @@ export function generateSpans(tokens, opt) {
   if (opt.useCounterStyle) {
     return
   }
-  const closeMap = buildListCloseIndexMap(tokens)
-  const listCloseByOpen = closeMap.listCloseByOpen
   const rawSpanClass = opt?.markerSpanClass
   const normalizedSpanClass = typeof rawSpanClass === 'string'
     ? rawSpanClass.trim()
     : ''
   const spanClass = normalizedSpanClass || 'li-num'
+  let listCloseByOpen = null
+  const getListCloseByOpen = () => {
+    if (!listCloseByOpen) {
+      listCloseByOpen = buildListCloseIndexMap(tokens).listCloseByOpen
+    }
+    return listCloseByOpen
+  }
 
   // Traverse token array and add spans to ordered_list_open tokens
   for (let i = 0; i < tokens.length; i++) {
@@ -27,12 +32,16 @@ export function generateSpans(tokens, opt) {
     
     if (token.type === 'ordered_list_open' && token._markerInfo) {
       const markerInfo = token._markerInfo
+      if (opt.alwaysMarkerSpan) {
+        addMarkerSpans(tokens, token, i, markerInfo, opt, spanClass, getListCloseByOpen())
+        continue
+      }
       const firstMarker = markerInfo.markers[0]
       const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker, opt)
       
-      // Generate span if no type attribute (custom marker) or alwaysMarkerSpan mode
-      if (!typeAttrs.type || opt.alwaysMarkerSpan) {
-        addMarkerSpans(tokens, token, i, markerInfo, opt, spanClass, listCloseByOpen)
+      // Generate span for custom marker lists.
+      if (!typeAttrs.type) {
+        addMarkerSpans(tokens, token, i, markerInfo, opt, spanClass, getListCloseByOpen())
       }
     }
   }

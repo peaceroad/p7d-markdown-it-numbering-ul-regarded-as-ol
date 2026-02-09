@@ -5,7 +5,6 @@ import { convertLists } from './src/phase2-convert.js'
 import { addAttributes } from './src/phase3-attributes.js'
 import { processHtmlBlocks } from './src/phase4-html-blocks.js'
 import { generateSpans } from './src/phase5-spans.js'
-import { moveNestedListAttributes } from './src/phase6-attrs-migration.js'
 import { normalizeLiteralOrderedLists } from './src/preprocess-literal-lists.js'
 
 const mditNumberingUl = (md, option) => {
@@ -73,7 +72,17 @@ const mditNumberingUl = (md, option) => {
     
     // ===== PHASE 4: HTML Block Processing =====
     // Remove indents from HTML blocks in lists and normalize line breaks
-    processHtmlBlocks(state)
+    let hasNestedHtmlBlock = false
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (token.type === 'html_block' && token.level > 0) {
+        hasNestedHtmlBlock = true
+        break
+      }
+    }
+    if (hasNestedHtmlBlock) {
+      processHtmlBlocks(state)
+    }
     
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
@@ -84,16 +93,6 @@ const mditNumberingUl = (md, option) => {
 
   md.core.ruler.before('inline', 'numbering_dl_parser', dlProcessor)
   md.core.ruler.after('numbering_dl_parser', 'numbering_ul_phases', listProcessor)
-  
-  if (!opt.unremoveUlNest) {
-    // Move nested list attributes only when flattening is enabled
-    const nestedListAttrProcessor = (state) => {
-      moveNestedListAttributes(state.tokens)
-      return true
-    }
-    
-    addRuleAfter(md.core.ruler, 'curly_attributes', 'numbering_ul_nested_attrs', nestedListAttrProcessor)
-  }
   
   // Description list: Move paragraph attributes to dl and add custom renderers
   if (opt.descriptionList || opt.descriptionListWithDiv) {

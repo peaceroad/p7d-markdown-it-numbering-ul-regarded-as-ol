@@ -22,10 +22,26 @@ export function convertLists(tokens, listInfos, opt) {
   // Runs after conversion, so already-converted ordered_lists are also processed
   if (!opt.unremoveUlNest) {
     const hasBulletLists = listInfos.some(info => info.originalType === 'bullet_list_open')
-    if (hasBulletLists) {
+    if (hasBulletLists && hasSimplifiableBulletStructure(tokens)) {
       simplifyNestedBulletLists(tokens)
     }
   }
+}
+
+function hasSimplifiableBulletStructure(tokens) {
+  for (let i = 0; i < tokens.length - 2; i++) {
+    if (tokens[i].type !== 'bullet_list_open') {
+      continue
+    }
+    const firstItem = tokens[i + 1]
+    const firstChild = tokens[i + 2]
+    if (firstItem?.type === 'list_item_open' &&
+        firstChild?.type === 'ordered_list_open' &&
+        !firstChild._literalList) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
@@ -433,6 +449,11 @@ function simplifyNestedBulletLists(tokens) {
             }
           }
         }
+
+        // Cache top-level list-item ranges for each inner list to avoid repeated scans.
+        const listItemRangesByItem = itemIndices.map(item =>
+          collectListItemRanges(tokens, item.innerListOpen, item.innerListClose, listItemCloseByOpen)
+        )
         
         // ===== Outer UL (Level 0 after conversion) loose/tight determination =====
         // In flattened pattern (`- 1.` etc), no direct paragraph in outer list_item,
@@ -491,24 +512,13 @@ function simplifyNestedBulletLists(tokens) {
         // When map is missing, skip map-based blank-line checks and fall back to paragraph.hidden.
         if (hasTokenMaps) {
           for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
-            const item = itemIndices[itemIdx]
-            
-            // Collect list_items in inner list
-            const innerListItems = []
-            for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-              if (tokens[j].type === 'list_item_open' && 
-                  tokens[j].level === tokens[item.innerListOpen].level + 1) {
-                const itemOpen = j
-                const itemClose = getListItemClose(j)
-                innerListItems.push({ open: itemOpen, close: itemClose })
-              }
-            }
-            
+            const listItemRanges = listItemRangesByItem[itemIdx]
+
             // Check blank lines between list_items in inner list
-            if (innerListItems.length > 1) {
-              for (let k = 0; k < innerListItems.length - 1; k++) {
-                const currentItem = innerListItems[k]
-                const nextItem = innerListItems[k + 1]
+            if (listItemRanges.length > 1) {
+              for (let k = 0; k < listItemRanges.length - 1; k++) {
+                const currentItem = listItemRanges[k]
+                const nextItem = listItemRanges[k + 1]
                 
                 // Get currentItem end line
                 let currentEndLine = null
@@ -538,21 +548,11 @@ function simplifyNestedBulletLists(tokens) {
         // If inner list has paragraph with hidden=false, it's loose
         if (!innerListIsLooseDueToBlankLines) {
           for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
-            const item = itemIndices[itemIdx]
-            
-            let innerListItemOpen = -1
-            let innerListItemClose = -1
-            
-            for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-              if (tokens[j].type === 'list_item_open' && 
-                  tokens[j].level === tokens[item.innerListOpen].level + 1) {
-                innerListItemOpen = j
-                innerListItemClose = getListItemClose(j)
-                break
-              }
-            }
-            
-            if (innerListItemOpen !== -1 && innerListItemClose !== -1) {
+            const listItemRanges = listItemRangesByItem[itemIdx]
+            const firstRange = listItemRanges[0]
+            if (firstRange) {
+              const innerListItemOpen = firstRange.open
+              const innerListItemClose = firstRange.close
               // Check hidden of first paragraph in inner list item
               let nestedListDepth = 0
               for (let j = innerListItemOpen + 1; j < innerListItemClose; j++) {
@@ -580,24 +580,20 @@ function simplifyNestedBulletLists(tokens) {
         // This must be executed AFTER innerListIsLooseDueToBlankLines determination
         if (outerUlIsLoose && !(itemIndices.length === 1)) {
           for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
-            const item = itemIndices[itemIdx]
-            // Find list_items in inner list
-            for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-              if (tokens[j].type === 'list_item_open' && 
-                  tokens[j].level === tokens[item.innerListOpen].level + 1) {
-                // Find first paragraph in list_item
-                const listItemOpen = j
-                const listItemClose = getListItemClose(j)
-                for (let k = listItemOpen + 1; k < listItemClose; k++) {
-                  if (tokens[k].type === 'paragraph_open' && 
-                      tokens[k].level === tokens[listItemOpen].level + 1) {
-                    if (!tokens[k]._literalTight) {
-                      tokens[k].hidden = false
-                    }
-                    break // Only first paragraph
-                  }
+            const listItemRanges = listItemRangesByItem[itemIdx]
+            const firstRange = listItemRanges[0]
+            if (!firstRange) {
+              continue
+            }
+            const listItemOpen = firstRange.open
+            const listItemClose = firstRange.close
+            for (let k = listItemOpen + 1; k < listItemClose; k++) {
+              if (tokens[k].type === 'paragraph_open' && 
+                  tokens[k].level === tokens[listItemOpen].level + 1) {
+                if (!tokens[k]._literalTight) {
+                  tokens[k].hidden = false
                 }
-                break // Only first list_item of inner list
+                break // Only first paragraph
               }
             }
           }
@@ -609,18 +605,10 @@ function simplifyNestedBulletLists(tokens) {
         // ===== Merge each inner list's contents and place extra content appropriately =====
         for (let itemIdx = 0; itemIdx < itemIndices.length; itemIdx++) {
           const item = itemIndices[itemIdx]
-          
-          // Count list_items in this inner list (ordered_list)
-          let innerListItemCount = 0
-          for (let j = item.innerListOpen + 1; j < item.innerListClose; j++) {
-            if (tokens[j].type === 'list_item_open' && 
-                tokens[j].level === tokens[item.innerListOpen].level + 1) {
-              innerListItemCount++
-            }
-          }
-          
+
+          const listItemRanges = listItemRangesByItem[itemIdx]
+          const innerListItemCount = listItemRanges.length
           const innerListToken = tokens[item.innerListOpen]
-          const listItemRanges = collectListItemRanges(tokens, item.innerListOpen, item.innerListClose, listItemCloseByOpen)
           if (listItemRanges.length === 0) {
             continue
           }

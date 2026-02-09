@@ -1,0 +1,18 @@
+[Markdown]
+- 1. Parent
+    - b. Child
+    {.child-item}
+{.nested-list}
+[HTML]
+<ul>
+<li>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent</li>
+</ol>
+<ol type="a" start="2" class="ol-lower-latin nested-list" data-marker-suffix=".">
+<li class="child-item">Child
+</li>
+</ol>
+</li>
+</ul>
+

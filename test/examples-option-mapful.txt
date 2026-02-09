@@ -63,3 +63,90 @@
 </ol>
 </li>
 </ol>
+
+[Markdown]
+- 1. Parent A
+
+    - a. child a
+
+- 2. Parent B
+
+    - b. child b
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>Parent A</p>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>child a</li>
+</ol>
+</li>
+<li>
+<p>Parent B</p>
+<ol type="a" start="2" class="ol-lower-latin" data-marker-suffix=".">
+<li>child b</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. L1-A
+
+    - 1. L2-A
+
+    - 2. L2-B
+
+        - 1. L3-A
+            - 1. L4-A
+            - 2. L4-B
+        - 2. L3-B
+            - 3. L4-C
+            - 4. L4-D
+
+- 2. L1-B
+    - 3. L2-C
+        - 3. L3-C
+            - 5. L4-E
+            - 6. L4-F
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>L1-A</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>
+<p>L2-A</p>
+</li>
+<li>
+<p>L2-B</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>L3-A
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>L4-A</li>
+<li>L4-B</li>
+</ol>
+</li>
+<li>L3-B
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>L4-C</li>
+<li>L4-D</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>
+<p>L1-B</p>
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>L2-C
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>L3-C
+<ol type="1" start="5" class="ol-decimal" data-marker-suffix=".">
+<li>L4-E</li>
+<li>L4-F</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>

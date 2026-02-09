@@ -53,9 +53,9 @@
     - b. Child item
 {.list-level-1}
 [HTML]
-<ol type="1" class="ol-decimal list-level-1" data-marker-suffix=".">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Parent item
-<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<ol type="a" class="ol-lower-latin list-level-1" data-marker-suffix=".">
 <li>Child item</li>
 <li>Child item</li>
 </ol>
@@ -89,9 +89,9 @@
 - 2. Another parent
 {.parent-list data-level="1"}
 [HTML]
-<ol type="1" class="ol-decimal parent-list" data-marker-suffix="." data-level="1">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li class="parent-item">Parent
-<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<ol type="a" class="ol-lower-latin parent-list" data-marker-suffix="." data-level="1">
 <li class="child-red">Child one</li>
 <li class="child-blue">Child two</li>
 </ol>
@@ -117,9 +117,9 @@
     - b. Another child
 {.top-level}
 [HTML]
-<ol type="1" class="ol-decimal top-level" data-marker-suffix=".">
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>Parent item
-<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<ol type="a" class="ol-lower-latin top-level" data-marker-suffix=".">
 <li>Nested child</li>
 <li>Another child</li>
 </ol>
@@ -226,9 +226,9 @@ Text between lists.
 - b. Second alpha
 {.main-alpha}
 [HTML]
-<ol type="a" class="ol-lower-latin main-alpha" data-marker-suffix=".">
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
 <li class="top-item">Top level alpha
-<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<ol type="1" class="ol-decimal main-alpha" data-marker-suffix=".">
 <li>Nested decimal</li>
 <li>Second nested</li>
 </ol>
@@ -256,4 +256,115 @@ Text between lists.
 <ol type="a" start="4" class="ol-lower-latin alpha-paren" data-marker-suffix=")">
 <li>Alpha with paren</li>
 <li>Next alpha</li>
+</ol>
+
+[Markdown]
+- 1. Parent-A
+    - a. A1
+- 2. Parent-B
+    - b. B1
+    - c. B2
+{.root-should-be-parent}
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent-A
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>A1</li>
+</ol>
+</li>
+<li>Parent-B
+<ol type="a" start="2" class="ol-lower-latin root-should-be-parent" data-marker-suffix=".">
+<li>B1</li>
+<li>B2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- a. Section
+  - 1. Parent item
+      - a. Child item
+      - b. Child item
+  {.list-level-2}
+- b. Section2
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Section
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent item
+<ol type="a" class="ol-lower-latin list-level-2" data-marker-suffix=".">
+<li>Child item</li>
+<li>Child item</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Section2</li>
+</ol>
+
+[Markdown]
+- a. Section
+  - i. Mid
+    - 1. Parent item
+        - a. Child item
+        - b. Child item
+    {.list-level-3}
+  - ii. Mid2
+[HTML]
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Section
+<ol type="i" class="ol-lower-roman" data-marker-suffix=".">
+<li>Mid
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent item
+<ol type="a" class="ol-lower-latin list-level-3" data-marker-suffix=".">
+<li>Child item</li>
+<li>Child item</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Mid2</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent
+    - b. Child {.inline-li}
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol type="a" start="2" class="ol-lower-latin" data-marker-suffix=".">
+<li class="inline-li">Child</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent
+    - b. Child
+    {.list-block}
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol type="a" start="2" class="ol-lower-latin list-block" data-marker-suffix=".">
+<li>Child</li>
+</ol>
+</li>
+</ol>
+
+[Markdown]
+- 1. Parent
+    - b. Child
+    {.list-block}
+{.root-block}
+[HTML]
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol type="a" start="2" class="ol-lower-latin root-block" data-marker-suffix=".">
+<li class="list-block">Child
+</li>
+</ol>
+</li>
 </ol>
