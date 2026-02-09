@@ -71,6 +71,7 @@ After the marker separator, an ASCII space is normally expected. For `fullwidth`
 
 - Marker type detection is deterministic: gather all markers at a nesting level, match them against the canonical definitions, keep the type that explains the most items while preserving numeric continuity, and use the order in `listTypes.json` only as a final tiebreaker.
 - Flattening: A pattern like `- 1.` is represented by the default `ul > li > ol` nesting structure in markdown-it, but this plugin simplifies it to a single `ol` by default to match the representation of other markers.
+- With `markdown-it-attrs`, attr blocks follow that plugin's nearest-block behavior. This plugin does not reassign list attrs after flattening.
 
 ### Source map behavior
 
@@ -90,14 +91,22 @@ You can customize the conversion using options.
 - `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
 - `addMarkerStyleToClass` (boolean) — When `true`, append suffix-style information to the generated class name (e.g. `ol-decimal-with-round-round`). When `false` (default) the class stays as `ol-decimal`.
 - `enableLiteralNumberingFix` (boolean) — Enable literal nested list recovery (for example, nested lists starting with 2 or greater). This is opt-in; it only applies inside list items, evaluates indentation relative to the parent list marker (marker width + 0–3 spaces), and does not convert code blocks (indent >= marker width + 4).
+  - Compatibility note: switching the default from `false` to `true` changes rendered HTML by design. On the current test corpus (`394` markdown cases), `18` cases change.
+  - Changed files in that comparison: `examples-default-14-repeated-numbers.txt` (`7`), `examples-option-literal-numbering-attrs.txt` (`1`), `examples-option-literal-numbering-fix-disabled.txt` (`2`), `examples-option-literal-numbering-fix.txt` (`3`), `examples-option-literal-numbering-indent.txt` (`4`).
+  - Recommendation: keep the default as `false` for patch/minor releases; if changing the default to `true`, treat it as a breaking change and release a major version.
 
 ## Description lists conversion behavior
 
-When the `descriptionList` option is enabled the plugin converts specially formatted bullet lists into HTML description lists (`<dl>`).
+When `descriptionList` or `descriptionListWithDiv` is enabled, the plugin converts specially formatted bullet lists into HTML description lists (`<dl>`).
 
 - Each list item must start with a `**Term**` line.
+  - The `**Term**` line must be the first direct block inside that list item (term-like text inside nested sub-lists does not trigger conversion).
   - If the description continues on the next line without a blank line, the Term line must end with two ASCII spaces (a Markdown line-break) or a backslash `\`. Inline `{.attrs}` immediately after the term are allowed.
   - If the Term line is followed by a blank line, the description can start in the next paragraph or list (line-break control characters are optional).
+  - Same-line descriptions such as `- **Term** Description` are not converted.
+  - Same-line backslash forms such as `- **Term**\ Description` are also not converted (the hard break marker must be followed by an actual newline).
+  - Term-line attrs can be written in multiple adjacent blocks (`**Term** {.a} {#id} {data-x=1}`) and are merged onto `<dt>`.
+  - Attr-like braces are kept as description text only when your plugin chain does not parse them as attributes. With `markdown-it-attrs`, forms like `{foo}` may be treated as boolean attributes.
 
 In the conversion the `**Term**` line becomes a `<dt>` and the subsequent lines become the corresponding `<dd>`.
 
@@ -106,7 +115,7 @@ Note: Text descriptions are wrapped in `<p>` elements; additional paragraphs and
 ### Description list options
 
 - `descriptionList` (boolean) — Enable conversion of `**Term**` list patterns into `<dl>` description lists.
-- `descriptionListWithDiv` (boolean) — Wrap `<dt>/<dd>` pairs in a `<div>` when enabled.
+- `descriptionListWithDiv` (boolean) — Wrap `<dt>/<dd>` pairs in a `<div>` when enabled. This option also enables description-list conversion even when `descriptionList` is `false`.
 - `descriptionListDivClass` (string) — Class applied to the wrapper `<div>` when `descriptionListWithDiv` is enabled (empty string disables the class).
 
 ## Examples: Ordered Lists

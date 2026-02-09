@@ -25,7 +25,6 @@
 | `src/phase3-attributes.js` | attach type/role/class/data-* |
 | `src/phase4-html-blocks.js` | normalise HTML blocks inside lists |
 | `src/phase5-spans.js` | optional marker span generation |
-| `src/phase6-attrs-migration.js` | move attrs for flattened nested lists |
 
 ## Core Rules (registered in `index.js`)
 
@@ -35,10 +34,7 @@
 2. **`numbering_ul_phases` (after `numbering_dl_parser`)**
    - Runs the list pipeline: literal list normalisation, analysis, conversion, attribute attachment, HTML block normalisation, and optional marker spans.
 
-3. **`numbering_ul_nested_attrs` (after `curly_attributes`)**
-   - Runs `moveNestedListAttributes` only when flattening is enabled (`unremoveUlNest=false`).
-
-4. **`numbering_dl_attrs` (after `curly_attributes`)**
+3. **`numbering_dl_attrs` (after `curly_attributes`)**
    - Runs `moveParagraphAttributesToDL` only when description lists are enabled.
 
 ## Pipeline Flow (inside `numbering_ul_phases`)
@@ -68,9 +64,6 @@
 6. **Phase 5 - `generateSpans`** (optional)
    When `alwaysMarkerSpan` is true, inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) in front of list item text. If a marker entry lacks a `marker` string, the span content is rebuilt from number + marker type.
 
-7. **Phase 6 - `moveNestedListAttributes`**
-   After `curly_attributes`, moves attributes that markdown-it-attrs attached to the last `<li>` onto the parent flattened `<ol>` so nested list classes survive flattening.
-
 ## Loose vs Tight Lists
 
 - Tight/loose classification follows markdown-it exactly:
@@ -88,14 +81,31 @@
 - `types-utility.js` wraps every interaction with `listTypes.json`. Do **not** access the JSON directly from other phases.
 - Marker detection caches (`_symbolBasedTypes`, `_rangeBasedTypes`, `_sortedSymbolTypes`, `_typeInfoByName`) allow `detectMarkerType` and `getTypeAttributes` to run in linear time over the token stream.
 - Custom markers (circled digits, kana, etc.) omit the `type` attribute, emit `role="list"`, and optionally `style="list-style: none;"` when `hasListStyleNone` is enabled.
+- `markerSpanClass` is normalised with `trim()`. Empty/whitespace-only values fall back to `li-num`.
+- When `useCounterStyle` is enabled, marker spans and `role/style` marker-hiding attributes are intentionally skipped even if other span/style options are enabled.
+- No post-`curly_attributes` migration runs for list flattening. Attr placement follows `markdown-it-attrs` default nearest-block behavior in both flattened and non-flattened output.
+- Baseline `markdown-it-attrs` list attachment behavior is documented in `docs/markdown-it-attrs-list-behavior.md`; keep plugin behavior aligned unless an explicit option says otherwise.
 
 ## Description Lists
 
 - `processDescriptionList` runs in a dedicated core rule before `inline`, so list analysis always sees already-converted `<dl>` structures.
+- Conversion is all-or-nothing per bullet list: every direct `li` must match DL term/description requirements, and the first direct child block in each `li` must be the `**Term**` paragraph (nested descendants do not qualify). If any `li` does not match (for example HTML-block-only item, blank item, nested-list-first item, or non-term paragraph), the list stays `<ul>` unchanged.
+- Strict DL trigger rules:
+  - Explicit-break form: the term line must end with `␠␠` (two+ ASCII spaces) or trailing `\`, and the first description text must be on the next line.
+  - Blank-line form: first paragraph is term-only (`**Term**`, optionally followed by one or more valid `{...}` attr blocks), and description starts in the next direct paragraph/list block.
+  - Same-line form (`- **Term** Description`) is not converted to `<dl>`.
+  - Same-line backslash form (`- **Term**\ Description`) is also not converted because the hard break marker must be followed by a real newline.
 - Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
+- Inline attribute parsing for `**Term** {.attrs}` accepts:
+  - `.class` / `#id`
+  - boolean attrs (`{foo}`)
+  - key-value attributes with double quotes, single quotes, or unquoted values (`key="v"`, `key='v'`, `key=v`)
+- Multiple leading attr blocks are merged onto `<dt>` (for example `**Term** {.a} {#id} {data-x=1}`).
+- A trailing attr-only line at the end of description content is treated as list-level attrs and moved to `<dl>` (markdown-it-attrs compatible behavior).
+- Attr-like braces are treated as description text only when the active parser chain does not parse them as attributes. Note: with `markdown-it-attrs`, forms like `{foo}` may be interpreted as boolean attributes.
 - Generated `dl/dt/dd/div/p` tokens inherit `map` from the source list/paragraph tokens when available so source-line behavior remains consistent.
 - Rendering uses markdown-it's default renderer; any needed attributes must be set on tokens (no custom renderer overrides).
-- Phase 6 also handles description lists so nested `<ol>` structures created inside `<dd>` stay aligned with markdown-it-attrs output.
+- `descriptionListDivClass` is normalised with `trim()`. Empty/whitespace-only values do not emit a `class` attribute.
 
 ## HTML Blocks Inside Lists
 
@@ -110,7 +120,11 @@
 ## Caveats / Known Constraints
 
 - Literal detection only runs on paragraph lines after the first line in a list item and uses marker-width indentation (marker width + 0–3 spaces). Lines indented beyond that are treated as code blocks or plain text and are not converted.
+- In mixed-indent paragraphs, if marker-like lines appear both within the literal window (marker width + 0–3) and at deeper code-block indentation (>= marker width + 4), literal normalization skips that paragraph to avoid partial conversion surprises.
+- Treat changing the default of `enableLiteralNumberingFix` from `false` to `true` as a breaking-output change; validate with corpus-level diffs and release as major if adopted.
 - When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.
 - Token metadata is attached to list tokens; if you clone or replace tokens, copy `_markerInfo`, `_shouldConvert`, `_isLoose`, and `_parentIsLoose` as needed.
 - Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.
 - The debug scripts are ES modules (`node debug/...mjs`). Run them with `node` (>=18) or via `npm` scripts to avoid `require`-related errors.
+- Runtime currently relies on JSON import attributes (`import ... with { type: 'json' }`). Consumer environments must support this syntax (modern Node / compatible bundlers).
+- Phase 3 skips the value-normalization pass when no `li[value]` is present to avoid unnecessary full-stream scans.
