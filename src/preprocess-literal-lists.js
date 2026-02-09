@@ -5,7 +5,12 @@ import { findMatchingClose, findListItemEnd } from './list-helpers.js'
 
 // markdown-it treats indent >= marker width + 4 as code blocks inside list items.
 const MAX_LITERAL_INLINE_INDENT = 3
-const LITERAL_LINE_HINT_REGEX = /\n(?:[ \t]{0,3}\S)/
+const LITERAL_SUFFIX_CHARS = new Set(['.', ')', '．', '）', '、'])
+const LITERAL_OPEN_CLOSE_PAIRS = new Map([
+  ['(', ')'],
+  ['（', '）']
+])
+const ASCII_ALNUM_OR_FULLWIDTH_DIGIT_REGEX = /^[A-Za-z0-9０-９]+$/
 const getIndentWidth = (indentText) => indentText.replace(/\t/g, '    ').length
 const buildLineMap = (startLine, endLine = null) => {
   if (typeof startLine !== 'number') {
@@ -23,6 +28,109 @@ const getListItemMarkerWidth = (listItem) => {
   const markup = typeof listItem.markup === 'string' ? listItem.markup : ''
   const markerLength = info.length + markup.length
   return markerLength > 0 ? markerLength + 1 : 1
+}
+
+const getLineTokenWithIndent = (line) => {
+  if (typeof line !== 'string' || line.length === 0) {
+    return null
+  }
+  const match = line.match(/^([ \t]*)(\S+)(?:\s|$)/)
+  if (!match) {
+    return null
+  }
+  return {
+    indentWidth: getIndentWidth(match[1]),
+    token: match[2]
+  }
+}
+
+const hasLikelyLiteralMarkerToken = (token) => {
+  if (typeof token !== 'string' || token.length === 0) {
+    return false
+  }
+
+  let core = token
+  let hasSuffix = false
+  const firstChar = core[0]
+  const closingPair = LITERAL_OPEN_CLOSE_PAIRS.get(firstChar)
+  if (closingPair) {
+    const closeIdx = core.indexOf(closingPair, 1)
+    if (closeIdx <= 1) {
+      return false
+    }
+    const inner = core.slice(1, closeIdx)
+    const rest = core.slice(closeIdx + 1)
+    if (rest.length > 1) {
+      return false
+    }
+    if (rest.length === 1) {
+      if (!LITERAL_SUFFIX_CHARS.has(rest)) {
+        return false
+      }
+      hasSuffix = true
+    }
+    core = inner
+  } else {
+    const tail = core[core.length - 1]
+    if (LITERAL_SUFFIX_CHARS.has(tail)) {
+      core = core.slice(0, -1)
+      hasSuffix = true
+    }
+  }
+
+  if (!core) {
+    return false
+  }
+
+  // For ASCII tokens, require explicit suffix to avoid treating normal words as list markers.
+  if (ASCII_ALNUM_OR_FULLWIDTH_DIGIT_REGEX.test(core)) {
+    return hasSuffix
+  }
+
+  // Non-ASCII marker cores (circled digits, kana, kanji, etc.) are typically short.
+  return core.length <= 4
+}
+
+const hasLikelyLiteralLineHint = (content) => {
+  if (typeof content !== 'string' || !content.includes('\n')) {
+    return false
+  }
+  const lines = content.split('\n')
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]
+    if (!line || line.trim().length === 0) {
+      continue
+    }
+    const tokenInfo = getLineTokenWithIndent(line)
+    if (!tokenInfo || tokenInfo.indentWidth > MAX_LITERAL_INLINE_INDENT) {
+      continue
+    }
+    if (hasLikelyLiteralMarkerToken(tokenInfo.token)) {
+      return true
+    }
+  }
+  return false
+}
+
+const hasOverIndentedMarkerLikeLine = (content) => {
+  if (typeof content !== 'string' || !content.includes('\n')) {
+    return false
+  }
+  const lines = content.split('\n')
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i]
+    if (!line || line.trim().length === 0) {
+      continue
+    }
+    const tokenInfo = getLineTokenWithIndent(line)
+    if (!tokenInfo || tokenInfo.indentWidth <= MAX_LITERAL_INLINE_INDENT) {
+      continue
+    }
+    if (hasLikelyLiteralMarkerToken(tokenInfo.token)) {
+      return true
+    }
+  }
+  return false
 }
 
 /**
@@ -88,7 +196,14 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
           j = paragraphCloseIdx + 1
           continue
         }
-        if (!LITERAL_LINE_HINT_REGEX.test(inlineToken.content)) {
+        if (!hasLikelyLiteralLineHint(inlineToken.content)) {
+          j = paragraphCloseIdx + 1
+          continue
+        }
+        // Be conservative when deeply-indented marker-like lines are present.
+        // These lines are often code blocks; partial literal conversion is more surprising
+        // than preserving markdown-it's original rendering in this ambiguous case.
+        if (hasOverIndentedMarkerLikeLine(inlineToken.content)) {
           j = paragraphCloseIdx + 1
           continue
         }

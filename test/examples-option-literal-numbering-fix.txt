@@ -90,3 +90,45 @@
 </code></pre>
 </li>
 </ul>
+
+[Markdown]
+- Parent
+    3. Child
+        5. Deep marker-like
+        6. Deep marker-like
+[HTML]
+<ul>
+<li>Parent
+3. Child
+5. Deep marker-like
+6. Deep marker-like</li>
+</ul>
+
+[Markdown]
+- Parent
+    3. Child
+        deep note line
+        another note
+[HTML]
+<ul>
+<li>Parent
+<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
+<li>Child</li>
+</ol>
+<p>      deep note line
+another note</p>
+</li>
+</ul>
+
+[Markdown]
+- Parent
+    ② Child
+        ③ Deep marker-like
+        ④ Deep marker-like
+[HTML]
+<ul>
+<li>Parent
+② Child
+③ Deep marker-like
+④ Deep marker-like</li>
+</ul>

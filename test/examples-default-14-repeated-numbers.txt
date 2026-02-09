@@ -261,12 +261,9 @@
 [HTML]
 <ol type="1" class="ol-decimal" data-marker-suffix=".">
 <li>First
-<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">
-<li>Second</li>
-</ol>
-<p>     5. Third
-6. Third</p>
-</li>
+3. Second
+5. Third
+6. Third</li>
 </ol>
 
 [Markdown]
