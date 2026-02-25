@@ -1,0 +1,10 @@
+[Markdown]
+- Parent
+  2. Child {.red}
+  3. Child two {.blue}
+[HTML]
+<ul>
+<li class="blue">Parent
+2. Child {.red}
+3. Child two</li>
+</ul>

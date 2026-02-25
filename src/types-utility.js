@@ -10,18 +10,17 @@ import types from '../listTypes.json' with { type: 'json' }
  */
 export const isConvertibleMarkerType = (markerType) => {
   if (!markerType) return false
-  
-  // Exclude exotic markers that should remain as <ul> in default mode
-  // These are rarely used and may not be well-supported
-  const excludedTypes = [
-    'fullwidth-lower-roman',
-    'fullwidth-upper-roman',
-    'squared-upper-latin',
-    'filled-squared-upper-latin'
-  ]
-  
-  return !excludedTypes.includes(markerType)
+
+  return !EXCLUDED_MARKER_TYPES.has(markerType)
 }
+
+// Exclude exotic markers that should remain as <ul> in default mode.
+const EXCLUDED_MARKER_TYPES = new Set([
+  'fullwidth-lower-roman',
+  'fullwidth-upper-roman',
+  'squared-upper-latin',
+  'filled-squared-upper-latin'
+])
 
 const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -304,10 +303,9 @@ export const detectSequencePattern = (allContents) => {
   const allSame = pureSymbols.every(s => s === pureSymbols[0])
   
   // Cache type lookups
-  const { typeInfoByName } = getTypeSeparation()
-  const irohaType = typeInfoByName.get('katakana-iroha')
-  const katakanaType = typeInfoByName.get('katakana')
-  const upperRomanType = typeInfoByName.get('upper-roman')
+  const irohaType = _TYPE_INFO_BY_NAME.get('katakana-iroha')
+  const katakanaType = _TYPE_INFO_BY_NAME.get('katakana')
+  const upperRomanType = _TYPE_INFO_BY_NAME.get('upper-roman')
   
   // Get symbol sequences from listTypes.json
   if (irohaType?.symbols) {
@@ -407,8 +405,7 @@ export const detectMarkerTypeWithContext = (content, contextResult = null) => {
  * @returns {string|null} The symbol for that number, or null if not found
  */
 export const getSymbolForNumber = (markerType, number) => {
-  const { typeInfoByName } = getTypeSeparation()
-  const typeInfo = typeInfoByName.get(markerType)
+  const typeInfo = _TYPE_INFO_BY_NAME.get(markerType)
   if (!typeInfo) {
     return null
   }
@@ -450,8 +447,7 @@ export const getSymbolForNumber = (markerType, number) => {
  * @returns {Object} Object with prefix and suffix properties
  */
 export const getDefaultPatternForType = (markerType) => {
-  const { typeInfoByName } = getTypeSeparation()
-  const typeInfo = typeInfoByName.get(markerType)
+  const typeInfo = _TYPE_INFO_BY_NAME.get(markerType)
   if (!typeInfo) {
     return { prefix: '', suffix: '.' }
   }
@@ -523,8 +519,7 @@ const CUSTOM_TYPES_NO_SUFFIX = new Set([
 ])
 
 export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
-  const { typeInfoByName } = getTypeSeparation()
-  const type = typeInfoByName.get(markerType)
+  const type = _TYPE_INFO_BY_NAME.get(markerType)
   if (!type) {
     return { type: '1', class: 'ol-decimal', suffix: '.' }
   }
@@ -800,6 +795,8 @@ const _FLATTENED_PATTERNS = (() => {
   return arr
 })()
 
+const _TYPE_INFO_BY_NAME = getTypeSeparation().typeInfoByName
+
 const tryMatchAgainstType = (trimmed, typeName) => {
   if (!typeName) return null
   const compiled = _COMPILED_BY_NAME.get(typeName)
@@ -828,8 +825,7 @@ const matchRegexEntry = (trimmed, typeName, entry) => {
 
   const detectedMarker = result[1]
   const pureSymbol = extractPureSymbol(detectedMarker, entry.prefix, entry.suffix)
-  const { typeInfoByName } = getTypeSeparation()
-  const typeInfo = typeInfoByName.get(typeName)
+  const typeInfo = _TYPE_INFO_BY_NAME.get(typeName)
   const compiledForCalc = entry.compiled || _COMPILED_BY_NAME.get(typeName)
   const number = calculateNumber(typeInfo, pureSymbol, compiledForCalc)
 
@@ -840,12 +836,12 @@ const matchRegexEntry = (trimmed, typeName, entry) => {
 export const analyzeListMarkerContext = (markerInfos) => {
   if (!markerInfos || markerInfos.length === 0) return markerInfos
   
-  const { symbolBasedTypes, typeInfoByName } = getTypeSeparation()
+  const { symbolBasedTypes } = getTypeSeparation()
   
   // Create typeInfo lookup cache
   const typeInfoCache = new Map()
   for (const compiledType of symbolBasedTypes) {
-    const typeInfo = typeInfoByName.get(compiledType.name)
+    const typeInfo = _TYPE_INFO_BY_NAME.get(compiledType.name)
     if (typeInfo?.symbols) {
       typeInfoCache.set(compiledType.name, typeInfo)
     }

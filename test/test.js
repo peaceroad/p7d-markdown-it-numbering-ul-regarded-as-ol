@@ -62,8 +62,8 @@ const createMaplessTestConfig = (name, options, testFiles) => {
 
 // Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
-  // Literal numbering fix enabled (legacy behavior + extended tests)
-  createTestConfig('literal numbering fix enabled', { enableLiteralNumberingFix: true }, [
+  // Default configuration (literal numbering fix disabled / legacy-compatible)
+  createTestConfig('default configuration (literal fix disabled)', {}, [
     'examples-default-1.txt',
     'examples-default-2-samesymbol.txt',
     'examples-default-3.txt',
@@ -74,26 +74,37 @@ const testConfigs = [
     'examples-default-11fullwidth-joint.txt',
     'examples-default-12space-handling.txt',
     'examples-default-13-class-attributes.txt',
-    'examples-default-14-repeated-numbers.txt',
     'examples-default-15-default-ul.txt',
     'examples-option-mapful.txt',
+    'examples-option-literal-numbering-fix-disabled.txt'
+  ]),
+  createTestConfig('literal numbering fix enabled (opt-in)', { enableLiteralNumberingFix: true }, [
+    'examples-default-14-repeated-numbers.txt',
     'examples-option-literal-numbering-fix.txt',
     'examples-option-literal-numbering-indent.txt'
-  ]),
-  createTestConfig('default configuration (literal fix disabled)', {}, [
-    'examples-option-literal-numbering-fix-disabled.txt'
   ]),
   createMaplessTestConfig('mapless configuration (token.map stripped)', {}, [
     'examples-option-mapless.txt'
   ]),
-  // Integration: literal numbering fix with attrs (attrs loaded first/last)
+  // Integration: default literal numbering fix disabled with attrs (attrs loaded first/last)
   {
-    name: 'literal numbering fix with attrs (attrs loaded first)',
+    name: 'default literal numbering fix disabled with attrs (attrs loaded first)',
+    md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl),
+    testFiles: ['examples-option-literal-numbering-attrs-disabled.txt']
+  },
+  {
+    name: 'default literal numbering fix disabled with attrs (attrs loaded last)',
+    md: mdit({ html: true }).use(mditNumberingUl).use(mditAttrs),
+    testFiles: ['examples-option-literal-numbering-attrs-disabled.txt']
+  },
+  // Integration: explicit literal numbering fix enabled with attrs (attrs loaded first/last)
+  {
+    name: 'literal numbering fix enabled with attrs (attrs loaded first)',
     md: mdit({ html: true }).use(mditAttrs).use(mditNumberingUl, { enableLiteralNumberingFix: true }),
     testFiles: ['examples-option-literal-numbering-attrs.txt']
   },
   {
-    name: 'literal numbering fix with attrs (attrs loaded last)',
+    name: 'literal numbering fix enabled with attrs (attrs loaded last)',
     md: mdit({ html: true }).use(mditNumberingUl, { enableLiteralNumberingFix: true }).use(mditAttrs),
     testFiles: ['examples-option-literal-numbering-attrs.txt']
   },

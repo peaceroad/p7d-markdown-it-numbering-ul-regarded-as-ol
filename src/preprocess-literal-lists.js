@@ -91,46 +91,32 @@ const hasLikelyLiteralMarkerToken = (token) => {
   return core.length <= 4
 }
 
-const hasLikelyLiteralLineHint = (content) => {
+const scanLiteralLineHints = (content) => {
   if (typeof content !== 'string' || !content.includes('\n')) {
-    return false
+    return { hasInlineLiteralHint: false, hasOverIndentedMarkerHint: false, lines: null }
   }
   const lines = content.split('\n')
+  let hasInlineLiteralHint = false
+  let hasOverIndentedMarkerHint = false
   for (let i = 1; i < lines.length; i++) {
     const line = lines[i]
     if (!line || line.trim().length === 0) {
       continue
     }
     const tokenInfo = getLineTokenWithIndent(line)
-    if (!tokenInfo || tokenInfo.indentWidth > MAX_LITERAL_INLINE_INDENT) {
+    if (!tokenInfo || !hasLikelyLiteralMarkerToken(tokenInfo.token)) {
       continue
     }
-    if (hasLikelyLiteralMarkerToken(tokenInfo.token)) {
-      return true
+    if (tokenInfo.indentWidth > MAX_LITERAL_INLINE_INDENT) {
+      hasOverIndentedMarkerHint = true
+    } else {
+      hasInlineLiteralHint = true
+    }
+    if (hasInlineLiteralHint && hasOverIndentedMarkerHint) {
+      break
     }
   }
-  return false
-}
-
-const hasOverIndentedMarkerLikeLine = (content) => {
-  if (typeof content !== 'string' || !content.includes('\n')) {
-    return false
-  }
-  const lines = content.split('\n')
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i]
-    if (!line || line.trim().length === 0) {
-      continue
-    }
-    const tokenInfo = getLineTokenWithIndent(line)
-    if (!tokenInfo || tokenInfo.indentWidth <= MAX_LITERAL_INLINE_INDENT) {
-      continue
-    }
-    if (hasLikelyLiteralMarkerToken(tokenInfo.token)) {
-      return true
-    }
-  }
-  return false
+  return { hasInlineLiteralHint, hasOverIndentedMarkerHint, lines }
 }
 
 /**
@@ -196,19 +182,20 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
           j = paragraphCloseIdx + 1
           continue
         }
-        if (!hasLikelyLiteralLineHint(inlineToken.content)) {
+        const literalHints = scanLiteralLineHints(inlineToken.content)
+        if (!literalHints.hasInlineLiteralHint) {
           j = paragraphCloseIdx + 1
           continue
         }
         // Be conservative when deeply-indented marker-like lines are present.
         // These lines are often code blocks; partial literal conversion is more surprising
         // than preserving markdown-it's original rendering in this ambiguous case.
-        if (hasOverIndentedMarkerLikeLine(inlineToken.content)) {
+        if (literalHints.hasOverIndentedMarkerHint) {
           j = paragraphCloseIdx + 1
           continue
         }
         const baseLine = tokens[j].map ? tokens[j].map[0] : null
-        const segments = parseSegments(inlineToken.content, markerWidth, baseLine)
+        const segments = parseSegments(literalHints.lines, markerWidth, baseLine)
         if (!segments.hasLiteral) {
           j = paragraphCloseIdx + 1
           continue
@@ -247,12 +234,15 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
   }
 }
 
-function parseSegments(content, markerWidth, baseLine = null) {
-  if (!content) {
+function parseSegments(contentOrLines, markerWidth, baseLine = null) {
+  if (!contentOrLines) {
     return { hasLiteral: false, list: [{ type: 'text', text: '', tight: false }] }
   }
 
-  const lines = content.split('\n')
+  const lines = Array.isArray(contentOrLines) ? contentOrLines : contentOrLines.split('\n')
+  if (lines.length === 0) {
+    return { hasLiteral: false, list: [{ type: 'text', text: '', tight: false }] }
+  }
   const literalCache = new Array(lines.length)
   const segments = []
   let buffer = []
@@ -280,8 +270,7 @@ function parseSegments(content, markerWidth, baseLine = null) {
 
   while (idx < lines.length) {
     const isFirstLine = idx === 0
-    const trimmedLine = lines[idx].trim()
-    if (isFirstLine && trimmedLine.length > 0) {
+    if (isFirstLine && lines[idx].trim().length > 0) {
       buffer.push(lines[idx])
       idx++
       continue
@@ -334,7 +323,7 @@ function detectLiteralLine(line, markerWidth) {
   if (!trimmed.startsWith(markerInfo.marker)) {
     return null
   }
-  const remainder = trimmed.slice(markerInfo.marker.length).replace(/^\s+/, '')
+  const remainder = trimmed.slice(markerInfo.marker.length).trimStart()
   const safeMarkerWidth = Number.isFinite(markerWidth) ? markerWidth : 1
   return {
     indent: safeMarkerWidth + indentWidth,
@@ -458,7 +447,7 @@ function buildReplacementTokens(segments, listItemLevel, TokenClass, paragraphOp
       for (const listNode of segment.lists) {
         const relativeIndex = tokens.length
         tokens.push(...buildListTokens(listNode, listItemLevel + 1, TokenClass))
-        literalListPositions.push({ relativeIndex, level: listItemLevel + 1 })
+        literalListPositions.push({ relativeIndex })
       }
       templateUsed = true
     }

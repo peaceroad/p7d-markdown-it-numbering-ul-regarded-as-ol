@@ -26,6 +26,14 @@ const mditNumberingUl = (md, option) => {
     ...option
   }
 
+  const normalizedMarkerSpanClass = typeof opt.markerSpanClass === 'string'
+    ? opt.markerSpanClass.trim()
+    : ''
+  opt.markerSpanClass = normalizedMarkerSpanClass || 'li-num'
+  opt.descriptionListDivClass = typeof opt.descriptionListDivClass === 'string'
+    ? opt.descriptionListDivClass.trim()
+    : ''
+
   const addRuleAfter = (ruler, afterName, ruleName, fn) => {
     try {
       ruler.after(afterName, ruleName, fn)
@@ -35,9 +43,6 @@ const mditNumberingUl = (md, option) => {
   }
 
   const dlProcessor = (state) => {
-    if (!state.env) {
-      state.env = {}
-    }
     if (!opt.descriptionList && !opt.descriptionListWithDiv) {
       return true
     }
@@ -46,47 +51,66 @@ const mditNumberingUl = (md, option) => {
   }
 
   const listProcessor = (state) => {
-    // Initialize state.env
-    if (!state.env) {
-      state.env = {}
+    const tokens = state.tokens
+    let hasAnyList = false
+    for (let i = 0; i < tokens.length; i++) {
+      const type = tokens[i]?.type
+      if (type === 'bullet_list_open' || type === 'ordered_list_open') {
+        hasAnyList = true
+        break
+      }
+    }
+    if (!hasAnyList) {
+      return true
     }
 
-    const tokens = state.tokens
-
     // Normalize literal nested ordered lists (markdown-it only creates nested lists when they start at 1)
-    normalizeLiteralOrderedLists(tokens, opt)
+    if (opt.enableLiteralNumberingFix) {
+      normalizeLiteralOrderedLists(tokens, opt)
+    }
     
     // ===== PHASE 1: List Structure Analysis =====
     // Analyze marker detection and structure without token conversion
-    const listInfos = analyzeListStructure(tokens, opt)
+    const listInfos = analyzeListStructure(tokens)
     
     // ===== PHASE 2: Token Conversion =====
     // Convert bullet_list to ordered_list based on Phase1 analysis
     // Note: simplifyNestedBulletLists removes tokens, changing indices
     convertLists(tokens, listInfos, opt)
+
+    let hasOrderedList = false
+    let hasNestedHtmlBlock = false
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i]
+      if (!hasOrderedList && token.type === 'ordered_list_open') {
+        hasOrderedList = true
+      }
+      if (!hasNestedHtmlBlock && token.type === 'html_block' && token.level > 0) {
+        hasNestedHtmlBlock = true
+      }
+      if (hasOrderedList && hasNestedHtmlBlock) {
+        break
+      }
+    }
     
     // ===== PHASE 3: Add Attributes =====
     // Add type, class, data-* attributes to converted lists
     // Use markerInfo stored on list tokens (safe after Phase2 mutations)
-    addAttributes(tokens, opt)
+    if (hasOrderedList) {
+      addAttributes(tokens, opt)
+    }
     
     // ===== PHASE 4: HTML Block Processing =====
     // Remove indents from HTML blocks in lists and normalize line breaks
-    let hasNestedHtmlBlock = false
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i]
-      if (token.type === 'html_block' && token.level > 0) {
-        hasNestedHtmlBlock = true
-        break
-      }
-    }
     if (hasNestedHtmlBlock) {
       processHtmlBlocks(state)
     }
     
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
-    generateSpans(tokens, opt)
+    if (hasOrderedList && !opt.useCounterStyle) {
+      generateSpans(tokens, opt)
+    }
     
     return true
   }

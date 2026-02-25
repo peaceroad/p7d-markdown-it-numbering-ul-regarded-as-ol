@@ -9,7 +9,7 @@ import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
  * @returns {Array<[number, number]>} DL range pairs [[start, end], ...]
  */
 function buildDLStateMap(tokens) {
-  const state = new Array(tokens.length).fill(false)
+  const state = new Uint8Array(tokens.length)
   let dlDepth = 0
   let htmlDdDepth = 0
   
@@ -17,17 +17,17 @@ function buildDLStateMap(tokens) {
     const token = tokens[i]
     
     if (dlDepth > 0 || htmlDdDepth > 0) {
-      state[i] = true
+      state[i] = 1
     }
     
     if (token.type === 'dl_open') {
-      state[i] = true
+      state[i] = 1
       dlDepth++
       continue
     }
     
     if (token.type === 'dl_close') {
-      state[i] = true
+      state[i] = 1
       if (dlDepth > 0) {
         dlDepth--
       }
@@ -36,12 +36,12 @@ function buildDLStateMap(tokens) {
     
     if (token.type === 'html_block') {
       if (token.content === '<dd>\n') {
-        state[i] = true
+        state[i] = 1
         htmlDdDepth++
         continue
       }
       if (token.content === '</dd>\n') {
-        state[i] = true
+        state[i] = 1
         if (htmlDdDepth > 0) {
           htmlDdDepth--
         }
@@ -63,16 +63,15 @@ function isInsideDL(index, dlState) {
   if (!dlState || index < 0 || index >= dlState.length) {
     return false
   }
-  return dlState[index] === true
+  return dlState[index] === 1
 }
 
 /**
  * Collect list information from token array
  * @param {Array} tokens - markdown-it token array
- * @param {Object} opt - Plugin options
  * @returns {Array} Flat array of list information (including nested lists)
  */
-export function analyzeListStructure(tokens, opt) {
+export function analyzeListStructure(tokens) {
   const listInfos = []
   const closeMap = buildListCloseIndexMap(tokens)
   
@@ -105,7 +104,7 @@ export function analyzeListStructure(tokens, opt) {
                        isInsideDL(i, dlScope)
     
     if (isTopLevelList || isListInDD) {
-      const listInfo = analyzeList(tokens, i, opt, closeMap)
+      const listInfo = analyzeList(tokens, i, closeMap)
       if (listInfo) {
         listInfos.push(listInfo)
         
@@ -139,7 +138,7 @@ function collectNestedLists(listInfo, listInfos) {
 /**
  * Analyze detailed information of a single list
  */
-function analyzeList(tokens, startIndex, opt, closeMap) {
+function analyzeList(tokens, startIndex, closeMap) {
   const listToken = tokens[startIndex]
   const endIndex = findListEnd(tokens, startIndex, closeMap)
   
@@ -149,7 +148,7 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
   
   const level = listToken.level || 0
   const originalType = listToken.type
-  const items = analyzeListItems(tokens, startIndex, endIndex, opt, closeMap)
+  const items = analyzeListItems(tokens, startIndex, endIndex, closeMap)
   const isLoose = detectLooseList(tokens, startIndex, endIndex, items)
   if (!isLoose) {
     hideFirstParagraphsForTightList(tokens, items, level)
@@ -159,7 +158,7 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
   listToken._isLoose = isLoose
   
   // Extract marker info (for both bullet_list and ordered_list)
-  const markerInfo = extractMarkerInfo(tokens, startIndex, endIndex, opt)
+  const markerInfo = extractMarkerInfo(tokens, startIndex, endIndex)
   
   // Recheck marker consistency against item count
   if (markerInfo && markerInfo.count < items.length) {
@@ -170,7 +169,7 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
   // Conversion decision (only consider for bullet_list)
   // Convert even loose lists if markers are consistent
   const shouldConvert = originalType === 'bullet_list_open' && 
-                        shouldConvertToOrdered(originalType, markerInfo, opt)
+                        shouldConvertToOrdered(originalType, markerInfo)
 
   if (markerInfo) {
     listToken._markerInfo = markerInfo
@@ -194,7 +193,7 @@ function analyzeList(tokens, startIndex, opt, closeMap) {
 /**
  * Analyze list items
  */
-function analyzeListItems(tokens, startIndex, endIndex, opt, closeMap) {
+function analyzeListItems(tokens, startIndex, endIndex, closeMap) {
   const items = []
   let i = startIndex + 1
   
@@ -203,7 +202,7 @@ function analyzeListItems(tokens, startIndex, endIndex, opt, closeMap) {
     
     if (token.type === 'list_item_open') {
       const itemEndIndex = findListItemEnd(tokens, i, closeMap)
-      const item = analyzeListItem(tokens, i, itemEndIndex, opt, closeMap)
+      const item = analyzeListItem(tokens, i, itemEndIndex, closeMap)
       items.push(item)
       i = itemEndIndex + 1
     } else {
@@ -217,7 +216,7 @@ function analyzeListItems(tokens, startIndex, endIndex, opt, closeMap) {
 /**
  * Analyze a single list item
  */
-function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
+function analyzeListItem(tokens, startIndex, endIndex, closeMap) {
   let content = ''
   let markerInfo = null
   let hasNestedList = false
@@ -259,7 +258,7 @@ function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
       }
       checkedFirstParagraphLoose = true
       hasNestedList = true
-      const nestedListInfo = analyzeList(tokens, i, opt, closeMap)
+      const nestedListInfo = analyzeList(tokens, i, closeMap)
       nestedLists.push(nestedListInfo)
       i = nestedListInfo.endIndex
     }
@@ -288,7 +287,7 @@ function analyzeListItem(tokens, startIndex, endIndex, opt, closeMap) {
 /**
  * Extract marker information
  */
-function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
+function extractMarkerInfo(tokens, startIndex, endIndex) {
   const listToken = tokens[startIndex]
   const markers = []
   const literalMarkerInfo = listToken._literalMarkerInfo || null
@@ -411,7 +410,7 @@ function extractMarkerInfo(tokens, startIndex, endIndex, opt) {
 /**
  * Determine if should convert to ordered list
  */
-function shouldConvertToOrdered(originalType, markerInfo, opt) {
+function shouldConvertToOrdered(originalType, markerInfo) {
   // No conversion needed if already ordered_list
   if (originalType === 'ordered_list_open') {
     return false

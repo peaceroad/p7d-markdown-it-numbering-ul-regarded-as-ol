@@ -13,11 +13,7 @@ export function generateSpans(tokens, opt) {
   if (opt.useCounterStyle) {
     return
   }
-  const rawSpanClass = opt?.markerSpanClass
-  const normalizedSpanClass = typeof rawSpanClass === 'string'
-    ? rawSpanClass.trim()
-    : ''
-  const spanClass = normalizedSpanClass || 'li-num'
+  const spanClass = opt.markerSpanClass || 'li-num'
   let listCloseByOpen = null
   const getListCloseByOpen = () => {
     if (!listCloseByOpen) {
@@ -58,15 +54,17 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, spanClass
   }
   if (listCloseIndex === -1) return
   
+  const markerCount = markerInfo.markers.length
+  const listItemLevel = (listToken.level || 0) + 1
   let markerIndex = 0
   let inListItem = false
   let listItemInlineFound = false
   
-  for (let i = listIndex + 1; i < listCloseIndex && markerIndex < markerInfo.markers.length; i++) {
+  for (let i = listIndex + 1; i < listCloseIndex && markerIndex < markerCount; i++) {
     const token = tokens[i]
     
     // When list_item_open is found, prepare to add marker to next inline
-    if (token.type === 'list_item_open' && token.level === (listToken.level || 0) + 1) {
+    if (token.type === 'list_item_open' && token.level === listItemLevel) {
       inListItem = true
       listItemInlineFound = false
     }
@@ -77,12 +75,13 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, spanClass
         listItemInlineFound = true
         continue
       }
+      const TokenClass = token.constructor
       // Insert span_open, text, span_close before inline token
-      const spanOpen = new tokens[i].constructor('span_open', 'span', 1)
+      const spanOpen = new TokenClass('span_open', 'span', 1)
       spanOpen.attrSet('class', spanClass)
       spanOpen.attrSet('aria-hidden', 'true')
       
-      const text = new tokens[i].constructor('text', '', 0)
+      const text = new TokenClass('text', '', 0)
       
       // Determine marker content
       // If marker.number exists, get correct symbol based on it
@@ -112,7 +111,7 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, spanClass
       // Use markerContent as-is (prefix+symbol+suffix) for alwaysMarkerSpan
       text.content = markerContent
       
-      const spanClose = new tokens[i].constructor('span_close', 'span', -1)
+      const spanClose = new TokenClass('span_close', 'span', -1)
       
       // Initialize children if not exist
       if (!token.children) {
@@ -124,14 +123,14 @@ function addMarkerSpans(tokens, listToken, listIndex, markerInfo, opt, spanClass
       
       // Add space before content if exists
       if (token.content) {
-        const spaceToken = new tokens[i].constructor('text', '', 0)
+        const spaceToken = new TokenClass('text', '', 0)
         spaceToken.content = ' '
         token.children.push(spaceToken)
       }
       listItemInlineFound = true  // First inline of this list_item is processed
     }
     // When list_item_close is found, go to next list_item
-    else if (token.type === 'list_item_close' && token.level === (listToken.level || 0) + 1) {
+    else if (token.type === 'list_item_close' && token.level === listItemLevel) {
       inListItem = false
       markerIndex++  // Move to next marker
     }

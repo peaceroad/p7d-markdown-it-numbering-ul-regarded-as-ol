@@ -14,6 +14,8 @@ const LEADING_ATTR_BLOCK_REGEX = /^[ \t]*\{([^}]+)\}/
 const STANDALONE_ATTR_BLOCK_REGEX = /^\{([^}]+)\}$/
 const TRAILING_TWO_SPACES_REGEX = / {2,}$/
 const TRAILING_BACKSLASH_BREAK_REGEX = /\\\s*$/
+const DL_TERM_INLINE_REGEX = /^\*\*(.*?)\*\*(.*)/s
+const TRAILING_LIST_ATTR_LINE_REGEX = /\n\s*\{([^}]+)\}\s*$/
 
 const parseAttrString = (attrStr) => {
   if (!attrStr || typeof attrStr !== 'string') {
@@ -123,9 +125,11 @@ const hasMeaningfulDescriptionContent = (text) => {
   if (typeof text !== 'string' || text.trim().length === 0) {
     return false
   }
+  if (!text.includes('{')) {
+    return true
+  }
 
   const lines = text.split('\n')
-  const renderedLines = []
   for (const line of lines) {
     const trimmed = line.trim()
     if (!trimmed) {
@@ -138,9 +142,9 @@ const hasMeaningfulDescriptionContent = (text) => {
         continue
       }
     }
-    renderedLines.push(trimmed)
+    return true
   }
-  return renderedLines.join('\n').trim().length > 0
+  return false
 }
 
 const copyMap = (target, source) => {
@@ -159,10 +163,24 @@ export const processDescriptionList = (tokens, opt) => {
   if (!opt.descriptionList && !opt.descriptionListWithDiv) {
     return
   }
+  if (!Array.isArray(tokens) || tokens.length === 0) {
+    return
+  }
+
+  let firstBulletIndex = -1
+  for (let i = 0; i < tokens.length; i++) {
+    if (tokens[i].type === 'bullet_list_open') {
+      firstBulletIndex = i
+      break
+    }
+  }
+  if (firstBulletIndex === -1) {
+    return
+  }
 
   // Find bullet_lists and check if they match DL pattern
   // Process in single pass: check and convert together to avoid duplicate scanning
-  let i = 0
+  let i = firstBulletIndex
   while (i < tokens.length) {
     if (tokens[i].type === 'bullet_list_open') {
       const listEnd = findListEnd(tokens, i)
@@ -253,6 +271,9 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
   // First pass: validate all items match DL pattern
   let hasAnyDLItem = false
   const itemRanges = collectListItemRanges(tokens, listStart, listEnd)
+  if (itemRanges.length === 0) {
+    return { nextIndex: listEnd + 1 }
+  }
 
   for (const range of itemRanges) {
     const itemStart = range.open
@@ -329,9 +350,12 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
  */
 const isDLPattern = (content) => {
   if (!content) return { isMatch: false, afterStrong: null }
+  if (content.length < 4 || content[0] !== '*' || content[1] !== '*') {
+    return { isMatch: false, afterStrong: null }
+  }
   
   // Match **Term** pattern (allow spaces inside for markdown-it-strong-ja compatibility)
-  const match = content.match(/^\*\*(.*?)\*\*(.*)/s)  // s flag for including newlines
+  const match = content.match(DL_TERM_INLINE_REGEX)
   if (!match) return { isMatch: false, afterStrong: null }
   
   const afterStrong = match[2]  // Text after closing **
@@ -450,7 +474,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   let descStart = ''
   
   const content = inlineToken.content
-  const match = content.match(/^\*\*(.*?)\*\*(.*)/s)  // s flag for including newlines
+  const match = content.match(DL_TERM_INLINE_REGEX)
   
   if (match) {
     // Trim to avoid leading space when **Term** starts with whitespace (e.g. "** *term*")
@@ -471,7 +495,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     // Pattern B: {.attrs} on last line (e.g., "Description\n{.attrs}")
     // This will be processed by markdown-it-attrs and applied to list, not paragraph
     // We need to remove it from description content and save for list-level attrs
-    const lastLineAttrsMatch = afterStrong.match(/\n\s*\{([^}]+)\}\s*$/)
+    const lastLineAttrsMatch = afterStrong.match(TRAILING_LIST_ATTR_LINE_REGEX)
     if (lastLineAttrsMatch) {
       // Parse attributes
       const attrString = lastLineAttrsMatch[1]
@@ -479,7 +503,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
       if (parsedAttrs.length > 0) {
         listAttrs.push(...parsedAttrs)
         // Remove {.attrs} line from afterStrong
-        afterStrong = afterStrong.replace(/\n\s*\{[^}]+\}\s*$/, '')
+        afterStrong = afterStrong.replace(TRAILING_LIST_ATTR_LINE_REGEX, '')
       }
     }
     
@@ -495,14 +519,12 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   if (!term) return { tokens: result, listAttrs }
   
   // Create div_open if descriptionListWithDiv is enabled
-  if (opt && opt.descriptionListWithDiv) {
+  if (opt.descriptionListWithDiv) {
     const divOpen = new tokens[firstPara].constructor('div_open', 'div', 1)
     divOpen.level = parentLevel + 1
     divOpen.block = true
     copyMap(divOpen, tokens[firstPara])
-    const divClass = typeof opt.descriptionListDivClass === 'string'
-      ? opt.descriptionListDivClass.trim()
-      : ''
+    const divClass = opt.descriptionListDivClass
     if (divClass) {
       divOpen.attrs = [['class', divClass]]
     }
@@ -542,7 +564,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   result.push(ddOpen)
   
   // First paragraph in dd (if description exists)
-  if (descStart.trim()) {
+  if (descStart) {
     const pOpen = new tokens[firstPara].constructor('paragraph_open', 'p', 1)
     pOpen.level = parentLevel + 2
     pOpen.block = true  // IMPORTANT: Enable block mode for proper newline rendering
@@ -554,7 +576,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     pInline.level = parentLevel + 3
     pInline.block = true  // IMPORTANT: Enable block mode
     const pText = new tokens[firstPara].constructor('text', '', 0)
-    pText.content = descStart.trim()
+    pText.content = descStart
     pInline.children = [pText]
     result.push(pInline)
     
@@ -612,7 +634,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   result.push(ddClose)
   
   // Create div_close if descriptionListWithDiv is enabled
-  if (opt && opt.descriptionListWithDiv) {
+  if (opt.descriptionListWithDiv) {
     const divClose = new tokens[firstPara].constructor('div_close', 'div', -1)
     divClose.level = parentLevel + 1
     divClose.block = true

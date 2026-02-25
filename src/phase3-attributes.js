@@ -4,6 +4,8 @@
 import { getTypeAttributes } from './types-utility.js'
 import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 
+const WHITESPACE_SUFFIX_REGEX = /^[ \u3000]+$/
+
 /**
  * Add attributes to lists
  * @param {Array} tokens - Token array
@@ -112,35 +114,35 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listCloseByOp
   } else {
     startOverride = undefined
   }
-  const firstNumber = startOverride ?? (markerInfo.markers[0]?.originalNumber ?? markerInfo.markers[0]?.number)
+  const firstNumber = startOverride ?? (firstMarker?.originalNumber ?? firstMarker?.number)
   if (firstNumber !== undefined && firstNumber !== 1) {
     addAttr(token, 'start', String(firstNumber))
-  } else if (token.attrs) {
-    const startIdx = token.attrs.findIndex(attr => attr[0] === 'start')
-    if (startIdx >= 0) {
-      token.attrs.splice(startIdx, 1)
-      if (token.attrs.length === 0) token.attrs = null
-    }
   }
   
   // 3. Add class attribute
   if (typeAttrs.class) {
     // Merge or add class; preserve existing classes and append
-    const existing = token.attrs.find(a => a[0] === 'class')
-    if (existing) {
-      existing[1] = (existing[1] + ' ' + typeAttrs.class).trim()
+    let classAttr = null
+    for (let i = 0; i < token.attrs.length; i++) {
+      if (token.attrs[i][0] === 'class') {
+        classAttr = token.attrs[i]
+        break
+      }
+    }
+    if (classAttr) {
+      classAttr[1] = (classAttr[1] + ' ' + typeAttrs.class).trim()
     } else {
       addAttr(token, 'class', typeAttrs.class)
     }
   }
   // 4. data-marker-prefix/suffix
   if (!opt.omitMarkerMetadata) {
-    if (markerInfo.markers[0].prefix) {
-      addAttr(token, 'data-marker-prefix', markerInfo.markers[0].prefix)
+    if (firstMarker?.prefix) {
+      addAttr(token, 'data-marker-prefix', firstMarker.prefix)
     }
     // Do not emit data-marker-suffix when suffix is only whitespace (halfwidth or fullwidth)
-    const suffix = markerInfo.markers[0].suffix
-    if (suffix && !/^[ \u3000]+$/.test(suffix)) {
+    const suffix = firstMarker?.suffix
+    if (suffix && !WHITESPACE_SUFFIX_REGEX.test(suffix)) {
       addAttr(token, 'data-marker-suffix', suffix)
     }
   }
@@ -263,10 +265,11 @@ function normalizeAndConvertValueAttributes(tokens, listCloseByOpen = null) {
  * Add or replace an attribute on a token (with duplicate check).
  */
 function addAttr(token, name, value) {
-  const existingIndex = token.attrs.findIndex(attr => attr[0] === name)
-  if (existingIndex >= 0) {
-    token.attrs[existingIndex] = [name, value]
-  } else {
-    token.attrs.push([name, value])
+  for (let i = 0; i < token.attrs.length; i++) {
+    if (token.attrs[i][0] === name) {
+      token.attrs[i] = [name, value]
+      return
+    }
   }
+  token.attrs.push([name, value])
 }
