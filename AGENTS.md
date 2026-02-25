@@ -24,7 +24,7 @@
 | `src/phase2-convert.js` | convert / flatten lists |
 | `src/phase3-attributes.js` | attach type/role/class/data-* |
 | `src/phase4-html-blocks.js` | normalise HTML blocks inside lists |
-| `src/phase5-spans.js` | optional marker span generation |
+| `src/phase5-spans.js` | marker span generation (custom markers + `alwaysMarkerSpan`) |
 
 ## Core Rules (registered in `index.js`)
 
@@ -40,7 +40,7 @@
 ## Pipeline Flow (inside `numbering_ul_phases`)
 
 1. **Literal ordered-list normalisation - `normalizeLiteralOrderedLists`**
-   Runs only when `enableLiteralNumberingFix` is enabled. Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser scans paragraph content (after the first line) and splits it into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
+   Runs when `enableLiteralNumberingFix` is enabled (default: `false`; opt-in with `true`). Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser scans paragraph content (after the first line) and splits it into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
    The normaliser short-circuits when no literal list hints are present in the token stream. Literal detection uses the parent list marker width and accepts up to 3 extra indentation spaces (marker width + 0–3). Lines indented beyond that (code blocks) are left intact.
    Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap. Generated list/list_item/paragraph tokens inherit `map` data when available to preserve map-aware behavior downstream.
 
@@ -52,7 +52,7 @@
 
 3. **Phase 2 - `convertLists` + `simplifyNestedBulletLists`**
    - Converts eligible `bullet_list` instances into `ordered_list`, removes marker text from inline tokens, and stores `_markerInfo` on list tokens.
-   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) **only when every `li` is literally just a nested list** (first child is the inner `ol` and there is no extra content). This guard prevents ordinary unordered parents (with paragraphs or inline text) from being rewritten.
+   - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) only when every `li` starts with a direct child inner list (no visible content before that list). Trailing sibling content after the inner list is preserved and merged into the flattened item.
    - During flattening we merge marker metadata from parent/child lists, honour `_literalList` so synthetic lists keep their numbering, and fix tight/loose states directly using `_literalTight`, `_literalLastLine`, token `map` data (when available), or list-level `_isLoose` as a fallback when maps are missing.
 
 4. **Phase 3 - `addAttributes`**
@@ -61,8 +61,8 @@
 5. **Phase 4 - `processHtmlBlocks`**
    Dedents HTML blocks nested inside lists, trims unnecessary blank lines, and standardises closing tags.
 
-6. **Phase 5 - `generateSpans`** (optional)
-   When `alwaysMarkerSpan` is true, inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) in front of list item text. If a marker entry lacks a `marker` string, the span content is rebuilt from number + marker type.
+6. **Phase 5 - `generateSpans`**
+   Inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) for custom-marker lists by default, and for all markers when `alwaysMarkerSpan` is true. If a marker entry lacks a `marker` string, span content is rebuilt from number + marker type.
 
 ## Loose vs Tight Lists
 
@@ -121,7 +121,7 @@
 
 - Literal detection only runs on paragraph lines after the first line in a list item and uses marker-width indentation (marker width + 0–3 spaces). Lines indented beyond that are treated as code blocks or plain text and are not converted.
 - In mixed-indent paragraphs, if marker-like lines appear both within the literal window (marker width + 0–3) and at deeper code-block indentation (>= marker width + 4), literal normalization skips that paragraph to avoid partial conversion surprises.
-- Treat changing the default of `enableLiteralNumberingFix` from `false` to `true` as a breaking-output change; validate with corpus-level diffs and release as major if adopted.
+- Default is `enableLiteralNumberingFix: false`; treat enabling it by default as a breaking-output change and validate with corpus-level diffs.
 - When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.
 - Token metadata is attached to list tokens; if you clone or replace tokens, copy `_markerInfo`, `_shouldConvert`, `_isLoose`, and `_parentIsLoose` as needed.
 - Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.

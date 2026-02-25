@@ -90,10 +90,11 @@ You can customize the conversion using options.
 - `hasListStyleNone` (boolean) — When the plugin emits `role="list"`, also add `style="list-style: none;"` to the `<ol>`.
 - `omitMarkerMetadata` (boolean) — If `true`, omit the `data-marker-prefix` / `data-marker-suffix` attributes.
 - `addMarkerStyleToClass` (boolean) — When `true`, append suffix-style information to the generated class name (e.g. `ol-decimal-with-round-round`). When `false` (default) the class stays as `ol-decimal`.
-- `enableLiteralNumberingFix` (boolean) — Enable literal nested list recovery (for example, nested lists starting with 2 or greater). This is opt-in; it only applies inside list items, evaluates indentation relative to the parent list marker (marker width + 0–3 spaces), and does not convert code blocks (indent >= marker width + 4).
-  - Compatibility note: switching the default from `false` to `true` changes rendered HTML by design. On the current test corpus (`394` markdown cases), `18` cases change.
-  - Changed files in that comparison: `examples-default-14-repeated-numbers.txt` (`7`), `examples-option-literal-numbering-attrs.txt` (`1`), `examples-option-literal-numbering-fix-disabled.txt` (`2`), `examples-option-literal-numbering-fix.txt` (`3`), `examples-option-literal-numbering-indent.txt` (`4`).
-  - Recommendation: keep the default as `false` for patch/minor releases; if changing the default to `true`, treat it as a breaking change and release a major version.
+- `enableLiteralNumberingFix` (boolean) — Enable literal nested list recovery (for example, nested lists starting with 2 or greater). Default is `false` (legacy-compatible); set it to `true` to normalize literal nested numbering. It only applies inside list items, evaluates indentation relative to the parent list marker (marker width + 0–3 spaces), and does not convert code blocks (indent >= marker width + 4).
+  - Compatibility note: compared with the default/legacy mode (`enableLiteralNumberingFix: false`), enabling `true` changes rendered HTML by design. On the current test corpus (`395` markdown cases), `19` cases change.
+  - Changed files in that comparison: `examples-default-14-repeated-numbers.txt` (`7`), `examples-option-literal-numbering-attrs-disabled.txt` (`1`), `examples-option-literal-numbering-attrs.txt` (`1`), `examples-option-literal-numbering-fix-disabled.txt` (`2`), `examples-option-literal-numbering-fix.txt` (`4`), `examples-option-literal-numbering-indent.txt` (`4`).
+  - Migration tip: if you enable `enableLiteralNumberingFix: true`, treat it as a breaking-output change for snapshots/downstream HTML.
+  - Detailed notes: `docs/enable-literal-numbering-fix.md`.
 
 ## Description lists conversion behavior
 
