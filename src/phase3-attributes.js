@@ -37,6 +37,8 @@ export function addAttributes(tokens, opt) {
   if (hasAnyListItemValue) {
     normalizeAndConvertValueAttributes(tokens, listCloseByOpen)
   }
+
+  return closeMap
 }
 
 function hasValueAttr(token) {
@@ -55,15 +57,14 @@ function hasValueAttr(token) {
  * Add attributes to a single list token
  */
 function addListAttributesForToken(tokens, token, tokenIndex, opt, listCloseByOpen = null) {
-  // Initialize attribute array
-  if (!token.attrs) {
-    token.attrs = []
-  }
-  
   // Get marker info
   const markerInfo = token._markerInfo
   
   if (!markerInfo) {
+    if (!token.attrs) {
+      token.attrs = []
+    }
+
     // Default attributes for lists without markerInfo
     if (opt.useCounterStyle) {
       // Do not add type attribute; add class so user CSS/@counter-style can target
@@ -85,7 +86,7 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listCloseByOp
   
   // Attributes according to marker type
   // Pass first marker's prefix/suffix info to determine class name
-  const firstMarker = markerInfo.markers[0]
+  const firstMarker = markerInfo.markers?.[0]
   const typeAttrs = getTypeAttributes(markerInfo.type, firstMarker, opt)
   
   // Reset attribute array
@@ -121,19 +122,7 @@ function addListAttributesForToken(tokens, token, tokenIndex, opt, listCloseByOp
   
   // 3. Add class attribute
   if (typeAttrs.class) {
-    // Merge or add class; preserve existing classes and append
-    let classAttr = null
-    for (let i = 0; i < token.attrs.length; i++) {
-      if (token.attrs[i][0] === 'class') {
-        classAttr = token.attrs[i]
-        break
-      }
-    }
-    if (classAttr) {
-      classAttr[1] = (classAttr[1] + ' ' + typeAttrs.class).trim()
-    } else {
-      addAttr(token, 'class', typeAttrs.class)
-    }
+    addAttr(token, 'class', typeAttrs.class)
   }
   // 4. data-marker-prefix/suffix
   if (!opt.omitMarkerMetadata) {

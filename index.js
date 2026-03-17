@@ -96,8 +96,9 @@ const mditNumberingUl = (md, option) => {
     // ===== PHASE 3: Add Attributes =====
     // Add type, class, data-* attributes to converted lists
     // Use markerInfo stored on list tokens (safe after Phase2 mutations)
+    let closeMap = null
     if (hasOrderedList) {
-      addAttributes(tokens, opt)
+      closeMap = addAttributes(tokens, opt)
     }
     
     // ===== PHASE 4: HTML Block Processing =====
@@ -109,7 +110,7 @@ const mditNumberingUl = (md, option) => {
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
     if (hasOrderedList && !opt.useCounterStyle) {
-      generateSpans(tokens, opt)
+      generateSpans(tokens, opt, closeMap?.listCloseByOpen || null)
     }
     
     return true

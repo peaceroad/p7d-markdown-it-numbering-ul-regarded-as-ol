@@ -9,12 +9,12 @@ import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
  * @param {Array} tokens - Token array
  * @param {Object} opt - Options
  */
-export function generateSpans(tokens, opt) {
+export function generateSpans(tokens, opt, initialListCloseByOpen = null) {
   if (opt.useCounterStyle) {
     return
   }
   const spanClass = opt.markerSpanClass || 'li-num'
-  let listCloseByOpen = null
+  let listCloseByOpen = initialListCloseByOpen
   const getListCloseByOpen = () => {
     if (!listCloseByOpen) {
       listCloseByOpen = buildListCloseIndexMap(tokens).listCloseByOpen

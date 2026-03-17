@@ -2,26 +2,6 @@
 
 import types from '../listTypes.json' with { type: 'json' }
 
-/**
- * Check if a marker type is convertible in default mode
- * Exotic markers that aren't commonly used are excluded from conversion
- * @param {string} markerType - The marker type name (e.g., 'decimal', 'lower-greek')
- * @returns {boolean} True if the marker type should be converted in default mode
- */
-export const isConvertibleMarkerType = (markerType) => {
-  if (!markerType) return false
-
-  return !EXCLUDED_MARKER_TYPES.has(markerType)
-}
-
-// Exclude exotic markers that should remain as <ul> in default mode.
-const EXCLUDED_MARKER_TYPES = new Set([
-  'fullwidth-lower-roman',
-  'fullwidth-upper-roman',
-  'squared-upper-latin',
-  'filled-squared-upper-latin'
-])
-
 const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
@@ -441,50 +421,19 @@ export const getSymbolForNumber = (markerType, number) => {
   return null
 }
 
-/**
- * Get the default prefix/suffix pattern for a marker type
- * @param {string} markerType - The marker type name (e.g., 'lower-roman', 'decimal')
- * @returns {Object} Object with prefix and suffix properties
- */
-export const getDefaultPatternForType = (markerType) => {
-  const typeInfo = _TYPE_INFO_BY_NAME.get(markerType)
-  if (!typeInfo) {
-    return { prefix: '', suffix: '.' }
-  }
-  
-  // Get patterns for this type (prefer `pattern` property)
-  const patternRef = typeInfo.pattern || null
-  const patterns = getPatternsByName(patternRef)
-  if (!patterns || patterns.length === 0) {
-    return { prefix: '', suffix: '.' }
-  }
-  
-  // Return the first pattern as the default
-  return {
-    prefix: patterns[0].prefix || '',
-    suffix: patterns[0].suffix || '.'
-  }
-}
-
-const prefixs = [
+const prefixLabels = [
   ['(', 'round'],
-  //['[', 'square'],
-  //['{', 'curly'],
-  //['<', 'angle'],
-  ['（', 'fullround'],
+  ['（', 'fullround']
 ]
 
-const suffixs = [
+const suffixLabels = [
   [')', 'round'],
-  //[']', 'square'],
-  //['}', 'curly'],
-  //['>', 'angle'],
-  ['）', 'fullround'],
+  ['）', 'fullround']
 ]
 
 // Build Maps for O(1) lookups (faster than .find on every call)
-const prefixMap = new Map(prefixs)
-const suffixMap = new Map(suffixs)
+const prefixMap = new Map(prefixLabels)
+const suffixMap = new Map(suffixLabels)
 
 const generateClassName = (baseClass, prefix, suffix) => {
   // fast path: no prefix and no suffix
@@ -632,20 +581,13 @@ const createPatternTail = (pattern) => {
 // Process patterns for symbols
 const processSymbolPatterns = (patterns, symbols, typePatterns, type) => {
   // Pre-compute escaped prefixes, suffixes and regex tail once
-  const patternCache = new Map()
-  typePatterns.forEach((pattern, index) => {
-    const escapedPrefix = pattern.prefix ? escapeRegExp(pattern.prefix) : ''
-    const escapedSuffix = pattern.suffix ? escapeRegExp(pattern.suffix) : ''
-    const tail = createPatternTail(pattern)
-    patternCache.set(index, {
-      prefix: pattern.prefix,
-      suffix: pattern.suffix,
-      space: pattern.space,
-      escapedPrefix,
-      escapedSuffix,
-      tail
-    })
-  })
+  const patternCache = typePatterns.map(pattern => ({
+    prefix: pattern.prefix,
+    suffix: pattern.suffix,
+    escapedPrefix: pattern.prefix ? escapeRegExp(pattern.prefix) : '',
+    escapedSuffix: pattern.suffix ? escapeRegExp(pattern.suffix) : '',
+    tail: createPatternTail(pattern)
+  }))
   
   // Use pre-computed cache for faster pattern generation
   const symbolsLength = symbols.length
@@ -656,7 +598,7 @@ const processSymbolPatterns = (patterns, symbols, typePatterns, type) => {
     const processedSym = sym.replace(/^\\\\/,'\\')
     
     for (let patternIndex = 0; patternIndex < patternsLength; patternIndex++) {
-      const cached = patternCache.get(patternIndex)
+      const cached = patternCache[patternIndex]
       // Original suffix variant
       const symbolPartOrig = cached.escapedPrefix + processedSym + cached.escapedSuffix
       const regexStrOrig = `^(${symbolPartOrig})${cached.tail}`
@@ -762,15 +704,12 @@ export const compiledTypes = (() => {
   }
 })()
 
-// Map of compiled types by name for O(1) lookup
-// Build a map of compiled types by name once for fast lookups
+// Build a map of compiled types by name once for fast lookups.
 const _COMPILED_BY_NAME = (() => {
   const m = new Map()
   for (const t of compiledTypes()) m.set(t.name, t)
   return m
 })()
-
-export const compiledTypesByName = () => _COMPILED_BY_NAME
 
 // Build a flattened pattern list (preserve previous priority: sortedSymbolTypes then rangeBasedTypes)
 const _FLATTENED_PATTERNS = (() => {
@@ -786,8 +725,6 @@ const _FLATTENED_PATTERNS = (() => {
         suffix: p.suffix,
         typeName: compiledType.name,
         symbolIndex: p.symbolIndex,
-        num: p.num,
-        isRange: p.isRange,
         compiled: compiled || null
       })
     }
@@ -796,6 +733,72 @@ const _FLATTENED_PATTERNS = (() => {
 })()
 
 const _TYPE_INFO_BY_NAME = getTypeSeparation().typeInfoByName
+const ASCII_DIGIT_LEADS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+const getFirstCodePointChar = (text) => {
+  if (typeof text !== 'string' || text.length === 0) {
+    return null
+  }
+  const firstCodePoint = text.codePointAt(0)
+  if (firstCodePoint === undefined) {
+    return null
+  }
+  return firstCodePoint > 0xFFFF ? text.slice(0, 2) : text[0]
+}
+
+const buildEntryLeadingChars = (entry) => {
+  const prefixedLead = getFirstCodePointChar(entry.prefix)
+  if (prefixedLead) {
+    return [prefixedLead]
+  }
+
+  const typeInfo = _TYPE_INFO_BY_NAME.get(entry.typeName)
+  if (!typeInfo) {
+    return []
+  }
+
+  if (Array.isArray(typeInfo.symbols)) {
+    const symbol = typeInfo.symbols[entry.symbolIndex]
+    const symbolLead = getFirstCodePointChar(symbol)
+    return symbolLead ? [symbolLead] : []
+  }
+
+  if (!Array.isArray(typeInfo.range) || typeInfo.range.length !== 2) {
+    return []
+  }
+
+  if (typeof typeInfo.range[0] === 'number') {
+    return ASCII_DIGIT_LEADS
+  }
+
+  const start = typeInfo.range[0]?.codePointAt(0)
+  const end = typeInfo.range[1]?.codePointAt(0)
+  if (typeof start !== 'number' || typeof end !== 'number' || end < start) {
+    return []
+  }
+
+  const leadingChars = []
+  for (let codePoint = start; codePoint <= end; codePoint++) {
+    leadingChars.push(String.fromCodePoint(codePoint))
+  }
+  return leadingChars
+}
+
+const _FLATTENED_PATTERNS_BY_LEAD = (() => {
+  const buckets = new Map()
+  for (const entry of _FLATTENED_PATTERNS) {
+    const leadingChars = buildEntryLeadingChars(entry)
+    for (const leadingChar of leadingChars) {
+      let bucket = buckets.get(leadingChar)
+      if (!bucket) {
+        bucket = []
+        buckets.set(leadingChar, bucket)
+      }
+      bucket.push(entry)
+    }
+  }
+  return buckets
+})()
 
 const tryMatchAgainstType = (trimmed, typeName) => {
   if (!typeName) return null
@@ -810,7 +813,12 @@ const tryMatchAgainstType = (trimmed, typeName) => {
 
 // Fast matcher over flattened list
 const tryMatchAgainstFlattened = (trimmed) => {
-  for (const entry of _FLATTENED_PATTERNS) {
+  const leadingChar = getFirstCodePointChar(trimmed)
+  const candidates = leadingChar ? _FLATTENED_PATTERNS_BY_LEAD.get(leadingChar) : null
+  if (!candidates) {
+    return null
+  }
+  for (const entry of candidates) {
     const m = matchRegexEntry(trimmed, entry.typeName, entry)
     if (m) return m
   }
@@ -830,149 +838,4 @@ const matchRegexEntry = (trimmed, typeName, entry) => {
   const number = calculateNumber(typeInfo, pureSymbol, compiledForCalc)
 
   return createMarkerResult(typeName, detectedMarker, number, entry.prefix, entry.suffix)
-}
-
-// Analyze list context to determine optimal marker type for ambiguous cases
-export const analyzeListMarkerContext = (markerInfos) => {
-  if (!markerInfos || markerInfos.length === 0) return markerInfos
-  
-  const { symbolBasedTypes } = getTypeSeparation()
-  
-  // Create typeInfo lookup cache
-  const typeInfoCache = new Map()
-  for (const compiledType of symbolBasedTypes) {
-    const typeInfo = _TYPE_INFO_BY_NAME.get(compiledType.name)
-    if (typeInfo?.symbols) {
-      typeInfoCache.set(compiledType.name, typeInfo)
-    }
-  }
-  
-  // Group markers by possible types
-  const candidateTypes = new Map()
-  
-  markerInfos.forEach((markerInfo, index) => {
-    if (!markerInfo.marker) return
-    
-    // Extract the actual symbol without prefix/suffix
-    const actualSymbol = extractPureSymbol(markerInfo.marker, markerInfo.prefix, markerInfo.suffix)
-    
-    // Find all possible types for this marker
-    const possibleTypes = []
-      for (const [typeName, typeInfo] of typeInfoCache) {
-        let symbolIndex = -1
-        const compiled = _COMPILED_BY_NAME.get(typeName)
-        if (compiled && compiled.symbolIndexMap) {
-          const idx = compiled.symbolIndexMap.get(actualSymbol)
-          symbolIndex = idx !== undefined ? idx : -1
-        } else {
-          symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
-        }
-
-      if (symbolIndex !== -1) {
-        const expectedNumber = symbolIndex + getStartValue(typeInfo)
-
-        possibleTypes.push({
-          typeName,
-          symbolIndex,
-          expectedNumber,
-          actualPosition: index + 1
-        })
-      }
-    }
-    
-    possibleTypes.forEach(pt => {
-      if (!candidateTypes.has(pt.typeName)) {
-        candidateTypes.set(pt.typeName, { 
-          matches: 0, 
-          totalItems: markerInfos.length,
-          positions: []
-        })
-      }
-      
-      const candidate = candidateTypes.get(pt.typeName)
-      candidate.matches++
-      candidate.positions.push({
-        index,
-        expectedNumber: pt.expectedNumber,
-        actualPosition: pt.actualPosition,
-        marker: markerInfo.marker
-      })
-    })
-  })
-  
-  // Score each candidate type
-  let bestType = null
-  let bestScore = -1
-  
-  for (const [typeName, candidate] of candidateTypes) {
-    let score = 0
-    
-    // Check if positions form a consecutive sequence starting from 1
-    candidate.positions.sort((a, b) => a.index - b.index)
-    let isConsecutiveFrom1 = true
-    let expectedStart = 1
-    
-    for (let i = 0; i < candidate.positions.length; i++) {
-      const pos = candidate.positions[i]
-      if (pos.expectedNumber !== expectedStart + i) {
-        isConsecutiveFrom1 = false
-        break
-      }
-    }
-    
-    // Higher score for consecutive sequences starting from 1
-    if (isConsecutiveFrom1 && candidate.positions.length > 0 && candidate.positions[0].expectedNumber === 1) {
-      score += 100
-    }
-    
-    // Higher score for more matches
-    score += candidate.matches * 10
-    
-    // Higher score for covering all items
-    if (candidate.matches === candidate.totalItems) {
-      score += 50
-    }
-    
-    if (score > bestScore) {
-      bestScore = score
-      bestType = typeName
-    }
-  }
-  
-  // If we found a better type, update all marker infos
-  if (bestType && candidateTypes.get(bestType).matches > 0) {
-    const typeInfo = typeInfoCache.get(bestType)
-    if (typeInfo) {
-      const updatedMarkerInfos = markerInfos.map((markerInfo, index) => {
-        if (!markerInfo.marker) return markerInfo
-        
-        // Extract the actual symbol without prefix/suffix
-        const actualSymbol = extractPureSymbol(markerInfo.marker, markerInfo.prefix, markerInfo.suffix)
-        
-        // Use precomputed symbolIndexMap if available
-        const compiled = _COMPILED_BY_NAME.get(bestType)
-        let symbolIndex = -1
-        if (compiled && compiled.symbolIndexMap) {
-          const idx = compiled.symbolIndexMap.get(actualSymbol)
-          symbolIndex = idx !== undefined ? idx : -1
-        } else {
-          symbolIndex = typeInfo.symbols.indexOf(actualSymbol)
-        }
-        if (symbolIndex !== -1) {
-          const number = calculateNumber(typeInfo, actualSymbol)
-
-          return {
-            ...markerInfo,
-            type: bestType,
-            number: number
-          }
-        }
-        return markerInfo
-      })
-      
-      return updatedMarkerInfos
-    }
-  }
-  
-  return markerInfos
 }

@@ -49,11 +49,13 @@ export function findListItemEnd(tokens, startIndex) {
 /**
  * Build close-index maps for list and list_item tokens.
  * @param {Array} tokens - Token array
- * @returns {{ listCloseByOpen: number[], listItemCloseByOpen: number[] }}
+ * @returns {{ listCloseByOpen: Int32Array, listItemCloseByOpen: Int32Array }}
  */
 export function buildListCloseIndexMap(tokens) {
-  const listCloseByOpen = new Array(tokens.length).fill(-1)
-  const listItemCloseByOpen = new Array(tokens.length).fill(-1)
+  const listCloseByOpen = new Int32Array(tokens.length)
+  listCloseByOpen.fill(-1)
+  const listItemCloseByOpen = new Int32Array(tokens.length)
+  listItemCloseByOpen.fill(-1)
   const bulletStack = []
   const orderedStack = []
   const listItemStack = []
