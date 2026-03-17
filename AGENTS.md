@@ -79,8 +79,9 @@
 ## Marker & Attribute Notes
 
 - `types-utility.js` wraps every interaction with `listTypes.json`. Do **not** access the JSON directly from other phases.
-- Marker detection caches (`_symbolBasedTypes`, `_rangeBasedTypes`, `_sortedSymbolTypes`, `_typeInfoByName`) allow `detectMarkerType` and `getTypeAttributes` to run in linear time over the token stream.
+- Marker detection caches in `types-utility.js` are module-scoped and immutable after init: `PATTERN_GROUP_MAP`, `_symbolBasedTypes`, `_rangeBasedTypes`, `_sortedSymbolTypes`, `_typeInfoByName`, `_COMPILED_BY_NAME`, per-type `symbolIndexMap`, and `_FLATTENED_PATTERNS_BY_LEAD`. `detectMarkerType` first narrows candidates by leading code point, then tests only the relevant compiled regex subset.
 - Custom markers (circled digits, kana, etc.) omit the `type` attribute, emit `role="list"`, and optionally `style="list-style: none;"` when `hasListStyleNone` is enabled.
+- `alwaysMarkerSpan` also forces `role="list"` / optional `list-style: none` handling even for standard marker types unless `useCounterStyle` is enabled.
 - `markerSpanClass` is normalised with `trim()`. Empty/whitespace-only values fall back to `li-num`.
 - When `useCounterStyle` is enabled, marker spans and `role/style` marker-hiding attributes are intentionally skipped even if other span/style options are enabled.
 - No post-`curly_attributes` migration runs for list flattening. Attr placement follows `markdown-it-attrs` default nearest-block behavior in both flattened and non-flattened output.
