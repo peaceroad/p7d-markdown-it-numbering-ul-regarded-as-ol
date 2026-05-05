@@ -16,7 +16,7 @@
 
 ## Compatibility Snapshot (`false` vs `true`)
 
-- Corpus size: `395` fixture cases
+- Corpus size: `399` fixture cases
 - Changed output cases: `19`
 - Changed files:
   - `examples-default-14-repeated-numbers.txt` (`7`)

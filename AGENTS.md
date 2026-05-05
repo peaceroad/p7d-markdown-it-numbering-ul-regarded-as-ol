@@ -126,6 +126,7 @@
 - When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.
 - Token metadata is attached to list tokens; if you clone or replace tokens, copy `_markerInfo`, `_shouldConvert`, `_isLoose`, and `_parentIsLoose` as needed.
 - Flattening will **not** trigger when a parent `li` has visible text before the nested list. When debugging a case that still shows `<ul>` wrappers, confirm that the outer `li` has no inline content or paragraphs ahead of the literal child list.
+- The plugin intentionally fails fast if registered twice on the same `markdown-it` instance; do not stack multiple `.use(mditNumberingUl, ...)` calls on one instance.
 - The debug scripts are ES modules (`node debug/...mjs`). Run them with `node` (>=18) or via `npm` scripts to avoid `require`-related errors.
 - Runtime currently relies on JSON import attributes (`import ... with { type: 'json' }`). Consumer environments must support this syntax (modern Node / compatible bundlers).
 - Phase 3 skips the value-normalization pass when no `li[value]` is present to avoid unnecessary full-stream scans.

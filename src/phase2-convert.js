@@ -167,10 +167,9 @@ function removeMarkersFromContent(tokens, startIndex, endIndex, markerInfo) {
 }
 
 /**
- * Simplify nested ul>li>ul and ul>li>ol structures.
+ * Simplify nested ul>li>ol structures.
  *
- * Pattern 1: bullet_list_open → list_item_open → bullet_list_open → ...
- * Pattern 2: bullet_list_open → list_item_open → ordered_list_open → ... (repeated)
+ * Pattern: bullet_list_open → list_item_open → ordered_list_open → ... (repeated)
  *
  * When the middle list_item is empty (contains only the inner list),
  * remove the outer ul and the intermediate li.

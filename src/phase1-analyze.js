@@ -4,69 +4,6 @@ import { detectMarkerType, detectMarkerTypeWithContext, detectSequencePattern } 
 import { buildListCloseIndexMap, findMatchingClose } from './list-helpers.js'
 
 /**
- * Pre-compute DL scope (identify all DL ranges in O(n))
- * @param {Array} tokens - Token array
- * @returns {Array<[number, number]>} DL range pairs [[start, end], ...]
- */
-function buildDLStateMap(tokens) {
-  const state = new Uint8Array(tokens.length)
-  let dlDepth = 0
-  let htmlDdDepth = 0
-  
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
-    
-    if (dlDepth > 0 || htmlDdDepth > 0) {
-      state[i] = 1
-    }
-    
-    if (token.type === 'dl_open') {
-      state[i] = 1
-      dlDepth++
-      continue
-    }
-    
-    if (token.type === 'dl_close') {
-      state[i] = 1
-      if (dlDepth > 0) {
-        dlDepth--
-      }
-      continue
-    }
-    
-    if (token.type === 'html_block') {
-      if (token.content === '<dd>\n') {
-        state[i] = 1
-        htmlDdDepth++
-        continue
-      }
-      if (token.content === '</dd>\n') {
-        state[i] = 1
-        if (htmlDdDepth > 0) {
-          htmlDdDepth--
-        }
-        continue
-      }
-    }
-  }
-  
-  return state
-}
-
-/**
- * Check if token at specified index is inside DL
- * @param {number} index - Index to check
- * @param {Array<[number, number]>} dlRanges - DL range pairs
- * @returns {boolean} True if inside DL
- */
-function isInsideDL(index, dlState) {
-  if (!dlState || index < 0 || index >= dlState.length) {
-    return false
-  }
-  return dlState[index] === 1
-}
-
-/**
  * Collect list information from token array
  * @param {Array} tokens - markdown-it token array
  * @returns {Array} Flat array of list information (including nested lists)
@@ -74,36 +11,18 @@ function isInsideDL(index, dlState) {
 export function analyzeListStructure(tokens) {
   const listInfos = []
   const closeMap = buildListCloseIndexMap(tokens)
-  
-  // Check DL existence (O(n) but optimized with early return)
-  let hasDL = false
-  for (let i = 0; i < tokens.length; i++) {
-    if (tokens[i].type === 'dl_open' || 
-        (tokens[i].type === 'html_block' && tokens[i].content === '<dd>\n')) {
-      hasDL = true
-      break
-    }
-  }
-  
-  // Pre-compute DL scope flags (only when DL exists)
-  const dlScope = hasDL ? buildDLStateMap(tokens) : null
-  
-  // Process only top-level lists (nested lists collected recursively)
-  // Also process lists inside DL
+
+  // Process every list root in the token stream, including lists nested in
+  // containers such as blockquotes or description-list descriptions. Nested
+  // lists inside an already-analyzed list are collected recursively, then the
+  // scan jumps to that list's close token to avoid duplicate processing.
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
     if (!token) {
       continue
     }
-    
-    // Process level-0 lists or lists at any level inside DD
-    const isTopLevelList = (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') && 
-                           (token.level === 0 || token.level === undefined)
-    const isListInDD = (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') && 
-                       token.level > 0 && 
-                       isInsideDL(i, dlScope)
-    
-    if (isTopLevelList || isListInDD) {
+
+    if (token.type === 'bullet_list_open' || token.type === 'ordered_list_open') {
       const listInfo = analyzeList(tokens, i, closeMap)
       if (listInfo) {
         listInfos.push(listInfo)
@@ -217,10 +136,9 @@ function analyzeListItems(tokens, startIndex, endIndex, closeMap) {
  * Analyze a single list item
  */
 function analyzeListItem(tokens, startIndex, endIndex, closeMap) {
-  let content = ''
   let markerInfo = null
   let hasNestedList = false
-  let nestedLists = []
+  const nestedLists = []
   let firstParagraphIsLoose = false
   let lastInlineContent = ''
   
@@ -267,7 +185,6 @@ function analyzeListItem(tokens, startIndex, endIndex, closeMap) {
   if (firstParagraphIsLoose && hasNestedList && lastInlineContent) {
     markerInfo = detectMarkerType(lastInlineContent)
   }
-  content = lastInlineContent
 
   if (tokens[startIndex]) {
     tokens[startIndex]._firstParagraphIsLoose = firstParagraphIsLoose
@@ -276,7 +193,7 @@ function analyzeListItem(tokens, startIndex, endIndex, closeMap) {
   return {
     startIndex,
     endIndex,
-    content,
+    content: lastInlineContent,
     markerInfo,
     hasNestedList,
     nestedLists,
@@ -348,35 +265,32 @@ function extractMarkerInfo(tokens, startIndex, endIndex) {
     // Detect markers using full context
     let sequentialNumber = 1  // Sequential number counter
     for (const token of inlineTokens) {
-      // Process only inline tokens of direct child items of this list
-      if (token.type === 'inline' && token.content && token.level === targetLevel) {
-        const markerInfo = detectMarkerTypeWithContext(token.content, contextResult)
-        if (markerInfo && markerInfo.type) {
-          // Use sequential numbers when same marker continues
-          // (e.g., "イ. イ. イ." → interpreted as "イ、ロ、ハ")
-          const adjustedMarkerInfo = { ...markerInfo }
-          adjustedMarkerInfo.originalNumber = markerInfo.number
-          
-          // Assign sequential numbers based on first marker's number
-          if (markers.length === 0) {
-            // Use first marker as-is
-            sequentialNumber = markerInfo.number || 1
+      const markerInfo = detectMarkerTypeWithContext(token.content, contextResult)
+      if (markerInfo && markerInfo.type) {
+        // Use sequential numbers when same marker continues
+        // (e.g., "イ. イ. イ." → interpreted as "イ、ロ、ハ")
+        const adjustedMarkerInfo = { ...markerInfo }
+        adjustedMarkerInfo.originalNumber = markerInfo.number
+
+        // Assign sequential numbers based on first marker's number
+        if (markers.length === 0) {
+          // Use first marker as-is
+          sequentialNumber = markerInfo.number || 1
+        } else {
+          // For 2nd and later, use sequential number if same as previous marker
+          const prevMarker = markers[markers.length - 1]
+          if (markerInfo.marker === prevMarker.marker &&
+              markerInfo.type === prevMarker.type) {
+            // Assign sequential number when same marker continues
+            sequentialNumber++
+            adjustedMarkerInfo.number = sequentialNumber
           } else {
-            // For 2nd and later, use sequential number if same as previous marker
-            const prevMarker = markers[markers.length - 1]
-            if (markerInfo.marker === prevMarker.marker && 
-                markerInfo.type === prevMarker.type) {
-              // Assign sequential number when same marker continues
-              sequentialNumber++
-              adjustedMarkerInfo.number = sequentialNumber
-            } else {
-              // For different marker, use detected number
-              sequentialNumber = markerInfo.number || sequentialNumber + 1
-            }
+            // For different marker, use detected number
+            sequentialNumber = markerInfo.number || sequentialNumber + 1
           }
-          
-          markers.push(adjustedMarkerInfo)
         }
+
+        markers.push(adjustedMarkerInfo)
       }
     }
   }

@@ -7,7 +7,17 @@ import { processHtmlBlocks } from './src/phase4-html-blocks.js'
 import { generateSpans } from './src/phase5-spans.js'
 import { normalizeLiteralOrderedLists } from './src/preprocess-literal-lists.js'
 
+const INSTALL_FLAG = Symbol.for('@peaceroad/markdown-it-numbering-ul-regarded-as-ol/installed')
+
 const mditNumberingUl = (md, option) => {
+  if (md[INSTALL_FLAG]) {
+    throw new Error('@peaceroad/markdown-it-numbering-ul-regarded-as-ol is already registered on this markdown-it instance')
+  }
+  Object.defineProperty(md, INSTALL_FLAG, {
+    value: true,
+    configurable: false
+  })
+
   const opt = {
     // Core options
     descriptionList: false,       // Convert **Term** patterns to <dl>/<dt>/<dd>
@@ -21,7 +31,7 @@ const mditNumberingUl = (md, option) => {
     useCounterStyle: false,       // true=users will use @counter-style; suppress marker spans and role attr
     addMarkerStyleToClass: false, // true=append -with-* marker style suffix to class names
     enableLiteralNumberingFix: false, // true=normalize nested lists that don't start at 1 (opt-in)
-    
+
     // Override with user options
     ...option
   }
@@ -68,11 +78,11 @@ const mditNumberingUl = (md, option) => {
     if (opt.enableLiteralNumberingFix) {
       normalizeLiteralOrderedLists(tokens, opt)
     }
-    
+
     // ===== PHASE 1: List Structure Analysis =====
     // Analyze marker detection and structure without token conversion
     const listInfos = analyzeListStructure(tokens)
-    
+
     // ===== PHASE 2: Token Conversion =====
     // Convert bullet_list to ordered_list based on Phase1 analysis
     // Note: simplifyNestedBulletLists removes tokens, changing indices
@@ -92,7 +102,7 @@ const mditNumberingUl = (md, option) => {
         break
       }
     }
-    
+
     // ===== PHASE 3: Add Attributes =====
     // Add type, class, data-* attributes to converted lists
     // Use markerInfo stored on list tokens (safe after Phase2 mutations)
@@ -100,25 +110,25 @@ const mditNumberingUl = (md, option) => {
     if (hasOrderedList) {
       closeMap = addAttributes(tokens, opt)
     }
-    
+
     // ===== PHASE 4: HTML Block Processing =====
     // Remove indents from HTML blocks in lists and normalize line breaks
     if (hasNestedHtmlBlock) {
       processHtmlBlocks(state)
     }
-    
+
     // ===== PHASE 5: Span Generation =====
     // Generate marker spans in alwaysMarkerSpan mode
     if (hasOrderedList && !opt.useCounterStyle) {
       generateSpans(tokens, opt, closeMap?.listCloseByOpen || null)
     }
-    
+
     return true
   }
 
   md.core.ruler.before('inline', 'numbering_dl_parser', dlProcessor)
   md.core.ruler.after('numbering_dl_parser', 'numbering_ul_phases', listProcessor)
-  
+
   // Description list: Move paragraph attributes to dl and add custom renderers
   if (opt.descriptionList || opt.descriptionListWithDiv) {
     // Move paragraph attributes to dl (after inline and any attribute plugins)
@@ -126,7 +136,7 @@ const mditNumberingUl = (md, option) => {
       moveParagraphAttributesToDL(state.tokens)
       return true
     }
-    
+
     addRuleAfter(md.core.ruler, 'curly_attributes', 'numbering_dl_attrs', dlAttrProcessor)
   }
 }

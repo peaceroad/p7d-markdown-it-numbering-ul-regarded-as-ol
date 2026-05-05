@@ -1,0 +1,54 @@
+[Markdown]
+> - a. Alpha
+> - b. Beta
+[HTML]
+<blockquote>
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Alpha</li>
+<li>Beta</li>
+</ol>
+</blockquote>
+
+[Markdown]
+> - ① Alpha
+> - ② Beta
+[HTML]
+<blockquote>
+<ol role="list" class="ol-circled-decimal">
+<li><span class="li-num" aria-hidden="true">①</span> Alpha</li>
+<li><span class="li-num" aria-hidden="true">②</span> Beta</li>
+</ol>
+</blockquote>
+
+[Markdown]
+> Before
+>
+> - 1. First
+> - 2. Second
+>
+> After
+[HTML]
+<blockquote>
+<p>Before</p>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>First</li>
+<li>Second</li>
+</ol>
+<p>After</p>
+</blockquote>
+
+[Markdown]
+> - 1. Parent
+>     - a. Child A
+>     - b. Child B
+[HTML]
+<blockquote>
+<ol type="1" class="ol-decimal" data-marker-suffix=".">
+<li>Parent
+<ol type="a" class="ol-lower-latin" data-marker-suffix=".">
+<li>Child A</li>
+<li>Child B</li>
+</ol>
+</li>
+</ol>
+</blockquote>

@@ -13,6 +13,15 @@ if (isWindows) {
   __dirname = __dirname.replace(/^\/+/, '').replace(/\//g, '\\')
 }
 
+assert.throws(
+  () => {
+    const md = mdit({ html: true }).use(mditNumberingUl)
+    md.use(mditNumberingUl)
+  },
+  /already registered on this markdown-it instance/,
+  'duplicate plugin registration must fail fast'
+)
+
 // Test configuration helper
 const createTestConfig = (name, options, testFiles) => ({
   name,
@@ -74,6 +83,7 @@ const testConfigs = [
     'examples-default-11fullwidth-joint.txt',
     'examples-default-12space-handling.txt',
     'examples-default-13-class-attributes.txt',
+    'examples-default-16-container-lists.txt',
     'examples-default-15-default-ul.txt',
     'examples-option-mapful.txt',
     'examples-option-literal-numbering-fix-disabled.txt'
@@ -253,7 +263,7 @@ const parseTestFile = (filePath) => {
   const content = fs.readFileSync(filePath, 'utf-8').trim()
   const blocks = content.split(/\r?\n*\[Markdown\]\r?\n/)
   const tests = []
-  
+
   for (let i = 1; i < blocks.length; i++) {
     const parts = blocks[i].split(/\r?\n+\[HTML[^\]]*?\]\r?\n/)
     tests.push({
@@ -261,7 +271,7 @@ const parseTestFile = (filePath) => {
       html: (parts[1] || '') + '\n'
     })
   }
-  
+
   return tests
 }
 
@@ -272,19 +282,19 @@ let failedTests = 0
 
 for (const config of testConfigs) {
   console.log(`\nRunning ${config.name} tests...`)
-  
+
   for (const testFile of config.testFiles) {
     console.log(`\n  File: ${testFile}`)
     const filePath = path.join(__dirname, testFile)
     const tests = parseTestFile(filePath)
-    
+
     for (let i = 0; i < tests.length; i++) {
       totalTests++
       const testNum = i + 1
       console.log(`    Test ${testNum} >>>`)
-      
+
       const result = config.md.render(tests[i].markdown)
-      
+
       try {
         assert.strictEqual(result, tests[i].html)
       } catch(e) {
