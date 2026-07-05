@@ -41,7 +41,7 @@
 
 1. **Literal ordered-list normalisation - `normalizeLiteralOrderedLists`**
    Runs when `enableLiteralNumberingFix` is enabled (default: `false`; opt-in with `true`). Markdown-it only emits nested `<ol>` when the child numbering starts at `1`. This normaliser scans paragraph content (after the first line) and splits it into literal segments and plain text, creates real `ordered_list` tokens with `_literalList` / `_literalTight` hints, preserves inline attributes, and merges immediately-following markdown-it `<ol>` tokens so each item ends up with a single child `<ol>`.
-   The normaliser short-circuits when no literal list hints are present in the token stream. Literal detection uses the parent list marker width and accepts up to 3 extra indentation spaces (marker width + 0–3). Lines indented beyond that (code blocks) are left intact.
+   The normaliser short-circuits when no literal list hints are present in the token stream. Literal detection validates original source indentation against the parent list marker width and accepts up to 3 extra indentation spaces (marker width + 0–3). Lines indented beyond that (code blocks) are left intact. When `token.map` or source lines are unavailable, literal recovery fails closed and leaves the paragraph unchanged.
    Each synthetic list tracks `_literalStartLine` / `_literalLastLine` so later passes can decide whether blank lines existed between literal fragments and markdown-it generated lists; fabricated paragraphs stay tight unless the source truly had a gap. Generated list/list_item/paragraph tokens inherit `map` data when available to preserve map-aware behavior downstream.
 
 2. **Phase 1 - `analyzeListStructure`**
@@ -124,7 +124,7 @@
 
 ## Caveats / Known Constraints
 
-- Literal detection only runs on paragraph lines after the first line in a list item and uses marker-width indentation (marker width + 0–3 spaces). Lines indented beyond that are treated as code blocks or plain text and are not converted.
+- Literal detection only runs on paragraph lines after the first line in a list item and uses raw source marker-width indentation (marker width + 0–3 spaces). Lines indented beyond that are treated as code blocks or plain text and are not converted. Mapless token streams do not run literal recovery because the raw-source indentation guard cannot verify the candidate lines.
 - In mixed-indent paragraphs, if marker-like lines appear both within the literal window (marker width + 0–3) and at deeper code-block indentation (>= marker width + 4), literal normalization skips that paragraph to avoid partial conversion surprises.
 - Default is `enableLiteralNumberingFix: false`; treat enabling it by default as a breaking-output change and validate with corpus-level diffs.
 - When `token.map` is unavailable, flattened `- 1.` lists cannot detect blank lines between items, so tight/loose output may differ from mapful runs.

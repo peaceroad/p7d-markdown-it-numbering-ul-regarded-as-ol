@@ -11,7 +11,21 @@ const LITERAL_OPEN_CLOSE_PAIRS = new Map([
   ['（', '）']
 ])
 const ASCII_ALNUM_OR_FULLWIDTH_DIGIT_REGEX = /^[A-Za-z0-9０-９]+$/
-const getIndentWidth = (indentText) => indentText.replace(/\t/g, '    ').length
+const BLOCKQUOTE_PREFIX_REGEX = /^[ \t]{0,3}> ?/
+const getIndentWidth = (indentText) => (
+  indentText.includes('\t') ? indentText.replace(/\t/g, '    ').length : indentText.length
+)
+const rejectRawLiteralLine = () => false
+const stripBlockquoteMarkers = (line) => {
+  let rest = line
+  while (true) {
+    const match = rest.match(BLOCKQUOTE_PREFIX_REGEX)
+    if (!match) {
+      return rest
+    }
+    rest = rest.slice(match[0].length)
+  }
+}
 const buildLineMap = (startLine, endLine = null) => {
   if (typeof startLine !== 'number') {
     return null
@@ -28,6 +42,43 @@ const getListItemMarkerWidth = (listItem) => {
   const markup = typeof listItem.markup === 'string' ? listItem.markup : ''
   const markerLength = info.length + markup.length
   return markerLength > 0 ? markerLength + 1 : 1
+}
+
+const getRawListItemContentIndent = (sourceLines, listItemLine, markerWidth) => {
+  if (!Array.isArray(sourceLines) || typeof listItemLine !== 'number') {
+    return null
+  }
+  const rawLine = sourceLines[listItemLine]
+  if (typeof rawLine !== 'string') {
+    return null
+  }
+  const line = stripBlockquoteMarkers(rawLine)
+  const match = line.match(/^([ \t]*)/)
+  return getIndentWidth(match[1]) + markerWidth
+}
+
+const createRawLiteralLineChecker = (sourceLines, baseLine, contentIndent) => {
+  if (!Array.isArray(sourceLines) ||
+      typeof baseLine !== 'number' ||
+      typeof contentIndent !== 'number') {
+    return rejectRawLiteralLine
+  }
+  return (relativeLine, marker) => {
+    const rawLine = sourceLines[baseLine + relativeLine]
+    if (typeof rawLine !== 'string') {
+      return false
+    }
+    const line = stripBlockquoteMarkers(rawLine)
+    const match = line.match(/^([ \t]*)(\S.*)$/)
+    if (!match) {
+      return false
+    }
+    const indentWidth = getIndentWidth(match[1])
+    if (indentWidth < contentIndent || indentWidth > contentIndent + MAX_LITERAL_INLINE_INDENT) {
+      return false
+    }
+    return typeof marker !== 'string' || marker.length === 0 || match[2].startsWith(marker)
+  }
 }
 
 const getLineTokenWithIndent = (line) => {
@@ -124,7 +175,7 @@ const scanLiteralLineHints = (content) => {
  * Converts indented numeric lines into proper ordered_list tokens before Phase 1.
  * @param {Array} tokens
  */
-export function normalizeLiteralOrderedLists(tokens, opt) {
+export function normalizeLiteralOrderedLists(tokens, opt, state = null) {
   if (!opt?.enableLiteralNumberingFix) {
     return
   }
@@ -139,8 +190,7 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
   let hasInlineLiteralHint = false
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
-    if (!hasInlineLiteralHint &&
-        token.type === 'inline' &&
+    if (token.type === 'inline' &&
         token.content &&
         token.content.includes('\n')) {
       hasInlineLiteralHint = true
@@ -149,6 +199,11 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
   }
 
   if (!hasInlineLiteralHint) {
+    return
+  }
+
+  const sourceLines = typeof state?.src === 'string' ? state.src.split('\n') : null
+  if (!sourceLines) {
     return
   }
 
@@ -163,6 +218,15 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
     }
 
     const markerWidth = getListItemMarkerWidth(tokens[i])
+    const contentIndent = getRawListItemContentIndent(
+      sourceLines,
+      Array.isArray(tokens[i].map) ? tokens[i].map[0] : null,
+      markerWidth
+    )
+    if (typeof contentIndent !== 'number') {
+      i = listItemClose
+      continue
+    }
     let j = i + 1
     while (j < listItemClose) {
       const current = tokens[j]
@@ -195,7 +259,8 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
           continue
         }
         const baseLine = tokens[j].map ? tokens[j].map[0] : null
-        const segments = parseSegments(literalHints.lines, markerWidth, baseLine)
+        const rawLineChecker = createRawLiteralLineChecker(sourceLines, baseLine, contentIndent)
+        const segments = parseSegments(literalHints.lines, markerWidth, baseLine, rawLineChecker)
         if (!segments.hasLiteral) {
           j = paragraphCloseIdx + 1
           continue
@@ -234,7 +299,7 @@ export function normalizeLiteralOrderedLists(tokens, opt) {
   }
 }
 
-function parseSegments(contentOrLines, markerWidth, baseLine = null) {
+function parseSegments(contentOrLines, markerWidth, baseLine = null, rawLineChecker = rejectRawLiteralLine) {
   if (!contentOrLines) {
     return { hasLiteral: false, list: [{ type: 'text', text: '', tight: false }] }
   }
@@ -276,7 +341,7 @@ function parseSegments(contentOrLines, markerWidth, baseLine = null) {
       continue
     }
 
-    const literalInfo = getLiteralInfo(lines, idx, literalCache, markerWidth)
+    const literalInfo = getLiteralInfo(lines, idx, literalCache, markerWidth, rawLineChecker)
     if (!literalInfo) {
       buffer.push(lines[idx])
       if (lines[idx].trim().length === 0) {
@@ -288,7 +353,7 @@ function parseSegments(contentOrLines, markerWidth, baseLine = null) {
 
     hasLiteral = true
     flushBuffer({ trimTrailing: true })
-    const { lists, nextIndex } = parseLiteralBlock(lines, idx, literalCache, markerWidth, baseLine)
+    const { lists, nextIndex } = parseLiteralBlock(lines, idx, literalCache, markerWidth, baseLine, rawLineChecker)
     if (lists.length > 0) {
       segments.push({ type: 'literal', lists })
     }
@@ -332,7 +397,7 @@ function detectLiteralLine(line, markerWidth) {
   }
 }
 
-function parseLiteralBlock(lines, startIndex, literalCache = null, markerWidth = 1, baseLine = null) {
+function parseLiteralBlock(lines, startIndex, literalCache = null, markerWidth = 1, baseLine = null, rawLineChecker = rejectRawLiteralLine) {
   const rootLists = []
   const stack = []
   let idx = startIndex
@@ -351,7 +416,7 @@ function parseLiteralBlock(lines, startIndex, literalCache = null, markerWidth =
       continue
     }
 
-    const literalInfo = getLiteralInfo(lines, idx, literalCache, markerWidth)
+    const literalInfo = getLiteralInfo(lines, idx, literalCache, markerWidth, rawLineChecker)
     if (!literalInfo) {
       break
     }
@@ -404,12 +469,19 @@ function parseLiteralBlock(lines, startIndex, literalCache = null, markerWidth =
   return { lists: rootLists, nextIndex: idx }
 }
 
-function getLiteralInfo(lines, index, cache = null, markerWidth = 1) {
+function getLiteralInfo(lines, index, cache = null, markerWidth = 1, rawLineChecker = rejectRawLiteralLine) {
   if (!cache) {
-    return detectLiteralLine(lines[index], markerWidth)
+    const literalInfo = detectLiteralLine(lines[index], markerWidth)
+    if (!literalInfo || !rawLineChecker(index, literalInfo.markerInfo?.marker)) {
+      return null
+    }
+    return literalInfo
   }
   if (cache[index] === undefined) {
-    cache[index] = detectLiteralLine(lines[index], markerWidth) || null
+    const literalInfo = detectLiteralLine(lines[index], markerWidth)
+    cache[index] = literalInfo && rawLineChecker(index, literalInfo.markerInfo?.marker)
+      ? literalInfo
+      : null
   }
   return cache[index]
 }

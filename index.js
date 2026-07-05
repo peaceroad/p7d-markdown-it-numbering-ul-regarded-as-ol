@@ -91,7 +91,7 @@ const mditNumberingUl = (md, option) => {
 
     // Normalize literal nested ordered lists (markdown-it only creates nested lists when they start at 1)
     if (opt.enableLiteralNumberingFix) {
-      normalizeLiteralOrderedLists(tokens, opt)
+      normalizeLiteralOrderedLists(tokens, opt, state)
     }
 
     // ===== PHASE 1: List Structure Analysis =====

@@ -108,6 +108,22 @@ const createMaplessTestConfig = (name, options, testFiles) => {
   return { name, md, testFiles }
 }
 
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditNumberingUl, { enableLiteralNumberingFix: true })
+    .render('> - Parent\n>     2. Child\n'),
+  '<blockquote>\n<ul>\n<li>Parent\n<ol type="1" start="2" class="ol-decimal" data-marker-suffix=".">\n<li>Child</li>\n</ol>\n</li>\n</ul>\n</blockquote>\n',
+  'literal numbering fix should validate raw indentation after blockquote markers'
+)
+
+assert.strictEqual(
+  createMaplessTestConfig('literal numbering fix mapless safety', { enableLiteralNumberingFix: true }, [])
+    .md
+    .render('- Parent\n    2. Child\n'),
+  '<ul>\n<li>Parent\n2. Child</li>\n</ul>\n',
+  'literal numbering fix should fail closed when token.map is unavailable for raw indentation checks'
+)
+
 // Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
   // Default configuration (literal numbering fix disabled / legacy-compatible)

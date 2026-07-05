@@ -13,6 +13,7 @@
 - `true` (opt-in):
   - Recovers marker-like literal lines inside list items as real nested `<ol>` structures.
   - Example: `- Parent` + indented `2.` / `3.` becomes nested `<ol start="2">`.
+  - Validates candidate lines against the original source indentation (parent list marker width + 0–3 spaces). If source line maps are unavailable, the recovery fails closed and leaves the original paragraph text unchanged.
 
 ## Compatibility Snapshot (`false` vs `true`)
 
@@ -70,6 +71,7 @@
 ## Operational Guidance
 
 - Keep default `false` when HTML snapshot/backward-compat stability is required.
+- Keep `token.map` data when enabling this option; the raw-source indentation guard depends on source line numbers.
 - Enable per project or per document when literal nested numbering normalization is desired:
 
 ```js
