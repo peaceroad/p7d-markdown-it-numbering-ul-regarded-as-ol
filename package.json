@@ -1,6 +1,6 @@
 {
   "name": "@peaceroad/markdown-it-numbering-ul-regarded-as-ol",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "This markdown-it plugin regard ul element with numbering lists as ol element.",
   "main": "index.js",
   "type": "module",
@@ -27,10 +27,10 @@
   },
   "homepage": "https://github.com/peaceroad/p7d-markdown-it-numbering-ul-regarded-as-ol#readme",
   "devDependencies": {
-    "@peaceroad/markdown-it-cjk-breaks-mod": "^0.1.10",
-    "@peaceroad/markdown-it-strong-ja": "^0.9.0",
-    "markdown-it": "^14.1.0",
-    "markdown-it-attrs": "^4.3.1",
+    "@peaceroad/markdown-it-cjk-breaks-mod": "^0.1.13",
+    "@peaceroad/markdown-it-strong-ja": "^0.9.3",
+    "markdown-it": "^14.3.0",
+    "markdown-it-attrs": "^5.0.0",
     "markdown-it-deflist": "^3.0.0"
   }
 }

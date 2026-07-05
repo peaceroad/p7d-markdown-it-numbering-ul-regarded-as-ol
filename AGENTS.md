@@ -97,11 +97,15 @@
   - Same-line form (`- **Term** Description`) is not converted to `<dl>`.
   - Same-line backslash form (`- **Term**\ Description`) is also not converted because the hard break marker must be followed by a real newline.
 - Attributes collected by markdown-it-attrs on the original `<p>` get moved to the generated `<dl>` (or wrapper `<div>` when `descriptionListWithDiv` is true).
-- Inline attribute parsing for `**Term** {.attrs}` accepts:
+- `descriptionListAttrs` controls `**Term** {.attrs}` and trailing DL attrs:
+  - `'delegate'` (default): keep raw attr blocks for `markdown-it-attrs` to parse/filter; fail fast when DL attrs are used without `markdown-it-attrs`.
+  - `'parse'`: legacy built-in parser.
+  - `false`: do not treat term-line attrs as DL syntax.
+- Legacy inline attribute parsing for `descriptionListAttrs: 'parse'` accepts:
   - `.class` / `#id`
   - boolean attrs (`{foo}`)
   - key-value attributes with double quotes, single quotes, or unquoted values (`key="v"`, `key='v'`, `key=v`)
-- Multiple leading attr blocks are merged onto `<dt>` (for example `**Term** {.a} {#id} {data-x=1}`).
+- In delegate mode, prefer a single attr block (`**Term** {.a #id data-x=1}`); adjacent leading attr blocks are normalized for compatibility.
 - A trailing attr-only line at the end of description content is treated as list-level attrs and moved to `<dl>` (markdown-it-attrs compatible behavior).
 - Attr-like braces are treated as description text only when the active parser chain does not parse them as attributes. Note: with `markdown-it-attrs`, forms like `{foo}` may be interpreted as boolean attributes.
 - Generated `dl/dt/dd/div/p` tokens inherit `map` from the source list/paragraph tokens when available so source-line behavior remains consistent.

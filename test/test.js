@@ -22,6 +22,45 @@ assert.throws(
   'duplicate plugin registration must fail fast'
 )
 
+assert.throws(
+  () => mdit({ html: true }).use(mditNumberingUl, { descriptionListAttrs: true }),
+  /descriptionListAttrs must be "delegate", "parse", or false/,
+  'descriptionListAttrs must reject ambiguous boolean values'
+)
+
+assert.doesNotThrow(
+  () => mdit({ html: true })
+    .use(mditNumberingUl, { descriptionList: true })
+    .render('- **Term**\n\n  Description\n'),
+  'default delegate mode should not require markdown-it-attrs when no DL attrs are used'
+)
+
+assert.throws(
+  () => mdit({ html: true })
+    .use(mditNumberingUl, { descriptionList: true })
+    .render('- **Term** {.term}\n\n  Description\n'),
+  /descriptionListAttrs: "delegate" requires markdown-it-attrs/,
+  'default delegate mode must fail fast when DL attrs are used without markdown-it-attrs'
+)
+
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditAttrs, { allowedAttributes: ['class'], allowedAttributeValues: ['ok'] })
+    .use(mditNumberingUl, { descriptionList: true })
+    .render('- **Term** {.ok onclick="alert(1)"}\n\n  Description\n'),
+  '<dl>\n<dt class="ok">Term</dt>\n<dd>\n<p>Description</p>\n</dd>\n</dl>\n',
+  'delegate mode should let markdown-it-attrs filter description-list term attrs'
+)
+
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditAttrs)
+    .use(mditNumberingUl, { descriptionList: true, descriptionListAttrs: false })
+    .render('- **Term** {.term}\n\n  Description\n'),
+  '<ul>\n<li class="term">\n<p><strong>Term</strong></p>\n<p>Description</p>\n</li>\n</ul>\n',
+  'descriptionListAttrs: false should not treat term attrs as DL syntax'
+)
+
 // Test configuration helper
 const createTestConfig = (name, options, testFiles) => ({
   name,
@@ -201,19 +240,19 @@ const testConfigs = [
     'examples-option-descriptionlist-with-div-attrs.txt'
   ]),
   // Option-specific tests (each uses the plugin with particular options)
-  createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true }, [
+  createTestConfig('description list with div', { descriptionList: true, descriptionListWithDiv: true, descriptionListAttrs: 'parse' }, [
     'examples-option-descriptionlist-with-di.txt'
   ]),
   createTestConfig('description list with div only', { descriptionListWithDiv: true }, [
     'examples-option-descriptionlist-with-div-only.txt'
   ]),
-  createTestConfig('description list with div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 'di' }, [
+  createTestConfig('description list with div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 'di', descriptionListAttrs: 'parse' }, [
     'examples-option-descriptionlist-with-di-class.txt'
   ]),
-  createTestConfig('description list with blank div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: '   ' }, [
+  createTestConfig('description list with blank div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: '   ', descriptionListAttrs: 'parse' }, [
     'examples-option-descriptionlist-with-di-class-empty.txt'
   ]),
-  createTestConfig('description list with non-string div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 123 }, [
+  createTestConfig('description list with non-string div class', { descriptionList: true, descriptionListWithDiv: true, descriptionListDivClass: 123, descriptionListAttrs: 'parse' }, [
     'examples-option-descriptionlist-with-di-class-nonstring.txt'
   ]),
   createTestConfig('unremoveUlNest option', { unremoveUlNest: true }, [

@@ -23,6 +23,7 @@ const mditNumberingUl = (md, option) => {
     descriptionList: false,       // Convert **Term** patterns to <dl>/<dt>/<dd>
     descriptionListWithDiv: false,// Wrap description list items in <div> blocks
     descriptionListDivClass: '',  // Class name applied to generated <div>. For example, `di` (Description Item).
+    descriptionListAttrs: 'delegate', // 'delegate'=let markdown-it-attrs parse DL attrs, 'parse'=legacy local parser, false=disable DL attrs
     unremoveUlNest: false,        // true=preserve ul>li>ol nesting, false=flatten to ol>li
     alwaysMarkerSpan: false,      // true=use <span class="li-num">, false=normal numbering
     markerSpanClass: 'li-num',    // class name to use for marker spans (customizable)
@@ -43,6 +44,11 @@ const mditNumberingUl = (md, option) => {
   opt.descriptionListDivClass = typeof opt.descriptionListDivClass === 'string'
     ? opt.descriptionListDivClass.trim()
     : ''
+  if (opt.descriptionListAttrs !== 'delegate' &&
+      opt.descriptionListAttrs !== 'parse' &&
+      opt.descriptionListAttrs !== false) {
+    throw new Error('descriptionListAttrs must be "delegate", "parse", or false')
+  }
 
   const addRuleAfter = (ruler, afterName, ruleName, fn) => {
     try {
@@ -51,12 +57,21 @@ const mditNumberingUl = (md, option) => {
       ruler.push(ruleName, fn)
     }
   }
+  const hasRule = (ruler, ruleName) => {
+    const rules = ruler?.__rules__
+    return Array.isArray(rules) && rules.some(rule => rule?.name === ruleName && rule.enabled !== false)
+  }
 
   const dlProcessor = (state) => {
     if (!opt.descriptionList && !opt.descriptionListWithDiv) {
       return true
     }
-    processDescriptionList(state.tokens, opt)
+    opt._hasMarkdownItAttrs = hasRule(md.core.ruler, 'curly_attributes')
+    try {
+      processDescriptionList(state.tokens, opt)
+    } finally {
+      delete opt._hasMarkdownItAttrs
+    }
     return true
   }
 

@@ -101,23 +101,61 @@ const consumeLeadingValidAttrBlocks = (text) => {
   return { rest, attrs }
 }
 
-const hasExplicitLineBreakMarker = (afterStrong) => {
-  if (typeof afterStrong !== 'string') {
-    return false
+const consumeLeadingRawAttrBlocks = (text) => {
+  if (typeof text !== 'string' || text.length === 0) {
+    return { rest: text || '', rawBlock: '' }
   }
-  const lineBreakIndex = afterStrong.indexOf('\n')
-  if (lineBreakIndex === -1) {
-    return false
+
+  let rest = text
+  const rawContents = []
+  while (true) {
+    const match = rest.match(LEADING_ATTR_BLOCK_REGEX)
+    if (!match) {
+      break
+    }
+    const attrContent = match[1]
+    const parsed = parseAttrString(attrContent)
+    if (parsed.length === 0) {
+      break
+    }
+    rawContents.push(attrContent.trim())
+    rest = rest.slice(match[0].length)
   }
-  const firstLine = afterStrong.slice(0, lineBreakIndex)
-  return TRAILING_TWO_SPACES_REGEX.test(firstLine) || TRAILING_BACKSLASH_BREAK_REGEX.test(firstLine)
+
+  return {
+    rest,
+    rawBlock: rawContents.length > 0 ? `{${rawContents.join(' ')}}` : ''
+  }
+}
+
+const consumeLeadingAttrBlocksForMode = (text, opt) => {
+  if (opt?.descriptionListAttrs === false) {
+    return { rest: text || '', attrs: [], rawBlock: '' }
+  }
+  if (opt?.descriptionListAttrs === 'delegate') {
+    return { attrs: [], ...consumeLeadingRawAttrBlocks(text) }
+  }
+  return { rawBlock: '', ...consumeLeadingValidAttrBlocks(text) }
+}
+
+const ensureDelegateAttrsAvailable = (opt) => {
+  if (opt?.descriptionListAttrs === 'delegate' && !opt._hasMarkdownItAttrs) {
+    throw new Error('descriptionListAttrs: "delegate" requires markdown-it-attrs when description-list attributes are used. Use md.use(markdownItAttrs) or set descriptionListAttrs: "parse".')
+  }
 }
 
 const getDescriptionAfterExplicitLineBreak = (afterStrong) => {
-  if (!hasExplicitLineBreakMarker(afterStrong)) {
+  if (typeof afterStrong !== 'string') {
     return null
   }
   const lineBreakIndex = afterStrong.indexOf('\n')
+  if (lineBreakIndex === -1) {
+    return null
+  }
+  const firstLine = afterStrong.slice(0, lineBreakIndex)
+  if (!TRAILING_TWO_SPACES_REGEX.test(firstLine) && !TRAILING_BACKSLASH_BREAK_REGEX.test(firstLine)) {
+    return null
+  }
   return afterStrong.slice(lineBreakIndex + 1)
 }
 
@@ -287,7 +325,7 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
         return { nextIndex: listEnd + 1 }
       }
 
-      const dlCheck = isDLPattern(inlineToken.content)
+      const dlCheck = isDLPattern(inlineToken.content, opt)
       if (!dlCheck.isMatch) {
         // Not all items are DL pattern - not a description list
         return { nextIndex: listEnd + 1 }
@@ -299,7 +337,7 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
 
       // Pattern 1: Explicit line-break marker after term line (`  ` or `\`) and
       // description text in the remaining first paragraph content.
-      const explicitBreakDescription = getDescriptionAfterExplicitLineBreak(afterStrong)
+      const explicitBreakDescription = dlCheck.explicitBreakDescription
       if (explicitBreakDescription !== null && hasMeaningfulDescriptionContent(explicitBreakDescription)) {
         hasDescription = true
       }
@@ -326,6 +364,8 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
         return { nextIndex: listEnd + 1 }
       }
 
+      range.firstPara = firstPara
+      range.dlCheck = dlCheck
       hasAnyDLItem = true
     } else {
       // Any list_item that doesn't start with a paragraph cannot be a DL item.
@@ -348,25 +388,32 @@ const checkAndConvertToDL = (tokens, listStart, listEnd, opt) => {
  * Check if content matches DL pattern and return match details
  * Returns: { isMatch: boolean, afterStrong: string|null }
  */
-const isDLPattern = (content) => {
-  if (!content) return { isMatch: false, afterStrong: null }
+const isDLPattern = (content, opt) => {
+  if (!content) return { isMatch: false, term: '', afterStrong: null, leadingAttrs: null, explicitBreakDescription: null }
   if (content.length < 4 || content[0] !== '*' || content[1] !== '*') {
-    return { isMatch: false, afterStrong: null }
+    return { isMatch: false, term: '', afterStrong: null, leadingAttrs: null, explicitBreakDescription: null }
   }
   
   // Match **Term** pattern (allow spaces inside for markdown-it-strong-ja compatibility)
   const match = content.match(DL_TERM_INLINE_REGEX)
-  if (!match) return { isMatch: false, afterStrong: null }
+  if (!match) return { isMatch: false, term: '', afterStrong: null, leadingAttrs: null, explicitBreakDescription: null }
   
   const afterStrong = match[2]  // Text after closing **
   
   // Match only strict description-list starts:
   // 1) explicit line-break marker after term line (`  ` or `\`) + newline
   // 2) term-only first line (optionally with valid attrs only), expecting next block as description
-  const { rest: afterAttrs } = consumeLeadingValidAttrBlocks(afterStrong)
-  const isMatch = hasExplicitLineBreakMarker(afterStrong) || /^\s*$/.test(afterAttrs)
+  const leadingAttrs = consumeLeadingAttrBlocksForMode(afterStrong, opt)
+  const explicitBreakDescription = getDescriptionAfterExplicitLineBreak(afterStrong)
+  const isMatch = explicitBreakDescription !== null || /^\s*$/.test(leadingAttrs.rest)
   
-  return { isMatch, afterStrong }
+  return {
+    isMatch,
+    term: match[1].trim(),
+    afterStrong,
+    leadingAttrs,
+    explicitBreakDescription
+  }
 }
 
 /**
@@ -387,10 +434,6 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
     dlOpen.attrs = tokens[listStart].attrs.slice()
   }
   
-  // Store pending attrs from list items (Pattern B: {.attrs} on last line of description)
-  // These will be applied by moveParagraphAttributesToDL after markdown-it-attrs runs
-  dlOpen._pendingListAttrs = []
-  
   // Store DL metadata for later optimization in moveParagraphAttributesToDL
   dlOpen._dlMetadata = {
     itemCount: 0,  // Will be updated during processing
@@ -400,7 +443,8 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
   newTokens.push(dlOpen)
   
   // Collect attrs from list items
-  const listAttrsFromItems = []
+  let listAttrsFromItems = null
+  let listAttrContentsFromItems = null
   
   // Process each list_item
   const ranges = Array.isArray(itemRanges) && itemRanges.length > 0
@@ -410,29 +454,35 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
   for (const range of ranges) {
     const itemStart = range.open
     const itemEnd = range.close
-    const result = convertListItemToDtDd(tokens, itemStart, itemEnd, listLevel, opt)
+    const result = convertListItemToDtDd(tokens, itemStart, itemEnd, listLevel, opt, range)
     
     // Update metadata
     dlOpen._dlMetadata.itemCount++
     
     // Check for list-level attrs returned from item
     if (result.listAttrs && result.listAttrs.length > 0) {
+      if (!listAttrsFromItems) {
+        listAttrsFromItems = []
+      }
       listAttrsFromItems.push(...result.listAttrs)
+    }
+    if (result.listAttrContents && result.listAttrContents.length > 0) {
+      if (!listAttrContentsFromItems) {
+        listAttrContentsFromItems = []
+      }
+      listAttrContentsFromItems.push(...result.listAttrContents)
     }
     
     if (result.tokens) {
-      // Track last dd_open position (relative to newTokens)
-      for (let j = 0; j < result.tokens.length; j++) {
-        if (result.tokens[j].type === 'dd_open') {
-          dlOpen._dlMetadata.lastDdTokenIndex = newTokens.length + j
-        }
+      if (typeof result.lastDdOffset === 'number') {
+        dlOpen._dlMetadata.lastDdTokenIndex = newTokens.length + result.lastDdOffset
       }
       newTokens.push(...result.tokens)
     }
   }
   
   // Store pending list attrs for later processing
-  if (listAttrsFromItems.length > 0) {
+  if (listAttrsFromItems && listAttrsFromItems.length > 0) {
     dlOpen._pendingListAttrs = listAttrsFromItems
   }
   
@@ -442,49 +492,86 @@ const convertBulletListToDL = (tokens, listStart, listEnd, opt, itemRanges = nul
   dlClose.block = true
   copyMap(dlClose, tokens[listEnd])
   newTokens.push(dlClose)
+
+  if (listAttrContentsFromItems && listAttrContentsFromItems.length > 0) {
+    appendRawAttrCarrierParagraph(newTokens, tokens[listEnd], listLevel, `{${listAttrContentsFromItems.join(' ')}}`)
+  }
   
   // Replace tokens
   tokens.splice(listStart, listEnd - listStart + 1, ...newTokens)
+}
+
+const appendRawAttrCarrierParagraph = (tokens, templateToken, level, rawBlock) => {
+  if (!rawBlock) {
+    return
+  }
+
+  const pOpen = new templateToken.constructor('paragraph_open', 'p', 1)
+  pOpen.level = level
+  pOpen.block = true
+  copyMap(pOpen, templateToken)
+  tokens.push(pOpen)
+
+  const inline = new templateToken.constructor('inline', '', 0)
+  inline.content = rawBlock
+  inline.level = level + 1
+  inline.children = []
+  tokens.push(inline)
+
+  const pClose = new templateToken.constructor('paragraph_close', 'p', -1)
+  pClose.level = level
+  pClose.block = true
+  copyMap(pClose, templateToken)
+  tokens.push(pClose)
 }
 
 /**
  * Convert list_item to dt/dd structure
  * Returns: { tokens: [...], listAttrs: [...] }
  */
-const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => {
+const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt, itemInfo = null) => {
   const result = []
-  const listAttrs = []  // Attrs to be applied to dl (not dt/dd)
+  let listAttrs = null  // Attrs to be applied to dl (not dt/dd)
+  let listAttrContents = null  // Raw attrs to be parsed by markdown-it-attrs and moved to dl
   
   // Get attributes from list_item_open (markdown-it-attrs may put {.class} there)
   const listItemToken = tokens[itemStart]
   let dtAttrs = listItemToken.attrs ? [...listItemToken.attrs] : null
+  let dtAttrBlock = ''
   
-  const firstChild = findFirstDirectChildInListItem(tokens, itemStart, itemEnd)
-  const firstPara = firstChild !== -1 && tokens[firstChild].type === 'paragraph_open'
-    ? firstChild
-    : -1
+  let firstPara = typeof itemInfo?.firstPara === 'number' ? itemInfo.firstPara : -1
+  if (firstPara === -1 || tokens[firstPara]?.type !== 'paragraph_open') {
+    const firstChild = findFirstDirectChildInListItem(tokens, itemStart, itemEnd)
+    firstPara = firstChild !== -1 && tokens[firstChild].type === 'paragraph_open'
+      ? firstChild
+      : -1
+  }
   
-  if (firstPara === -1) return { tokens: result, listAttrs }
+  if (firstPara === -1) return { tokens: result, listAttrs, listAttrContents }
   
   const inlineToken = tokens[firstPara + 1]
-  if (!inlineToken || inlineToken.type !== 'inline') return { tokens: result, listAttrs }
+  if (!inlineToken || inlineToken.type !== 'inline') return { tokens: result, listAttrs, listAttrContents }
   
   // Extract term and description from inline token's content
   let term = ''
   let descStart = ''
   
-  const content = inlineToken.content
-  const match = content.match(DL_TERM_INLINE_REGEX)
+  const dlCheck = itemInfo?.dlCheck?.isMatch
+    ? itemInfo.dlCheck
+    : isDLPattern(inlineToken.content, opt)
   
-  if (match) {
-    // Trim to avoid leading space when **Term** starts with whitespace (e.g. "** *term*")
-    term = match[1].trim()
-    let afterStrong = match[2]
+  if (dlCheck.isMatch) {
+    term = dlCheck.term
+    let afterStrong = dlCheck.afterStrong
     
     // Pattern A: one or more leading attr blocks right after **Term**.
     // These map to <dt> like markdown-it-attrs trailing attrs on a block line.
-    const leadingAttrs = consumeLeadingValidAttrBlocks(afterStrong)
-    if (leadingAttrs.attrs.length > 0) {
+    const leadingAttrs = dlCheck.leadingAttrs || consumeLeadingAttrBlocksForMode(afterStrong, opt)
+    if (leadingAttrs.rawBlock) {
+      ensureDelegateAttrsAvailable(opt)
+      dtAttrBlock = leadingAttrs.rawBlock
+      afterStrong = leadingAttrs.rest
+    } else if (leadingAttrs.attrs.length > 0) {
       if (!dtAttrs) {
         dtAttrs = []
       }
@@ -497,11 +584,21 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     // We need to remove it from description content and save for list-level attrs
     const lastLineAttrsMatch = afterStrong.match(TRAILING_LIST_ATTR_LINE_REGEX)
     if (lastLineAttrsMatch) {
-      // Parse attributes
       const attrString = lastLineAttrsMatch[1]
-      const parsedAttrs = parseAttrString(attrString)
+      const parsedAttrs = opt.descriptionListAttrs === false ? [] : parseAttrString(attrString)
       if (parsedAttrs.length > 0) {
-        listAttrs.push(...parsedAttrs)
+        if (opt.descriptionListAttrs === 'delegate') {
+          ensureDelegateAttrsAvailable(opt)
+          if (!listAttrContents) {
+            listAttrContents = []
+          }
+          listAttrContents.push(attrString.trim())
+        } else {
+          if (!listAttrs) {
+            listAttrs = []
+          }
+          listAttrs.push(...parsedAttrs)
+        }
         // Remove {.attrs} line from afterStrong
         afterStrong = afterStrong.replace(TRAILING_LIST_ATTR_LINE_REGEX, '')
       }
@@ -516,7 +613,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     descStart = cleaned
   }
   
-  if (!term) return { tokens: result, listAttrs }
+  if (!term) return { tokens: result, listAttrs, listAttrContents }
   
   // Create div_open if descriptionListWithDiv is enabled
   if (opt.descriptionListWithDiv) {
@@ -544,7 +641,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   
   // Create inline token for dt content
   const dtInline = new tokens[firstPara].constructor('inline', '', 0)
-  dtInline.content = term  // Keep original Markdown for inline parser to process
+  dtInline.content = dtAttrBlock ? `${term} ${dtAttrBlock}` : term  // Keep original Markdown for inline parser to process
   dtInline.level = parentLevel + 2
   dtInline.children = []  // Will be populated by inline parser
   result.push(dtInline)
@@ -561,6 +658,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
   ddOpen.level = parentLevel + 1
   ddOpen.block = true
   copyMap(ddOpen, tokens[firstPara])
+  const lastDdOffset = result.length
   result.push(ddOpen)
   
   // First paragraph in dd (if description exists)
@@ -642,7 +740,7 @@ const convertListItemToDtDd = (tokens, itemStart, itemEnd, parentLevel, opt) => 
     result.push(divClose)
   }
   
-  return { tokens: result, listAttrs }
+  return { tokens: result, listAttrs, listAttrContents, lastDdOffset }
 }
 
 /**

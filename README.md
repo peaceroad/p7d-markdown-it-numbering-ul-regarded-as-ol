@@ -107,8 +107,8 @@ When `descriptionList` or `descriptionListWithDiv` is enabled, the plugin conver
   - If the Term line is followed by a blank line, the description can start in the next paragraph or list (line-break control characters are optional).
   - Same-line descriptions such as `- **Term** Description` are not converted.
   - Same-line backslash forms such as `- **Term**\ Description` are also not converted (the hard break marker must be followed by an actual newline).
-  - Term-line attrs can be written in multiple adjacent blocks (`**Term** {.a} {#id} {data-x=1}`) and are merged onto `<dt>`.
-  - Attr-like braces are kept as description text only when your plugin chain does not parse them as attributes. With `markdown-it-attrs`, forms like `{foo}` may be treated as boolean attributes.
+  - Term-line attrs are delegated to `markdown-it-attrs` by default (`descriptionListAttrs: 'delegate'`), so use `md.use(markdownItAttrs)` when you write description-list attrs. The preferred form is a single attr block (`**Term** {.a #id data-x=1}`); adjacent blocks (`**Term** {.a} {#id}`) are normalized for compatibility.
+  - Attr-like braces are kept as description text only when they are not valid description-list attrs. With `markdown-it-attrs`, forms like `{foo}` may be treated as boolean attributes.
 
 In the conversion the `**Term**` line becomes a `<dt>` and the subsequent lines become the corresponding `<dd>`.
 
@@ -119,6 +119,7 @@ Note: Text descriptions are wrapped in `<p>` elements; additional paragraphs and
 - `descriptionList` (boolean) — Enable conversion of `**Term**` list patterns into `<dl>` description lists.
 - `descriptionListWithDiv` (boolean) — Wrap `<dt>/<dd>` pairs in a `<div>` when enabled. This option also enables description-list conversion even when `descriptionList` is `false`.
 - `descriptionListDivClass` (string) — Class applied to the wrapper `<div>` when `descriptionListWithDiv` is enabled (empty string disables the class).
+- `descriptionListAttrs` (`'delegate' | 'parse' | false`) — Controls description-list attr handling. Default is `'delegate'`, which keeps raw attr blocks for `markdown-it-attrs` to parse/filter (including `allowedAttributes` / `allowedAttributeValues`) and fails fast if description-list attrs are used without `markdown-it-attrs`. Use `'parse'` for the legacy built-in parser, or `false` to disable special description-list attrs.
 
 ## Examples: Ordered Lists
 
