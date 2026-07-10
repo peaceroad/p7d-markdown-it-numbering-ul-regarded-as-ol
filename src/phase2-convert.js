@@ -180,12 +180,19 @@ function simplifyNestedBulletLists(tokens) {
   // token.map is stable across passes; used to decide map-based blank-line checks.
   const hasTokenMaps = tokens.some(token => token && token.map && token.map.length)
   
-  // ===== Phase 1: Simplify ul>li>ol structure (multiple passes needed) =====
+  // ===== Phase 1: Simplify ul>li>ol structure =====
+  // Process independent candidates from right to left in the same pass. Edits
+  // to a later sibling do not invalidate indices for earlier siblings. An
+  // ancestor that contains an edited candidate is deferred until the next pass,
+  // when its close indices are rebuilt. This keeps the number of full scans
+  // proportional to nesting depth rather than the number of sibling lists.
   while (modified) {
     modified = false
+    let leftmostModifiedStart = tokens.length
+    const replacements = []
     const { listCloseByOpen, listItemCloseByOpen } = buildListCloseIndexMap(tokens)
     
-    for (let i = 0; i < tokens.length; i++) {
+    for (let i = tokens.length - 1; i >= 0; i--) {
       const token = tokens[i]
       
       // Only detect bullet_list_open (ordered_list processing will be done later)
@@ -196,6 +203,12 @@ function simplifyNestedBulletLists(tokens) {
       // Check if this bullet_list is all ul>li>ol/ul pattern
       const listCloseIdx = resolveListClose(tokens, i, listCloseByOpen)
       if (listCloseIdx === -1) continue
+
+      // A descendant was already rewritten in this pass, so this ancestor's
+      // mapped close indices are stale. Revisit it after rebuilding the maps.
+      if (listCloseIdx > leftmostModifiedStart) {
+        continue
+      }
 
       // Fast reject: flattening requires the first list item to start with ordered_list_open.
       const firstItemOpen = i + 1
@@ -798,70 +811,73 @@ function simplifyNestedBulletLists(tokens) {
         
         replacementTokens.push(lastListCloseToken)
         
-        // Replace only the current outer bullet-list range.
-        tokens.splice(i, listCloseIdx - i + 1, ...replacementTokens)
-        
         // Remove markers from merged list
         if (firstListToken._markerInfo && firstListToken._markerInfo.markers) {
-          const listStartIdx = i
-          if (listStartIdx < tokens.length) {
-            const listEndIdx = findMatchingClose(tokens, listStartIdx, 
-              firstListToken.type, 
-              firstListToken.type.replace('_open', '_close'))
-            if (listEndIdx !== -1) {
-              removeMarkersFromContent(tokens, listStartIdx, listEndIdx, firstListToken._markerInfo)
-            }
-          }
+          removeMarkersFromContent(
+            replacementTokens,
+            0,
+            replacementTokens.length - 1,
+            firstListToken._markerInfo
+          )
         }
+
+        replacements.push({ start: i, end: listCloseIdx, tokens: replacementTokens })
         
         modified = true
-        break
+        leftmostModifiedStart = i
       }
+    }
+
+    if (replacements.length > 0) {
+      applyTokenReplacements(tokens, replacements)
     }
   }
   
-  // ===== Propagate ordered_list's _parentIsLoose flag to child lists =====
-  // Check all ordered_list_open, and if _parentIsLoose flag exists,
-  // propagate to child lists
-  let hasParentLooseList = false
+  propagateParentLooseToChildLists(tokens)
+}
+
+function propagateParentLooseToChildLists(tokens) {
+  const listStack = []
+
   for (let i = 0; i < tokens.length; i++) {
     const token = tokens[i]
-    if ((token.type === 'ordered_list_open' || token.type === 'bullet_list_open') && token._parentIsLoose) {
-      hasParentLooseList = true
-      break
+    if (token.type === 'ordered_list_open' || token.type === 'bullet_list_open') {
+      const parent = listStack[listStack.length - 1]
+      if (parent?._parentIsLoose && token.level === parent.level + 2) {
+        token._parentIsLoose = true
+      }
+      listStack.push(token)
+      continue
+    }
+    if (token.type === 'ordered_list_close' || token.type === 'bullet_list_close') {
+      listStack.pop()
     }
   }
-  if (!hasParentLooseList) {
-    return
+}
+
+function applyTokenReplacements(tokens, replacements) {
+  const rebuilt = []
+  let sourceIndex = 0
+
+  // Replacements were collected from right to left. Consume them in reverse
+  // order so source ranges are copied from left to right exactly once.
+  for (let i = replacements.length - 1; i >= 0; i--) {
+    const replacement = replacements[i]
+    for (; sourceIndex < replacement.start; sourceIndex++) {
+      rebuilt.push(tokens[sourceIndex])
+    }
+    for (const token of replacement.tokens) {
+      rebuilt.push(token)
+    }
+    sourceIndex = replacement.end + 1
+  }
+  for (; sourceIndex < tokens.length; sourceIndex++) {
+    rebuilt.push(tokens[sourceIndex])
   }
 
-  const postCloseMap = buildListCloseIndexMap(tokens)
-  for (let i = 0; i < tokens.length; i++) {
-    const token = tokens[i]
-    
-    if ((token.type === 'ordered_list_open' || token.type === 'bullet_list_open') && token._parentIsLoose) {
-      // Find this list's close token
-      const listCloseIdx = resolveListClose(tokens, i, postCloseMap.listCloseByOpen)
-      if (listCloseIdx === -1) continue
-      
-      // Search list_items in this list and set _parentIsLoose flag to child lists in those list_items
-      for (let j = i + 1; j < listCloseIdx; j++) {
-        if (tokens[j].type === 'list_item_open' && tokens[j].level === token.level + 1) {
-          const itemCloseIdx = resolveListItemClose(tokens, j, postCloseMap.listItemCloseByOpen)
-          
-          // Search child lists in this list_item
-          for (let k = j + 1; k < itemCloseIdx; k++) {
-            if ((tokens[k].type === 'bullet_list_open' || tokens[k].type === 'ordered_list_open') && 
-                tokens[k].level === token.level + 2) {
-              // Set _parentIsLoose flag to child list
-              tokens[k]._parentIsLoose = true
-            }
-          }
-          
-          j = itemCloseIdx // Jump to next list_item
-        }
-      }
-    }
+  tokens.length = 0
+  for (const token of rebuilt) {
+    tokens.push(token)
   }
 }
 

@@ -7,6 +7,7 @@ const __dirname = dirname(__filename)
 
 const testFiles = [
   'performance-integrated.js',
+  'performance-flattening.js',
   'performance-numbered-lists.js',
   'performance-description-lists.js',
   'performance-mixed-content.js'

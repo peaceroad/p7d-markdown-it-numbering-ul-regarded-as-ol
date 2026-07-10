@@ -54,15 +54,19 @@
    - Converts eligible `bullet_list` instances into `ordered_list`, removes marker text from inline tokens, and stores `_markerInfo` on list tokens.
    - Flattens `ul > li > ol` scaffolding (the "- 1." pattern) only when every `li` starts with a direct child inner list (no visible content before that list). Trailing sibling content after the inner list is preserved and merged into the flattened item.
    - During flattening we merge marker metadata from parent/child lists, honour `_literalList` so synthetic lists keep their numbering, and fix tight/loose states directly using `_literalTight`, `_literalLastLine`, token `map` data (when available), or list-level `_isLoose` as a fallback when maps are missing.
+   - Independent flattening candidates are collected from right to left and applied with one token-array rebuild per nesting round. Ancestors of an edited candidate are deferred until the next round so close-index maps remain valid without reverting to one full scan per sibling list.
+   - `_parentIsLoose` propagation uses a list stack in one final token-stream pass.
 
 4. **Phase 3 - `addAttributes`**
    Applies `type`, `role`, `class`, `data-marker-*`, `start`, and `value` attributes to every ordered list and list item. Uses the stored `_markerInfo` plus `types-utility.js`.
+   List attributes and direct `li[value]` normalization share one stack-based token-stream pass.
 
 5. **Phase 4 - `processHtmlBlocks`**
    Dedents HTML blocks nested inside lists, trims unnecessary blank lines, and standardises closing tags.
 
 6. **Phase 5 - `generateSpans`**
    Inserts `<span class="li-num">...</span>` markers (with `aria-hidden`) for custom-marker lists by default, and for all markers when `alwaysMarkerSpan` is true. If a marker entry lacks a `marker` string, span content is rebuilt from number + marker type.
+   Only lists that need spans are tracked, and their first inline children are handled in one token-stream pass rather than rescanning every ordered-list subtree.
 
 ## Loose vs Tight Lists
 
@@ -133,4 +137,4 @@
 - The plugin intentionally fails fast if registered twice on the same `markdown-it` instance; do not stack multiple `.use(mditNumberingUl, ...)` calls on one instance.
 - The debug scripts are ES modules (`node debug/...mjs`). Run them with `node` (>=18) or via `npm` scripts to avoid `require`-related errors.
 - Runtime currently relies on JSON import attributes (`import ... with { type: 'json' }`). Consumer environments must support this syntax (modern Node / compatible bundlers).
-- Phase 3 skips the value-normalization pass when no `li[value]` is present to avoid unnecessary full-stream scans.
+- Phase 3 normalizes direct `li[value]` attributes while traversing the token stream for list attributes, avoiding a separate full-stream or per-list-subtree pass.

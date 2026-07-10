@@ -124,6 +124,37 @@ assert.strictEqual(
   'literal numbering fix should fail closed when token.map is unavailable for raw indentation checks'
 )
 
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditNumberingUl)
+    .render('- 1. First\n\nseparator\n\n- 1. Parent\n      - 1. Child\n'),
+  '<ol type="1" class="ol-decimal" data-marker-suffix=".">\n' +
+    '<li>First</li>\n' +
+    '</ol>\n' +
+    '<p>separator</p>\n' +
+    '<ol type="1" class="ol-decimal" data-marker-suffix=".">\n' +
+    '<li>Parent\n' +
+    '<ol type="1" class="ol-decimal" data-marker-suffix=".">\n' +
+    '<li>Child</li>\n' +
+    '</ol>\n' +
+    '</li>\n' +
+    '</ol>\n',
+  'batched flattening must handle independent siblings and deferred ancestors'
+)
+
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditNumberingUl)
+    .render('- 3. Three\n- 5. Five\n- 5. Five again\n- 4. Four\n'),
+  '<ol type="1" start="3" class="ol-decimal" data-marker-suffix=".">\n' +
+    '<li>Three</li>\n' +
+    '<li value="5">Five</li>\n' +
+    '<li value="5">Five again</li>\n' +
+    '<li value="4">Four</li>\n' +
+    '</ol>\n',
+  'single-pass value normalization must preserve skips, repeats, and decreases'
+)
+
 // Test configurations (explicit order: default -> options -> attrs variants -> other plugins)
 const testConfigs = [
   // Default configuration (literal numbering fix disabled / legacy-compatible)
