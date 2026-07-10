@@ -6,6 +6,7 @@ import mditNumberingUl from '../index.js'
 import mditAttrs from 'markdown-it-attrs'
 import mditDeflist from 'markdown-it-deflist'
 import mditStrongJa from '@peaceroad/markdown-it-strong-ja'
+import { detectMarkerType, detectSequencePattern, getSymbolForNumber } from '../src/types-utility.js'
 
 let __dirname = path.dirname(new URL(import.meta.url).pathname)
 const isWindows = (process.platform === 'win32')
@@ -26,6 +27,51 @@ assert.throws(
   () => mdit({ html: true }).use(mditNumberingUl, { descriptionListAttrs: true }),
   /descriptionListAttrs must be "delegate", "parse", or false/,
   'descriptionListAttrs must reject ambiguous boolean values'
+)
+
+assert.deepStrictEqual(
+  detectSequencePattern(['ア． one', 'ア． two', 'ア． three']),
+  { type: 'katakana' },
+  'repeated ア markers should prefer gojuon order over their late iroha position'
+)
+
+assert.deepStrictEqual(
+  detectSequencePattern(['イ． one', 'イ． two', 'イ． three']),
+  { type: 'katakana-iroha' },
+  'repeated イ markers should still prefer iroha where イ is the first symbol'
+)
+
+assert.strictEqual(getSymbolForNumber('lower-latin', 27), 'aa')
+assert.strictEqual(getSymbolForNumber('upper-latin', 28), 'AB')
+assert.strictEqual(getSymbolForNumber('circled-upper-latin', 27), null)
+assert.strictEqual(getSymbolForNumber('filled-squared-upper-latin', 26), '🆉')
+assert.strictEqual(getSymbolForNumber('filled-squared-upper-latin', 27), null)
+assert.strictEqual(detectMarkerType('🆉 item').type, 'filled-squared-upper-latin')
+assert.strictEqual(detectMarkerType('① item').type, 'circled-decimal')
+assert.strictEqual(detectMarkerType('①').type, 'circled-decimal')
+assert.strictEqual(detectMarkerType('①item').type, null)
+
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditNumberingUl, { alwaysMarkerSpan: true })
+    .render('- ア．one\n- ア．two\n- ア．three\n'),
+  '<ol role="list" class="ol-katakana" data-marker-suffix="．">\n' +
+    '<li><span class="li-num" aria-hidden="true">ア．</span> one</li>\n' +
+    '<li><span class="li-num" aria-hidden="true">イ．</span> two</li>\n' +
+    '<li><span class="li-num" aria-hidden="true">ウ．</span> three</li>\n' +
+    '</ol>\n',
+  'repeated ア markers should render as a gojuon sequence'
+)
+
+assert.strictEqual(
+  mdit({ html: true })
+    .use(mditNumberingUl)
+    .render('- 🅰 A\n- 🆉 Z\n'),
+  '<ol role="list" class="ol-filled-squared-upper-latin">\n' +
+    '<li><span class="li-num" aria-hidden="true">🅰</span> A</li>\n' +
+    '<li value="26"><span class="li-num" aria-hidden="true">🆉</span> Z</li>\n' +
+    '</ol>\n',
+  'filled squared Latin markers should include the complete A-Z Unicode range'
 )
 
 assert.doesNotThrow(

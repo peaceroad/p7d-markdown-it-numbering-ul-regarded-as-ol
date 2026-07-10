@@ -57,7 +57,7 @@ Marker separators differ depending on the character style used for the ordinal m
 - `fullwidth`: includes fullwidth separators such as `イ．`, `イ）`, `（イ）`;
 - `enclosed`: enclosed glyphs like `①` which do not use `.` or `)` as separators.
 
-After the marker separator, an ASCII space is normally expected. For `fullwidth` and `enclosed` patterns a fullwidth space is accepted in place of the ASCII space; enclosed markers may also appear without a following space. See `listTypes.json` for the canonical marker definitions.
+After the marker separator, an ASCII space is normally expected. For `fullwidth` and `enclosed` patterns a fullwidth space is accepted in place of the ASCII space. Enclosed markers do not need a separator, but they still need whitespace between the marker and following item text; a marker at the end of the line is also valid. For example, `- ① item` is recognized, while `- ①item` is left unchanged. See `listTypes.json` for the canonical marker definitions.
 
 ### Attributes and markers
 
@@ -70,7 +70,7 @@ After the marker separator, an ASCII space is normally expected. For `fullwidth`
 
 ### Structures
 
-- Marker type detection is deterministic: gather all markers at a nesting level, match them against the canonical definitions, keep the type that explains the most items while preserving numeric continuity, and use the order in `listTypes.json` only as a final tiebreaker.
+- Marker type detection is deterministic. Context-enabled symbol sequences are checked first; when the same ambiguous symbol is repeated, the sequence where that symbol appears earliest is preferred (`ア` selects gojuon order, while `イ` selects iroha order). Other candidates use the compiled pattern priority derived from the order in `listTypes.json`.
 - Flattening: A pattern like `- 1.` is represented by the default `ul > li > ol` nesting structure in markdown-it, but this plugin simplifies it to a single `ol` by default to match the representation of other markers.
 - With `markdown-it-attrs`, attr blocks follow that plugin's nearest-block behavior. This plugin does not reassign list attrs after flattening.
 
@@ -351,6 +351,22 @@ md.use(mditNumberingUl)
 
 const html = md.render(`- a. First\n- b. Second`)
 console.log(html)
+```
+
+### Required CSS for span-rendered markers
+
+This package intentionally does not ship presentation CSS. Custom markers and `alwaysMarkerSpan: true` emit visible marker text in a `<span>` and use `role="list"`; add the following CSS to hide the browser's native marker:
+
+```css
+ol[role="list"] {
+  list-style: none;
+}
+```
+
+If external CSS is not practical, enable `hasListStyleNone` to emit the equivalent inline `style="list-style: none;"` only on lists that need marker hiding:
+
+```js
+md.use(mditNumberingUl, { hasListStyleNone: true })
 ```
 
 Register this plugin only once per `markdown-it` instance. A second registration fails fast because running the conversion pipeline twice on the same token stream would corrupt already-converted lists.

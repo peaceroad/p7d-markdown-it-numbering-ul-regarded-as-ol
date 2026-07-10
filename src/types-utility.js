@@ -6,14 +6,88 @@ const escapeRegExp = (string) => {
   return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
-// Normalize fullwidth digits to ASCII digits
-const normalizeFullwidthDigits = (str) => {
-  if (!str || typeof str !== 'string') return str
-  return str.replace(/[０-９]/g, ch => {
-    const code = ch.codePointAt(0)
-    return String.fromCharCode(code - 0xFF10 + 48)
-  })
+const VALID_HTML_TYPES = new Set(['1', 'a', 'A', 'i', 'I'])
+const VALID_SPACE_MODES = new Set(['half', 'both', 'none_or_both'])
+
+const validateListTypes = (config) => {
+  if (!config || config.schemaVersion !== 1) {
+    throw new Error('listTypes.json must declare schemaVersion: 1')
+  }
+  if (!Array.isArray(config.types) || !Array.isArray(config.patternGroups)) {
+    throw new Error('listTypes.json must contain types and patternGroups arrays')
+  }
+
+  const patternNames = new Set()
+  for (const group of config.patternGroups) {
+    if (!group || typeof group.name !== 'string' || !group.name || patternNames.has(group.name)) {
+      throw new Error(`Invalid or duplicate pattern group: ${group?.name ?? ''}`)
+    }
+    if (!Array.isArray(group.patterns) || group.patterns.length === 0) {
+      throw new Error(`Pattern group ${group.name} must contain patterns`)
+    }
+    patternNames.add(group.name)
+    for (const pattern of group.patterns) {
+      if (typeof pattern?.prefix !== 'string' || typeof pattern?.suffix !== 'string') {
+        throw new Error(`Pattern group ${group.name} must use string prefix/suffix values`)
+      }
+      if (pattern.space !== undefined && !VALID_SPACE_MODES.has(pattern.space)) {
+        throw new Error(`Pattern group ${group.name} has invalid space mode: ${pattern.space}`)
+      }
+    }
+  }
+
+  const typeNames = new Set()
+  for (const type of config.types) {
+    if (!type || typeof type.name !== 'string' || !type.name || typeNames.has(type.name)) {
+      throw new Error(`Invalid or duplicate list type: ${type?.name ?? ''}`)
+    }
+    typeNames.add(type.name)
+
+    const hasSymbols = Array.isArray(type.symbols)
+    const hasRange = Array.isArray(type.range)
+    const isNumeric = type.numeric === true
+    if (Number(hasSymbols) + Number(hasRange) + Number(isNumeric) !== 1) {
+      throw new Error(`List type ${type.name} must define exactly one of symbols, range, or numeric: true`)
+    }
+    if (type.numeric !== undefined && type.numeric !== true) {
+      throw new Error(`List type ${type.name} numeric must be true when present`)
+    }
+    if (!Number.isInteger(type.start)) {
+      throw new Error(`List type ${type.name} must define an integer start value`)
+    }
+    if (typeof type.pattern !== 'string' || !patternNames.has(type.pattern)) {
+      throw new Error(`List type ${type.name} references an unknown pattern group`)
+    }
+    if (type.htmlType !== undefined && !VALID_HTML_TYPES.has(type.htmlType)) {
+      throw new Error(`List type ${type.name} has invalid htmlType: ${type.htmlType}`)
+    }
+    if (type.contextSequence !== undefined && type.contextSequence !== true) {
+      throw new Error(`List type ${type.name} contextSequence must be true when present`)
+    }
+    if (type.contextSequence && !hasSymbols) {
+      throw new Error(`List type ${type.name} contextSequence requires symbols`)
+    }
+    if (hasSymbols) {
+      if (type.symbols.length === 0 || type.symbols.some(symbol => typeof symbol !== 'string' || !symbol)) {
+        throw new Error(`List type ${type.name} must contain non-empty string symbols`)
+      }
+      if (new Set(type.symbols).size !== type.symbols.length) {
+        throw new Error(`List type ${type.name} contains duplicate symbols`)
+      }
+    }
+    if (hasRange) {
+      if (type.range.length !== 2 ||
+          type.range.some(value => typeof value !== 'string' || Array.from(value).length !== 1)) {
+        throw new Error(`List type ${type.name} range must contain two single Unicode characters`)
+      }
+      if (type.range[0].codePointAt(0) > type.range[1].codePointAt(0)) {
+        throw new Error(`List type ${type.name} range must be ascending`)
+      }
+    }
+  }
 }
+
+validateListTypes(types)
 
 // Resolve top-level pattern groups once at module initialization.
 // Use `patternGroups` top-level key from `listTypes.json`.
@@ -142,37 +216,26 @@ const getTypeSeparation = () => {
 const getStartValue = (typeInfo) => typeInfo?.start !== undefined ? typeInfo.start : 1
 
 /**
- * Check if symbols match a specific sequence pattern
+ * Find where a marker sequence begins in a candidate symbol sequence.
  * @param {Array<string>} pureSymbols - Array of pure symbols (without prefix/suffix)
  * @param {Array<string>} sequence - Expected sequence array
- * @param {string} typeName - Name of the type to return
  * @param {boolean} allSame - Whether all symbols are the same
- * @returns {Object|null} Type object or null
+ * @returns {number} Zero-based start index, or -1 when it does not match
  */
-const checkSequenceMatch = (pureSymbols, sequence, typeName, allSame) => {
-  if (allSame && pureSymbols.length >= 1) {
-    if (sequence.indexOf(pureSymbols[0]) !== -1) {
-      return { type: typeName }
-    }
-  } else if (pureSymbols.length >= 2) {
-    // Find where the first symbol appears in the sequence
-    const startIndex = sequence.indexOf(pureSymbols[0])
-    if (startIndex === -1) return null
-    
-    // Check if all symbols match a consecutive part of the sequence
-    let isValidSequence = true
-    for (let i = 0; i < pureSymbols.length; i++) {
-      const expectedIndex = startIndex + i
-      if (expectedIndex >= sequence.length || pureSymbols[i] !== sequence[expectedIndex]) {
-        isValidSequence = false
-        break
-      }
-    }
-    if (isValidSequence) {
-      return { type: typeName }
+const findSequenceStart = (pureSymbols, sequence, allSame) => {
+  if (pureSymbols.length === 0) return -1
+  const startIndex = sequence.indexOf(pureSymbols[0])
+  if (startIndex === -1) return -1
+  if (allSame) return startIndex
+  if (pureSymbols.length < 2) return -1
+
+  for (let i = 0; i < pureSymbols.length; i++) {
+    const expectedIndex = startIndex + i
+    if (expectedIndex >= sequence.length || pureSymbols[i] !== sequence[expectedIndex]) {
+      return -1
     }
   }
-  return null
+  return startIndex
 }
 
 /**
@@ -229,25 +292,15 @@ const calculateNumber = (typeInfo, pureSymbol, compiled = null) => {
 
     const symbolIndex = typeInfo.symbols.indexOf(pureSymbol)
     return symbolIndex !== -1 ? symbolIndex + getStartValue(typeInfo) : undefined
+  } else if (typeInfo.numeric) {
+    const numValue = parseInt(pureSymbol, 10)
+    return Number.isNaN(numValue) ? undefined : numValue
   } else if (typeInfo.range) {
-    // Range-based types (lower-latin, upper-latin, decimal)
+    // Code-point range types (Latin and enclosed Latin variants)
     const startValue = getStartValue(typeInfo)
-    if (Array.isArray(typeInfo.range) && typeof typeInfo.range[0] === 'string') {
-      // Latin range: ["a", "z"] or ["A", "Z"]
-      const startChar = typeInfo.range[0]
-      if (pureSymbol.length > 0) {
-        // Use codePointAt for proper Unicode handling (including surrogate pairs)
-        const charCode = pureSymbol.codePointAt(0)
-        const startCharCode = startChar.codePointAt(0)
-        return charCode - startCharCode + startValue
-      }
-    } else {
-      // Numeric range: [start, end]
-      const norm = normalizeFullwidthDigits(pureSymbol)
-      const numValue = parseInt(norm, 10)
-      if (!isNaN(numValue)) {
-        return numValue
-      }
+    const charCode = pureSymbol.codePointAt(0)
+    if (charCode !== undefined) {
+      return charCode - typeInfo.range[0].codePointAt(0) + startValue
     }
   }
   
@@ -282,21 +335,24 @@ export const detectSequencePattern = (allContents) => {
   // Check if all symbols are the same (repeated marker case)
   const allSame = pureSymbols.every(s => s === pureSymbols[0])
   
-  // Cache type lookups
-  const irohaType = _TYPE_INFO_BY_NAME.get('katakana-iroha')
-  const katakanaType = _TYPE_INFO_BY_NAME.get('katakana')
+  // For repeated ambiguous symbols, prefer the sequence where that symbol
+  // appears earliest. This makes repeated ア use gojuon order while repeated
+  // イ still naturally selects iroha order.
+  let repeatedSequenceMatch = null
+  for (const sequenceType of _CONTEXT_SEQUENCE_TYPES) {
+    const startIndex = findSequenceStart(pureSymbols, sequenceType.symbols, allSame)
+    if (startIndex === -1) continue
+    if (!allSame) return { type: sequenceType.name }
+    if (!repeatedSequenceMatch || startIndex < repeatedSequenceMatch.startIndex) {
+      repeatedSequenceMatch = { type: sequenceType.name, startIndex }
+    }
+  }
+  if (repeatedSequenceMatch) {
+    return { type: repeatedSequenceMatch.type }
+  }
+
+  // Cache type lookup
   const upperRomanType = _TYPE_INFO_BY_NAME.get('upper-roman')
-  
-  // Get symbol sequences from listTypes.json
-  if (irohaType?.symbols) {
-    const irohaResult = checkSequenceMatch(pureSymbols, irohaType.symbols, 'katakana-iroha', allSame)
-    if (irohaResult) return irohaResult
-  }
-  
-  if (katakanaType?.symbols) {
-    const katakanaResult = checkSequenceMatch(pureSymbols, katakanaType.symbols, 'katakana', allSame)
-    if (katakanaResult) return katakanaResult
-  }
   
   // Check Roman numerals from listTypes.json
   if (upperRomanType?.symbols) {
@@ -399,23 +455,34 @@ export const getSymbolForNumber = (markerType, number) => {
     }
   }
   
-  // For range-based types (latin, decimal)
+  if (typeInfo.numeric) {
+    return String(number)
+  }
+
+  // Native Latin list types continue as z, aa, ab, matching HTML ordered-list
+  // numbering rather than walking into unrelated Unicode code points.
+  if (typeInfo.htmlType === 'a' || typeInfo.htmlType === 'A') {
+    const startValue = getStartValue(typeInfo)
+    let value = number - startValue + 1
+    if (!Number.isInteger(value) || value <= 0) return null
+    let symbol = ''
+    while (value > 0) {
+      value--
+      symbol = String.fromCharCode(97 + (value % 26)) + symbol
+      value = Math.floor(value / 26)
+    }
+    return typeInfo.htmlType === 'A' ? symbol.toUpperCase() : symbol
+  }
+
+  // Finite code-point ranges must stop at their declared endpoint.
   if (typeInfo.range) {
     const startValue = getStartValue(typeInfo)
-    if (Array.isArray(typeInfo.range) && typeInfo.range.length === 2) {
-      // Latin range: ["a", "z"] or ["A", "Z"]
-      const startChar = typeInfo.range[0]
-      // Ensure startChar is a string
-      if (typeof startChar === 'string' && startChar.length > 0) {
-        // Use codePointAt and fromCodePoint for proper Unicode handling
-        const startCharCode = startChar.codePointAt(0)
-        const offset = number - startValue
-        const targetCharCode = startCharCode + offset
-        return String.fromCodePoint(targetCharCode)
-      }
+    const targetCodePoint = typeInfo.range[0].codePointAt(0) + number - startValue
+    if (targetCodePoint < typeInfo.range[0].codePointAt(0) ||
+        targetCodePoint > typeInfo.range[1].codePointAt(0)) {
+      return null
     }
-    // Numeric range or fallback
-    return String(number)
+    return String.fromCodePoint(targetCodePoint)
   }
   
   return null
@@ -451,22 +518,6 @@ const generateClassName = (baseClass, prefix, suffix) => {
   return `${baseClass}-with-${p}-${s}`
 }
 
-// Standard marker types mapping
-const STANDARD_TYPES = {
-  'decimal': { type: '1', baseClass: 'ol-decimal' },
-  'lower-latin': { type: 'a', baseClass: 'ol-lower-latin' },
-  'upper-latin': { type: 'A', baseClass: 'ol-upper-latin' },
-  'lower-roman': { type: 'i', baseClass: 'ol-lower-roman' },
-  'upper-roman': { type: 'I', baseClass: 'ol-upper-roman' }
-}
-
-// Custom marker types with no suffix
-const CUSTOM_TYPES_NO_SUFFIX = new Set([
-  'filled-circled-decimal', 'circled-decimal',
-  'circled-upper-latin', 'filled-circled-upper-latin',
-  'circled-lower-latin', 'katakana', 'katakana-iroha'
-])
-
 export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   const type = _TYPE_INFO_BY_NAME.get(markerType)
   if (!type) {
@@ -474,38 +525,19 @@ export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   }
   
   // Get prefix/suffix from markerInfo if provided
-  const detectedPrefix = markerInfo?.prefix || null
-  const detectedSuffix = markerInfo?.suffix || '.'
-  
-  let mappedType
-  let suffix = detectedSuffix
-  let prefix = detectedPrefix
-  let customMarker = false
-  
-  if (STANDARD_TYPES[type.name]) {
-    const std = STANDARD_TYPES[type.name]
-    const baseClass = std.baseClass
-    const decoratedClass = opt.addMarkerStyleToClass
-      ? generateClassName(baseClass, prefix, suffix)
-      : baseClass
-    mappedType = { 
-      type: std.type, 
-      class: decoratedClass
-    }
-  } else {
-    // Custom marker types
-    mappedType = { type: '1', class: `ol-${type.name}` }
-    customMarker = true
-    if (CUSTOM_TYPES_NO_SUFFIX.has(type.name)) {
-      suffix = null
-    }
-  }
+  const prefix = markerInfo?.prefix ?? null
+  const suffix = markerInfo?.suffix ?? '.'
+  const baseClass = `ol-${type.name}`
+  const customMarker = !type.htmlType
+  const className = type.htmlType && opt.addMarkerStyleToClass
+    ? generateClassName(baseClass, prefix, suffix)
+    : baseClass
   
   const result = {
-    type: customMarker ? null : mappedType.type,  // No type attribute for custom markers
-    class: mappedType.class,
-    suffix: suffix,
-    customMarker: customMarker,
+    type: type.htmlType || null,
+    class: className,
+    suffix,
+    customMarker,
     start: getStartValue(type)
   }
   
@@ -524,9 +556,6 @@ export const getTypeAttributes = (markerType, markerInfo = null, opt = {}) => {
   
   return result
 }
-
-
-
 // Precompute regex tail (endCheck + spacePattern) for a pattern to avoid recomputing
 const createPatternTail = (pattern) => {
   // Determine if the pattern's suffix (if any) contains any fullwidth suffix
@@ -621,7 +650,7 @@ const processSymbolPatterns = (patterns, symbols, typePatterns, type) => {
 const processRangePatterns = (patterns, typePatterns, type) => {
   // Pre-calculate symbol pattern once
   let symbolPattern
-  if (typeof type.range[0] === 'number') {
+  if (type.numeric) {
     // Allow only ASCII digits here — do not synthesize fullwidth digit variants.
     symbolPattern = '(?:\\d+)'
   } else {
@@ -659,7 +688,7 @@ const processRangePatterns = (patterns, typePatterns, type) => {
       symbolIndex: 0,
       num: type.start,
       isRange: true,
-      rangeType: typeof type.range[0] === 'number' ? 'numeric' : 'alphabetic'
+      rangeType: type.numeric ? 'numeric' : 'alphabetic'
     })
 
     // Note: Do not synthesize additional suffix variants here.
@@ -689,7 +718,7 @@ export const compiledTypes = (() => {
 
         if (type.symbols) {
           processSymbolPatterns(patterns, type.symbols, typePatterns, type)
-        } else if (type.range) {
+        } else if (type.range || type.numeric) {
           processRangePatterns(patterns, typePatterns, type)
         }
 
@@ -733,6 +762,7 @@ const _FLATTENED_PATTERNS = (() => {
 })()
 
 const _TYPE_INFO_BY_NAME = getTypeSeparation().typeInfoByName
+const _CONTEXT_SEQUENCE_TYPES = types.types.filter(type => type.contextSequence === true)
 const ASCII_DIGIT_LEADS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 const getFirstCodePointChar = (text) => {
@@ -763,12 +793,12 @@ const buildEntryLeadingChars = (entry) => {
     return symbolLead ? [symbolLead] : []
   }
 
-  if (!Array.isArray(typeInfo.range) || typeInfo.range.length !== 2) {
-    return []
+  if (typeInfo.numeric) {
+    return ASCII_DIGIT_LEADS
   }
 
-  if (typeof typeInfo.range[0] === 'number') {
-    return ASCII_DIGIT_LEADS
+  if (!Array.isArray(typeInfo.range) || typeInfo.range.length !== 2) {
+    return []
   }
 
   const start = typeInfo.range[0]?.codePointAt(0)

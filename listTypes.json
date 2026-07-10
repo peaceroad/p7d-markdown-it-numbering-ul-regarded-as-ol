@@ -1,34 +1,40 @@
 {
+  "schemaVersion": 1,
   "types": [
     {
       "name": "decimal",
-      "range": [0, 50],
+      "numeric": true,
       "start": 0,
-      "pattern": "common"
+      "pattern": "common",
+      "htmlType": "1"
     },
     {
       "name": "lower-latin",
       "range": ["a", "z"],
       "start": 1,
-      "pattern": "common"
+      "pattern": "common",
+      "htmlType": "a"
     },
     {
       "name": "upper-latin",
       "range": ["A", "Z"],
       "start": 1,
-      "pattern": "common"
+      "pattern": "common",
+      "htmlType": "A"
     },
     {
       "name": "lower-roman",
       "symbols": ["i","ii","iii","iv","v","vi","vii","viii","ix","x","xi","xii","xiii","xiv","xv","xvi","xvii","xviii","xix","xx","xxi","xxii","xxiii","xxiv","xxv","xxvi","xxvii","xxviii","xxix","xxx"],
       "start": 1,
-      "pattern": "common"
+      "pattern": "common",
+      "htmlType": "i"
     },
     {
       "name": "upper-roman",
       "symbols": ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI","XXII","XXIII","XXIV","XXV","XXVI","XXVII","XXVIII","XXIX","XXX"],
       "start": 1,
-      "pattern": "common"
+      "pattern": "common",
+      "htmlType": "I"
     },
     {
       "name": "circled-decimal",
@@ -52,13 +58,15 @@
       "name": "katakana-iroha",
       "symbols": ["イ","ロ","ハ","ニ","ホ","ヘ","ト","チ","リ","ヌ","ル","ヲ","ワ","カ","ヨ","タ","レ","ソ","ツ","ネ","ナ","ラ","ム","ウ","ヰ","ノ","オ","ク","ヤ","マ","ケ","フ","コ","エ","テ","ア","サ","キ","ユ","メ","ミ","シ","ヱ","ヒ","モ","セ","ス","ン"],
       "start": 1,
-      "pattern": "fullwidth"
+      "pattern": "fullwidth",
+      "contextSequence": true
     },
     {
       "name": "katakana",
       "symbols": ["ア","イ","ウ","エ","オ","カ","キ","ク","ケ","コ","サ","シ","ス","セ","ソ","タ","チ","ツ","テ","ト","ナ","ニ","ヌ","ネ","ノ","ハ","ヒ","フ","ヘ","ホ","マ","ミ","ム","メ","モ","ヤ","ユ","ヨ","ラ","リ","ル","レ","ロ","ワ","ヰ","ヱ","ヲ","ン"],
       "start": 1,
-      "pattern": "fullwidth"
+      "pattern": "fullwidth",
+      "contextSequence": true
     },
     {
       "name": "japanese-informal",
@@ -110,7 +118,7 @@
     },
     {
       "name": "filled-squared-upper-latin",
-      "range": ["🅰", "🅹"],
+      "range": ["🅰", "🆉"],
       "start": 1,
       "pattern": "enclosed"
     },

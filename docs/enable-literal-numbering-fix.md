@@ -5,6 +5,7 @@
 - `enableLiteralNumberingFix` default is `false` (legacy-compatible).
 - `npm test` passes in default mode and with explicit `enableLiteralNumberingFix: true`.
 - The main tradeoff is output compatibility, not parser correctness.
+- The default flip is currently deferred; marker-schema changes are being handled separately.
 
 ## Behavior Summary
 
@@ -79,3 +80,11 @@ md.use(mditNumberingUl, { enableLiteralNumberingFix: true })
 ```
 
 - Treat switching between `false` and `true` as a breaking-output configuration change.
+
+## Default-Flip Readiness
+
+- Keep `false` for the current release line.
+- Consider `true` only in a clearly announced breaking-output release.
+- Before changing the default, commit a repeatable `false` vs `true` corpus-diff tool and retain explicit `false` legacy fixtures.
+- Add tab-stop, mixed tab/space, blockquote + tab, HTML-block, attrs-order, and mapless boundary coverage.
+- Re-run median performance comparisons on real document/book corpora. Synthetic paired measurements show ordinary lists are nearly neutral, multiline non-literal lists pay a modest scan cost, and documents containing many recovered literal candidates pay the expected token-construction cost.

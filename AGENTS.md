@@ -83,7 +83,9 @@
 ## Marker & Attribute Notes
 
 - `types-utility.js` wraps every interaction with `listTypes.json`. Do **not** access the JSON directly from other phases.
-- Marker detection caches in `types-utility.js` are module-scoped and immutable after init: `PATTERN_GROUP_MAP`, `_symbolBasedTypes`, `_rangeBasedTypes`, `_sortedSymbolTypes`, `_typeInfoByName`, `_COMPILED_BY_NAME`, per-type `symbolIndexMap`, and `_FLATTENED_PATTERNS_BY_LEAD`. `detectMarkerType` first narrows candidates by leading code point, then tests only the relevant compiled regex subset.
+- `listTypes.json` uses schema version 1 and is validated at module initialization. Each type declares exactly one human-editable source (`numeric: true`, explicit `symbols`, or a continuous Unicode `range`), plus its pattern group. Native HTML types declare `htmlType`; overlapping list-wide sequences opt in with `contextSequence: true`. See `docs/list-types-schema.md`.
+- Marker detection caches in `types-utility.js` are module-scoped and immutable after init: `PATTERN_GROUP_MAP`, `_symbolBasedTypes`, `_rangeBasedTypes`, `_sortedSymbolTypes`, `_typeInfoByName`, `_CONTEXT_SEQUENCE_TYPES`, `_COMPILED_BY_NAME`, per-type `symbolIndexMap`, and `_FLATTENED_PATTERNS_BY_LEAD`. `detectMarkerType` first narrows candidates by leading code point, then tests only the relevant compiled regex subset.
+- For repeated ambiguous context-sequence markers, prefer the sequence where the repeated symbol occurs earliest (`ア` selects gojuon; `イ` selects iroha); type order is the final tiebreaker. Native Latin span symbols continue after `z` as `aa`, while finite custom ranges stop at their declared endpoint.
 - Custom markers (circled digits, kana, etc.) omit the `type` attribute, emit `role="list"`, and optionally `style="list-style: none;"` when `hasListStyleNone` is enabled.
 - `alwaysMarkerSpan` also forces `role="list"` / optional `list-style: none` handling even for standard marker types unless `useCounterStyle` is enabled.
 - `markerSpanClass` is normalised with `trim()`. Empty/whitespace-only values fall back to `li-num`.
